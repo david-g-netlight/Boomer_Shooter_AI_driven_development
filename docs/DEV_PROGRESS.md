@@ -16,7 +16,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 |---|---|---|---|---|---|
 | 0 | Project setup, CMake, raygui, Bullet static libs | ✅ | 2026-11-06 | 2026-11-06 | [devlog](project_setup_and_build_system_devlog.md) |
 | 1 | Core: Engine, Application, Time, Window | ✅ | 2026-11-06 | 2026-11-06 | [devlog](core_devlog.md) |
-| 2 | Input | 🟡 | 2026-11-06 | | |
+| 2 | Input | ✅ | 2026-11-06 | 2026-11-06 | [devlog](input_devlog.md) |
 | 3 | Resources and rendering | ⬜ | | | |
 | 4 | Scene: GameActor, Component, Level | ⬜ | | | |
 | 5 | Physics (Bullet 3.25) | ⬜ | | | |
@@ -29,8 +29,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 2
-**Branch:** `input` (from `integration`)
+**Current focus:** Phase 3
+**Branch:** `resources_and_rendering` (from `integration`)
 
 ---
 
@@ -55,11 +55,11 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `main.cpp` reduced to the reference pattern; temporary `ScaleGame` draws a cube
 - [x] **Done when:** window opens via `Engine::Run`, cube renders, clean shutdown *(validated by the developer)*
 
-### Phase 2 — Input 🟡
+### Phase 2 — Input ✅
 - [x] `InputManager::Poll()` (down / pressed / released, mouse delta, wheel)
 - [x] `InputMap` actions and axes (+ debug overlay in `ScaleGame`)
 - [x] Cursor lock / unlock (+ temporary `C` toggle and mouse‑look fly camera in `ScaleGame`)
-- [ ] **Done when:** debug overlay shows action states; mouse look works with the cursor locked
+- [x] **Done when:** debug overlay shows action states; mouse look works with the cursor locked *(validated by the developer)*
 
 ### Phase 3 — Resources and rendering ⬜
 - [ ] `ResourceManager` (cache + `UnloadAll`, primitives)
@@ -185,7 +185,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
-| 2026-11-06 | 2 | All 3 Phase 2 tasks committed on `input`; 4 s smoke run clean (no unbound‑input warnings, no errors) | Developer runs the Phase 2 **Done when** check | Waiting for green light to merge |
+| 2026-11-06 | 2 | Developer validated Phase 2; devlog written; merged into `integration` | Start Phase 3 on `resources_and_rendering` | — |
+| 2026-11-06 | 2 | All 3 Phase 2 tasks committed on `input`; 4 s smoke run clean (no unbound‑input warnings, no errors) | Developer runs the Phase 2 **Done when** check | — |
 | 2026-11-06 | 1 | Developer validated Phase 1; devlog written; merged into `integration` | Start Phase 2 on `input` | — |
 | 2026-11-06 | 1 | All 5 Phase 1 tasks committed on `core`; `Time` fixed-step unit check passed; 4 s smoke run: cwd switches to the app dir, HighDPI 1280×720 → 2560×1440, no warnings | Developer runs the Phase 1 **Done when** check (incl. closing the window → Destroy + Shutdown logs) | — |
 | 2026-11-06 | 0 | Toolchain switched to Command Line Tools (fixes `tapi` linker error); developer validated Phase 0; devlog written; merged into `integration` | Start Phase 1 on `core` | — |
