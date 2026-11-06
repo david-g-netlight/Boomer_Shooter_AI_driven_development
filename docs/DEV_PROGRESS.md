@@ -22,7 +22,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 5 | Scene: GameActor, Component, Level | ✅ | 2026-11-06 | 2026-11-07 | [devlog](scene_devlog.md) |
 | 6 | Physics (Bullet 3.25) | ✅ | 2026-11-07 | 2026-11-07 | [devlog](physics_devlog.md) |
 | 7 | FX: particles and lines | ✅ | 2026-11-07 | 2026-11-07 | [devlog](fx_devlog.md) |
-| 8 | Events, modes, menus | ⬜ | | | |
+| 8 | Events, modes, menus | 🟡 | 2026-11-07 | | |
 | 9 | Editor mode | ⬜ | | | |
 | 10 | Game: state and player | ⬜ | | | |
 | 11 | Game: scaling mechanic | ⬜ | | | |
@@ -103,8 +103,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `LineRenderer` (thick gradient line) (+ RenderQueue transparent line pass: open tube, per‑vertex gradient; LMB / RMB beams that fade in 0.35 s)
 - [x] **Done when:** click spawns a colored burst and a fading beam *(validated by the developer)*
 
-### Phase 8 — Events, modes, menus ⬜
-- [ ] `EventBus` (queued dispatch)
+### Phase 8 — Events, modes, menus 🟡
+- [x] `EventBus` (queued dispatch)
 - [ ] `ModeMachine` (MainMenu / Play / Paused / Editor; cursor, audio duck, hooks)
 - [ ] `UIStack`, `UIScreen`, `UIStyle`, `RayGuiImpl.cpp`
 - [ ] `MainMenuScreen`, `PauseMenuScreen`, `MessageScreen`

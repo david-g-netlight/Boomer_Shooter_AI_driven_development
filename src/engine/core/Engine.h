@@ -2,6 +2,7 @@
 #include "Time.h"
 #include "WindowInfo.h"
 #include "World.h"
+#include "EventBus.h"
 #include "input/InputManager.h"
 #include "resources/ResourceManager.h"
 #include "render/Camera.h"
@@ -87,6 +88,7 @@ namespace eng
 		AudioManager&		GetAudio();
 		PhysicsWorld&		GetPhysics();
 		ParticleSystem&		GetParticles();
+		EventBus&			GetEvents();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -111,6 +113,7 @@ namespace eng
 		AudioManager	m_audio;
 		PhysicsWorld	m_physics;
 		ParticleSystem	m_particles;
+		EventBus		m_events;
 
 		Time			m_time;
 		WindowInfo		m_window;

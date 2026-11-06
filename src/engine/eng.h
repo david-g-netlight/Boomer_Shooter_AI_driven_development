@@ -12,6 +12,7 @@
 #include "core/WindowInfo.h"
 #include "core/World.h"
 #include "core/Log.h"
+#include "core/EventBus.h"
 #include "core/MathUtils.h"
 #include "input/InputManager.h"
 #include "input/InputMap.h"

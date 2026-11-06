@@ -129,7 +129,9 @@ namespace eng
 				m_app->DrawHUD();
 			EndDrawing(); // Swaps buffers and polls input events
 
-			// 5. End of frame: actors marked for destroy are deleted (nothing refers to them anymore)
+			// 5. End of frame: queued events (handlers may still look at actors marked this frame),
+			//    then actors marked for destroy are deleted (nothing refers to them anymore)
+			m_events.Dispatch();
 			m_renderQueue.Clear();
 			m_debugDraw.EndFrame(m_time.GetUnscaledDeltaTime());
 			if (level) level->FlushDestroyed();
@@ -217,6 +219,11 @@ namespace eng
 	ParticleSystem& Engine::GetParticles()
 	{
 		return m_particles;
+	}
+
+	EventBus& Engine::GetEvents()
+	{
+		return m_events;
 	}
 
 	Time& Engine::GetTime()
