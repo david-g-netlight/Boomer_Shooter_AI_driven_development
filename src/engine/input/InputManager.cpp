@@ -41,4 +41,7 @@ namespace eng
 	const Vector2&	InputManager::GetMousePosition() const	{ return m_mousePosition; }
 	const Vector2&	InputManager::GetMouseDelta() const		{ return m_mouseDelta; }
 	float			InputManager::GetMouseWheel() const		{ return m_mouseWheel; }
+
+	InputMap&		InputManager::GetMap()			{ return m_map; }
+	const InputMap&	InputManager::GetMap() const	{ return m_map; }
 }

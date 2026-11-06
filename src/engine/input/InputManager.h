@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <raylib.h>
+#include "InputMap.h"
 
 /**
 * This Class is owned and controlled by the Engine only
@@ -43,6 +44,12 @@ namespace eng
 		const Vector2&	GetMouseDelta() const;		// movement since last frame, in screen points
 		float			GetMouseWheel() const;		// > 0 scroll up, < 0 scroll down
 
+		//////////////////////////////////////////
+		/// Named actions and axes
+		//////////////////////////////////////////
+		InputMap&		GetMap();
+		const InputMap&	GetMap() const;
+
 	private:
 		//////////////////////////////////////////
 		// Private Constructors and Destructors
@@ -81,5 +88,7 @@ namespace eng
 		Vector2	m_mousePosition		= { 0.0f, 0.0f };
 		Vector2	m_mouseDelta		= { 0.0f, 0.0f };
 		float	m_mouseWheel		= 0.0f;
+
+		InputMap m_map { *this };
 	};
 }

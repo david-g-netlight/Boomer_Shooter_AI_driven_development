@@ -13,3 +13,4 @@
 #include "core/World.h"
 #include "core/Log.h"
 #include "input/InputManager.h"
+#include "input/InputMap.h"

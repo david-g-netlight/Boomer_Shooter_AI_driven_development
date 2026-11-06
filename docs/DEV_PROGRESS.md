@@ -57,7 +57,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 ### Phase 2 — Input 🟡
 - [x] `InputManager::Poll()` (down / pressed / released, mouse delta, wheel)
-- [ ] `InputMap` actions and axes
+- [x] `InputMap` actions and axes (+ debug overlay in `ScaleGame`)
 - [ ] Cursor lock / unlock
 - [ ] **Done when:** debug overlay shows action states; mouse look works with the cursor locked
 
