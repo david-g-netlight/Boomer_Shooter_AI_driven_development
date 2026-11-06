@@ -106,6 +106,8 @@ namespace eng
 
 		if (m_isWindowOpen)
 		{
+			// GPU resources must be released while the GL context still exists
+			m_resources.UnloadAll();
 			CloseWindow();
 			m_isWindowOpen = false;
 			Log::Info("Engine shut down");
@@ -134,6 +136,11 @@ namespace eng
 	InputManager& Engine::GetInputManager()
 	{
 		return m_inputManager;
+	}
+
+	ResourceManager& Engine::GetResources()
+	{
+		return m_resources;
 	}
 
 	Time& Engine::GetTime()

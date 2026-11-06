@@ -14,3 +14,4 @@
 #include "core/Log.h"
 #include "input/InputManager.h"
 #include "input/InputMap.h"
+#include "resources/ResourceManager.h"

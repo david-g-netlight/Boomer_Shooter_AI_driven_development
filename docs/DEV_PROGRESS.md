@@ -17,7 +17,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 0 | Project setup, CMake, raygui, Bullet static libs | ✅ | 2026-11-06 | 2026-11-06 | [devlog](project_setup_and_build_system_devlog.md) |
 | 1 | Core: Engine, Application, Time, Window | ✅ | 2026-11-06 | 2026-11-06 | [devlog](core_devlog.md) |
 | 2 | Input | ✅ | 2026-11-06 | 2026-11-06 | [devlog](input_devlog.md) |
-| 3 | Resources and rendering | ⬜ | | | |
+| 3 | Resources and rendering | 🟡 | 2026-11-06 | | |
 | 4 | Scene: GameActor, Component, Level | ⬜ | | | |
 | 5 | Physics (Bullet 3.25) | ⬜ | | | |
 | 6 | Audio | ⬜ | | | |
@@ -61,8 +61,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Cursor lock / unlock (+ temporary `C` toggle and mouse‑look fly camera in `ScaleGame`)
 - [x] **Done when:** debug overlay shows action states; mouse look works with the cursor locked *(validated by the developer)*
 
-### Phase 3 — Resources and rendering ⬜
-- [ ] `ResourceManager` (cache + `UnloadAll`, primitives)
+### Phase 3 — Resources and rendering 🟡
+- [x] `ResourceManager` (cache + `UnloadAll`, primitives)
 - [ ] `Camera`, `ActiveCamera`
 - [ ] `Material` (tint, shader, params)
 - [ ] `RenderCommand`, `RenderQueue`

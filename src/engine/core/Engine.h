@@ -3,6 +3,7 @@
 #include "WindowInfo.h"
 #include "World.h"
 #include "input/InputManager.h"
+#include "resources/ResourceManager.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -73,6 +74,7 @@ namespace eng
 		// Getters to core objects
 		//////////////////////////////////////////////////////////////
 		InputManager&		GetInputManager();
+		ResourceManager&	GetResources();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -87,6 +89,8 @@ namespace eng
 		///////////////////////////////////////////////////////
 		// The Engine can call InputManager's private constructor because it is a friend class
 		InputManager	m_inputManager;
+
+		ResourceManager	m_resources;
 
 		Time			m_time;
 		WindowInfo		m_window;
