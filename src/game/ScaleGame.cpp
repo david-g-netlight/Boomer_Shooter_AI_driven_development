@@ -12,6 +12,7 @@ bool ScaleGame::Init()
 	// Ring of cubes, each with its own material: hue around the circle, growing size
 	m_cubeMaterials.reserve(CUBE_COUNT);
 	m_cubeTransforms.reserve(CUBE_COUNT);
+	m_cubePositions.reserve(CUBE_COUNT);
 	for (int i = 0; i < CUBE_COUNT; ++i)
 	{
 		const float t		= static_cast<float>(i) / CUBE_COUNT;
@@ -21,10 +22,19 @@ bool ScaleGame::Init()
 		eng::Material& material = m_cubeMaterials.emplace_back();
 		material.SetTint(ColorFromHSV(t * 360.0f, 0.75f, 0.95f));
 
+		const Vector3 position = { std::cos(angle) * 4.0f, size * 0.5f, std::sin(angle) * 4.0f };
+		m_cubePositions.push_back(position);
 		m_cubeTransforms.push_back(MatrixMultiply(
 			MatrixMultiply(MatrixScale(size, size, size), MatrixRotateY(angle)),
-			MatrixTranslate(std::cos(angle) * 4.0f, size * 0.5f, std::sin(angle) * 4.0f)));
+			MatrixTranslate(position.x, position.y, position.z)));
 	}
+
+	// Minimap: high above the ring looking down (pitch is clamped to -89), pixel size follows the DPI
+	m_minimapCamera.SetPosition({ 0.0f, 14.0f, 0.01f });
+	m_minimapCamera.SetYawPitch(0.0f, -89.0f);
+	m_minimapCamera.SetPerspective({ 45.0f, 0.1f, 50.0f });
+	const float dpi = eng::Engine::GetInstance().GetWindow().dpiScale;
+	m_minimap.Create(static_cast<int>(MINIMAP_WIDTH * dpi), static_cast<int>(MINIMAP_HEIGHT * dpi));
 
 	BindInput();
 
@@ -59,6 +69,7 @@ void ScaleGame::BindInput()
 
 	// TODO(Phase 8): cursor is released by Pause (ESC); temporary toggle until then
 	map.BindAction("ToggleCursor", InputBinding::Key(KEY_C));
+	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
 }
 
 void ScaleGame::Update(float deltaTime)
@@ -68,6 +79,12 @@ void ScaleGame::Update(float deltaTime)
 
 	if (map.IsActionPressed("ToggleCursor"))
 		input.SetCursorLocked(!input.IsCursorLocked());
+
+	if (map.IsActionPressed("ToggleDebug"))
+	{
+		eng::DebugDraw& debug = eng::Engine::GetInstance().GetDebugDraw();
+		debug.SetEnabled(!debug.IsEnabled());
+	}
 
 	if (input.IsCursorLocked())
 	{
@@ -109,6 +126,40 @@ void ScaleGame::SubmitRenderables(eng::RenderQueue& queue)
 	const ::Mesh* cube = eng::Engine::GetInstance().GetResources().GetPrimitive(eng::Primitive::Cube);
 	for (int i = 0; i < CUBE_COUNT; ++i)
 		queue.Submit(*cube, m_cubeMaterials[i], m_cubeTransforms[i]);
+
+	SubmitDebugShapes();
+}
+
+void ScaleGame::SubmitDebugShapes() const
+{
+	eng::DebugDraw& debug = eng::Engine::GetInstance().GetDebugDraw();
+	if (!debug.IsEnabled())
+		return;
+
+	debug.Grid(20, 1.0f);
+	debug.Axes({ 0.0f, 0.01f, 0.0f }, 1.5f);
+	debug.WireSphere({ 0.0f, 0.0f, 0.0f }, 5.2f, Fade(DARKGRAY, 0.4f));
+	for (int i = 0; i < CUBE_COUNT; ++i)
+		debug.Label(Vector3Add(m_cubePositions[i], { 0.0f, 1.2f, 0.0f }), TextFormat("cube %d", i), BLACK);
+}
+
+void ScaleGame::DrawMinimap()
+{
+	eng::Engine& engine = eng::Engine::GetInstance();
+
+	m_minimap.Begin();
+		ClearBackground(Fade(DARKBLUE, 0.85f));
+		m_minimapCamera.Begin3D();
+			engine.GetRenderQueue().Draw();
+			// Where the main camera is
+			DrawSphere(m_camera.GetPosition(), 0.4f, YELLOW);
+		m_minimapCamera.End3D();
+	m_minimap.End();
+
+	const float x = static_cast<float>(engine.GetWindow().screenWidth - MINIMAP_WIDTH - 10);
+	m_minimap.DrawToScreen({ x, 10.0f, static_cast<float>(MINIMAP_WIDTH), static_cast<float>(MINIMAP_HEIGHT) });
+	DrawRectangleLines(static_cast<int>(x), 10, MINIMAP_WIDTH, MINIMAP_HEIGHT, DARKBLUE);
+	DrawText("RenderTarget minimap", static_cast<int>(x) + 6, 14, 10, RAYWHITE);
 }
 
 void ScaleGame::DrawHUD()
@@ -127,10 +178,11 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("C: %s cursor  |  close the window to quit",
+	DrawText(TextFormat("C: %s cursor  |  F2: debug draw  |  close to quit",
 		engine.GetInputManager().IsCursorLocked() ? "unlock" : "lock (mouse look + WASD fly)"), 20, 100, 10, DARKGRAY);
 
 	DrawInputPanel();
+	DrawMinimap();
 }
 
 void ScaleGame::DrawInputPanel() const
@@ -160,6 +212,8 @@ void ScaleGame::Destroy()
 {
 	m_cubeMaterials.clear();
 	m_cubeTransforms.clear();
+	m_cubePositions.clear();
+	m_minimap.Unload();
 	eng::Log::Info("ScaleGame destroyed");
 }
 

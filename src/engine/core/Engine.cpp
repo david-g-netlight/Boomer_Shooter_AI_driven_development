@@ -98,12 +98,15 @@ namespace eng
 				m_app->SubmitRenderables(m_renderQueue);
 				m_activeCamera.Begin3D();
 					m_renderQueue.Draw();
+					m_debugDraw.Draw3D();
 				m_activeCamera.End3D();
+				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 
 				m_app->DrawHUD();
 			EndDrawing(); // Swaps buffers and polls input events
 
 			m_renderQueue.Clear();
+			m_debugDraw.EndFrame(m_time.GetUnscaledDeltaTime());
 		}
 	}
 
@@ -163,6 +166,11 @@ namespace eng
 	RenderQueue& Engine::GetRenderQueue()
 	{
 		return m_renderQueue;
+	}
+
+	DebugDraw& Engine::GetDebugDraw()
+	{
+		return m_debugDraw;
 	}
 
 	Time& Engine::GetTime()

@@ -55,6 +55,12 @@ namespace eng
 
 		Matrix			GetViewMatrix() const;
 
+		/// <summary>
+		/// BeginMode3D with this camera, applying its clip planes (global in rlgl).
+		/// </summary>
+		void			Begin3D() const;
+		void			End3D() const;
+
 	private:
 		Vector3				m_position		= { 0.0f, 2.0f, 5.0f };
 		float				m_yaw			= 0.0f;

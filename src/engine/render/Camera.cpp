@@ -92,6 +92,17 @@ namespace eng
 		return GetCameraMatrix(ToRaylib());
 	}
 
+	void Camera::Begin3D() const
+	{
+		rlSetClipPlanes(m_perspective.nearPlane, m_perspective.farPlane);
+		BeginMode3D(ToRaylib());
+	}
+
+	void Camera::End3D() const
+	{
+		EndMode3D();
+	}
+
 	//////////////////////////////////////////
 	/// ActiveCamera
 	//////////////////////////////////////////
@@ -107,17 +118,13 @@ namespace eng
 
 	void ActiveCamera::Begin3D() const
 	{
-		if (!m_currentCamera)
-			return;
-
-		const PerspectiveParams& params = m_currentCamera->GetPerspective();
-		rlSetClipPlanes(params.nearPlane, params.farPlane);
-		BeginMode3D(m_currentCamera->ToRaylib());
+		if (m_currentCamera)
+			m_currentCamera->Begin3D();
 	}
 
 	void ActiveCamera::End3D() const
 	{
 		if (m_currentCamera)
-			EndMode3D();
+			m_currentCamera->End3D();
 	}
 }
