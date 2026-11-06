@@ -45,6 +45,7 @@ private:
 	void		ThrowPellet();
 	void		UpdatePellets();
 	void		EmitImpact(float sign);
+	void		FireBeam(float sign);
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();

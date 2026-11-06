@@ -11,6 +11,20 @@ namespace eng
 	class Material;
 
 	/// <summary>
+	/// A transparent thick line (beam), drawn after the meshes: an open tapered tube (no end caps) with the
+	/// color interpolated per vertex from start to end. Radius 0 at both ends = 1 pixel wide line.
+	/// </summary>
+	struct LineCommand
+	{
+		Vector3	start			= { 0.0f, 0.0f, 0.0f };
+		Vector3	end				= { 0.0f, 0.0f, 0.0f };
+		Color	startColor		= { 255, 255, 255, 255 };
+		Color	endColor		= { 255, 255, 255, 255 };
+		float	startRadius		= 0.02f;
+		float	endRadius		= 0.02f;
+	};
+
+	/// <summary>
 	/// Scene-wide uniforms for lit shaders (see assets/shaders/lit.fs).
 	/// </summary>
 	struct SceneLighting
@@ -54,6 +68,11 @@ namespace eng
 		/// </summary>
 		void	SubmitModel(const Model& model, const Material* overrideMaterial, const Matrix& transform);
 
+		/// <summary>
+		/// Transparent line, drawn after every mesh (alpha blended, no depth write).
+		/// </summary>
+		void	SubmitLine(const LineCommand& line);
+
 		void	SetLighting(const SceneLighting& lighting);
 
 		/// <summary>
@@ -65,6 +84,7 @@ namespace eng
 		void	Clear();
 
 		size_t	GetCommandCount() const;
+		size_t	GetLineCount() const;
 
 	private:
 		static constexpr size_t INITIAL_CAPACITY = 256;
@@ -79,8 +99,10 @@ namespace eng
 
 		void	UploadSceneUniforms(const Shader& shader, const Vector3& viewPosition) const;
 		void	BindMaterial(const Material& material) const;
+		void	DrawLines() const;
 
 		std::vector<RenderCommand>	m_commands;
+		std::vector<LineCommand>	m_lines;
 		SceneLighting				m_lighting;
 		mutable std::unordered_map<unsigned int, SceneUniformLocations>	m_sceneLocations;	// by shader id
 

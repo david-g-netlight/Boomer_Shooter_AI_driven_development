@@ -100,7 +100,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 ### Phase 7 — FX 🟡
 - [x] `ParticleEmitter` (burst, gradient, alpha fade) + pooled `ParticleSystem` (+ LMB / RMB impact bursts in the sandbox)
-- [ ] `LineRenderer` (thick gradient line)
+- [x] `LineRenderer` (thick gradient line) (+ RenderQueue transparent line pass: open tube, per‑vertex gradient; LMB / RMB beams that fade in 0.35 s)
 - [ ] **Done when:** click spawns a colored burst and a fading beam
 
 ### Phase 8 — Events, modes, menus ⬜
@@ -191,6 +191,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-07 | 7 | Both Phase 7 tasks committed on `fx`; particle pool test passed; ASan screenshot runs: 80 particles + 2 beams on fire, both beams gone after the fade; replaced capped cylinders (stacked hexagon artifacts) with an open per‑vertex‑colored tube | Developer runs the Phase 7 **Done when** check | Waiting for green light to merge |
 | 2026-11-07 | 6 | Developer validated Phase 6; `ActorHandle` scheduled in Phase 10 (D11); devlog written; merged into `integration` | Start Phase 7 on `fx` | — |
 | 2026-11-07 | 6 | All 11 Phase 6 tasks committed on `physics`; headless tests (convert, collider, motion state, rigid body, raycast, trigger, character motor, CCD), most under ASan, all pass; found and fixed raymath `MatrixDecompose` (row‑based) bug, rotation‑lock bypass, convex hull margin, motor slope sliding; final ASan sandbox run: 0 of 15 pellets tunnelled, 59 FPS, 20/20 crates asleep | Developer runs the Phase 6 **Done when** check | — |
 | 2026-11-07 | 5 | Developer validated Phase 5; devlog written; merged into `integration` | Start Phase 6 on `physics` | — |
