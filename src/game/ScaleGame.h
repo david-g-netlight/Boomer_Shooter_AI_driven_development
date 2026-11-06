@@ -40,6 +40,8 @@ private:
 	void		BuildSandbox();
 	eng::GameActor*	SpawnBox(const BoxDesc& desc);
 	void		UpdateCamera(float deltaTime);
+	void		UpdatePlayer(float deltaTime);
+	void		SpawnPlayer();
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();
@@ -63,6 +65,14 @@ private:
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
 	int						m_deletedCrates	= 0;
 	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (never destroyed)
+
+	// Player capsule (CharacterMotor). V toggles fly camera <-> first person
+	static constexpr Vector3	PLAYER_SPAWN	= { 0.0f, 1.0f, 10.0f };
+	static constexpr float		WALK_SPEED		= 6.0f;		// m/s (Unity PlayerState uses 10; tuned in Phase 10)
+	static constexpr float		JUMP_SPEED		= 8.0f;		// m/s: with gravity 32 the apex is ~1 m (Unity jump arc)
+	static constexpr float		EYE_HEIGHT		= 0.7f;		// above the capsule center (1.7 m above the feet)
+	eng::GameActor*				m_player		= nullptr;
+	bool						m_isPlayerMode	= false;
 	const Shader*			m_litShader		= nullptr;
 
 	//////////////////////////////////////////

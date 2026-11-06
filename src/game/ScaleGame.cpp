@@ -72,6 +72,7 @@ void ScaleGame::BindInput()
 
 	// Physics sandbox
 	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
+	map.BindAction("TogglePlayer", InputBinding::Key(KEY_V));
 }
 
 //////////////////////////////////////////
@@ -149,6 +150,28 @@ void ScaleGame::BuildSandbox()
 	zone->AddComponent<eng::Collider>()->SetLayer(eng::Layer::Trigger);
 	zone->AddComponent<eng::TriggerVolume>();
 	m_triggerCounter = zone->AddComponent<TriggerCounter>();
+
+	SpawnPlayer();
+}
+
+void ScaleGame::SpawnPlayer()
+{
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+
+	// Capsule radius 0.5, 1 m between the sphere centers: 2 m tall, actor position = capsule center
+	m_player = m_level.CreateGameActor("Player");
+	m_player->SetPosition(PLAYER_SPAWN);
+	eng::Collider* collider = m_player->AddComponent<eng::Collider>();
+	collider->SetCapsule(0.5f, 1.0f);
+	collider->SetLayer(eng::Layer::Player);
+	m_player->AddComponent<eng::CharacterMotor>();
+
+	// Visual: the unit cylinder sits on y = 0, so offset it down to cover the capsule (-1 .. +1)
+	eng::GameActor* body = m_level.CreateGameActor("Player Mesh", m_player);
+	body->SetPosition({ 0.0f, -1.0f, 0.0f });
+	body->SetScale({ 1.0f, 2.0f, 1.0f });
+	body->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cylinder))
+		->CreateOwnMaterial(m_litShader).SetTint({ 70, 110, 220, 255 });
 }
 
 bool ScaleGame::IsCrate(const eng::GameActor* actor) const
@@ -205,6 +228,17 @@ void ScaleGame::Update(float deltaTime)
 		debug.SetEnabled(!debug.IsEnabled());
 	}
 
+	if (map.IsActionPressed("TogglePlayer"))
+	{
+		m_isPlayerMode = !m_isPlayerMode;
+		if (m_isPlayerMode)
+		{
+			m_player->GetComponent<eng::CharacterMotor>()->Warp(PLAYER_SPAWN);
+			input.SetCursorLocked(true);
+		}
+	}
+
+	UpdatePlayer(deltaTime);
 	UpdateCamera(deltaTime);
 	UpdateAim();
 	UpdateAudioDemo();
@@ -219,10 +253,48 @@ void ScaleGame::Update(float deltaTime)
 	}
 }
 
+void ScaleGame::UpdatePlayer(float /*deltaTime*/)
+{
+	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
+	const eng::InputMap&		map		= input.GetMap();
+	eng::CharacterMotor*		motor	= m_player->GetComponent<eng::CharacterMotor>();
+
+	if (!m_isPlayerMode)
+	{
+		motor->SetWalkVelocity({ 0.0f, 0.0f, 0.0f });
+		return;
+	}
+
+	// TODO(Phase 10): replaced by PlayerInput + FirstPersonController + FirstPersonLook
+	if (input.IsCursorLocked())
+	{
+		const Vector2 look = map.GetAxis2D("Look");
+		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
+	}
+
+	// Walk relative to where the camera faces, on the ground plane
+	const Vector2 move		= map.GetAxis2D("Move");
+	Vector3 forward			= m_camera.Forward();
+	forward.y				= 0.0f;
+	forward					= Vector3Normalize(forward);
+	const Vector3 right		= m_camera.Right();
+	motor->SetWalkVelocity(Vector3Scale(Vector3Add(Vector3Scale(forward, move.y), Vector3Scale(right, move.x)), WALK_SPEED));
+
+	if (map.IsActionPressed("Jump"))
+		motor->Jump(JUMP_SPEED);
+}
+
 void ScaleGame::UpdateCamera(float deltaTime)
 {
 	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
 	const eng::InputMap&		map		= input.GetMap();
+
+	if (m_isPlayerMode)
+	{
+		// Eyes on the capsule (the actor holds the physics position after the last fixed step)
+		m_camera.SetPosition(Vector3Add(m_player->GetWorldPosition(), { 0.0f, EYE_HEIGHT, 0.0f }));
+		return;
+	}
 
 	if (input.IsCursorLocked())
 	{
@@ -339,8 +411,8 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("C: %s  |  F2: debug draw  |  close to quit",
-		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "fly (mouse + WASD)"), 20, 100, 10, DARKGRAY);
+	DrawText(TextFormat("V: %s  |  C: %s  |  F2: debug", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
+		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "lock cursor"), 20, 100, 10, DARKGRAY);
 
 	DrawPhysicsPanel();
 	DrawAudioPanel();
@@ -361,8 +433,8 @@ void ScaleGame::DrawPhysicsPanel() const
 			++sleeping;
 
 	const int x = 10, y = 140;
-	DrawRectangle(x, y, 330, 94, Fade(LIME, 0.35f));
-	DrawRectangleLines(x, y, 330, 94, DARKGREEN);
+	DrawRectangle(x, y, 330, 110, Fade(LIME, 0.35f));
+	DrawRectangleLines(x, y, 330, 110, DARKGREEN);
 	DrawText(TextFormat("Physics (Bullet)  |  bodies %d  |  actors %zu", eng::Engine::GetInstance().GetPhysics().GetObjectCount(),
 		m_level.GetActorCount()), x + 10, y + 10, 10, BLACK);
 	DrawText(TextFormat("Crates %zu  |  sleeping %d  |  deleted %d", m_crates.size(), sleeping, m_deletedCrates),
@@ -378,6 +450,15 @@ void ScaleGame::DrawPhysicsPanel() const
 		DrawText(TextFormat("Trigger: inside %zu  |  enters %d  exits %d  |  %s", m_triggerCounter->GetInside(),
 			m_triggerCounter->GetEnters(), m_triggerCounter->GetExits(), m_triggerCounter->GetLast().c_str()),
 			x + 10, y + 76, 10, DARKGRAY);
+
+	if (const eng::CharacterMotor* motor = m_player ? m_player->GetComponent<eng::CharacterMotor>() : nullptr)
+	{
+		const Vector3 v = motor->GetVelocity();
+		DrawText(TextFormat("Player: %s  slope %.0f deg%s  speed %.1f m/s  feet y %.2f",
+			motor->IsGrounded() ? "grounded" : "airborne", motor->GetGroundSlopeDegrees(),
+			motor->IsOnSteepSlope() ? " (too steep)" : "", std::sqrt(v.x * v.x + v.z * v.z),
+			m_player->GetWorldPosition().y - 1.0f), x + 10, y + 92, 10, BLACK);
+	}
 }
 
 void ScaleGame::DrawAudioPanel() const
@@ -387,7 +468,7 @@ void ScaleGame::DrawAudioPanel() const
 	const char*					track	= music.GetCurrent() == m_themeMenu ? "menu"
 										: music.GetCurrent() == m_themeGame ? "game" : "none";
 
-	const int x = 10, y = 244;
+	const int x = 10, y = 260;
 	DrawRectangle(x, y, 330, 45, Fade(BEIGE, 0.6f));
 	DrawRectangleLines(x, y, 330, 45, BROWN);
 	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
@@ -401,6 +482,7 @@ void ScaleGame::Destroy()
 	// Actors first: their bodies leave the physics world before it shuts down
 	m_aimHit.reset();
 	m_triggerCounter = nullptr;
+	m_player = nullptr;
 	m_crates.clear();
 	m_level.Clear();
 	m_sfxStretch	= nullptr;
