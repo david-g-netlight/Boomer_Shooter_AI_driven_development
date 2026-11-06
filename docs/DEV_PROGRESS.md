@@ -38,7 +38,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 ### Phase 0 — Project setup and build system 🟡
 - [x] Root `CMakeLists.txt`: `engine` static lib + `my_app` exe, C++20
-- [ ] Remove the `Makefile` for good; update `README.md` build instructions
+- [x] Remove the `Makefile` for good; update `README.md` build instructions
 - [ ] Vendor `raygui.h` into `include/raylib/`
 - [ ] `tools/build_bullet.sh` (bullet3 tag **3.25**, arm64, static, single precision, demos/extras off)
 - [ ] Commit `lib/libBulletDynamics.a`, `lib/libBulletCollision.a`, `lib/libLinearMath.a` + `include/bullet/` + Bullet `LICENSE.txt`
