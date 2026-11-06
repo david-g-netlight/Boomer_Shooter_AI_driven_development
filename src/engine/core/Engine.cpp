@@ -1,5 +1,7 @@
 #include "Engine.h"
 #include "Application.h"
+#include "EngineInfo.h"
+#include "Log.h"
 #include <raylib.h>
 
 namespace eng
@@ -20,13 +22,13 @@ namespace eng
 	{
 		if (!m_app)
 		{
-			TraceLog(LOG_ERROR, "ENGINE: No Application set, call SetApplication() before Init()");
+			Log::Error("No Application set, call SetApplication() before Init()");
 			return false;
 		}
 
 		if (width <= 0 || height <= 0)
 		{
-			TraceLog(LOG_ERROR, "ENGINE: The window size must be greater than 0");
+			Log::Error("The window size must be greater than 0, got %d x %d", width, height);
 			return false;
 		}
 
@@ -36,7 +38,7 @@ namespace eng
 		InitWindow(width, height, m_app->GetTitle());
 		if (!IsWindowReady())
 		{
-			TraceLog(LOG_ERROR, "ENGINE: Window creation failed");
+			Log::Error("Window creation failed");
 			return false;
 		}
 		m_isWindowOpen = true;
@@ -50,7 +52,16 @@ namespace eng
 
 		SetTargetFPS(60);
 
+		m_window.Refresh();
+		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s",
+			GetEngineName(), GetEngineVersion(),
+			m_window.screenWidth, m_window.screenHeight, m_window.renderWidth, m_window.renderHeight,
+			IsEditorBuild() ? "ON" : "OFF");
+
 		m_isAppInitialized = m_app->Init();
+		if (!m_isAppInitialized)
+			Log::Error("Application::Init() failed");
+
 		return m_isAppInitialized;
 	}
 
@@ -64,14 +75,20 @@ namespace eng
 		///////////////////////////////////////////////////////////////////////
 		while (!WindowShouldClose() && !m_app->NeedsToBeClosed())
 		{
-			m_deltaTime = GetFrameTime();
+			// 1. Time and window state
+			m_time.BeginFrame(GetFrameTime());
+			m_window.Refresh();
 
-			// Update game logic
-			m_app->Update(m_deltaTime);
+			// 2. Fixed step (physics rate), then variable step
+			m_time.AdvanceAccumulator();
+			while (m_time.ConsumeFixedStep())
+				m_app->FixedUpdate(m_time.GetFixedDeltaTime());
 
-			// Render
+			m_app->Update(m_time.GetDeltaTime());
+
+			// 3. Render
 			BeginDrawing();
-				ClearBackground(RAYWHITE);
+				ClearBackground(m_world.skyColor);
 				m_app->DrawHUD();
 			EndDrawing(); // Swaps buffers and polls input events
 		}
@@ -83,12 +100,14 @@ namespace eng
 		{
 			m_app->Destroy(); // logical clean up only
 			m_isAppInitialized = false;
+			Log::Info("Application destroyed");
 		}
 
 		if (m_isWindowOpen)
 		{
 			CloseWindow();
 			m_isWindowOpen = false;
+			Log::Info("Engine shut down");
 		}
 	}
 
@@ -108,6 +127,21 @@ namespace eng
 
 	float Engine::GetDeltaTime() const
 	{
-		return m_deltaTime;
+		return m_time.GetDeltaTime();
+	}
+
+	Time& Engine::GetTime()
+	{
+		return m_time;
+	}
+
+	const WindowInfo& Engine::GetWindow() const
+	{
+		return m_window;
+	}
+
+	const World& Engine::GetWorld() const
+	{
+		return m_world;
 	}
 }

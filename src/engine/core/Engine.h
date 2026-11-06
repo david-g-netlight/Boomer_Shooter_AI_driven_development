@@ -1,4 +1,7 @@
 #pragma once
+#include "Time.h"
+#include "WindowInfo.h"
+#include "World.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -62,13 +65,26 @@ namespace eng
 		/// </summary>
 		void SetApplication(Application* app);
 
-		Application*	GetApplication() const;	// non-owning access
-		float			GetDeltaTime() const;
+		Application*		GetApplication() const;	// non-owning access
+		float				GetDeltaTime() const;
+
+		//////////////////////////////////////////////////////////////
+		// Getters to core objects
+		//////////////////////////////////////////////////////////////
+		Time&				GetTime();
+		const WindowInfo&	GetWindow() const;
+		const World&		GetWorld() const;
 
 	private:
 		Application*	m_app				= nullptr;	// owning
 		bool			m_isWindowOpen		= false;
 		bool			m_isAppInitialized	= false;	// Destroy() is only called if Init() succeeded
-		float			m_deltaTime			= 0.0f;
+
+		///////////////////////////////////////////////////////
+		// Time, Window and World features
+		///////////////////////////////////////////////////////
+		Time			m_time;
+		WindowInfo		m_window;
+		World			m_world;
 	};
 }
