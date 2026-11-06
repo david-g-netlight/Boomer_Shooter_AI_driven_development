@@ -8,6 +8,8 @@
 /// Phase 6: a physics sandbox (static ground and ramps, 20 dynamic crates), plus the camera, audio and
 /// minimap from earlier phases.
 /// </summary>
+class TriggerCounter;
+
 class ScaleGame : public eng::Application
 {
 public:
@@ -60,6 +62,7 @@ private:
 	static constexpr float	KICK_SPEED		= 6.0f;		// m/s given to the aimed crate by LMB
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
 	int						m_deletedCrates	= 0;
+	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (never destroyed)
 	const Shader*			m_litShader		= nullptr;
 
 	//////////////////////////////////////////

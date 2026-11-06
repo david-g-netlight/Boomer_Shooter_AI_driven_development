@@ -1,4 +1,5 @@
 #include "ScaleGame.h"
+#include "components/TriggerCounter.h"
 #include <algorithm>
 #include <cmath>
 #include <raymath.h>
@@ -137,6 +138,17 @@ void ScaleGame::BuildSandbox()
 
 	m_crates.push_back(SpawnBox({ "Jump crate", { -3.0f, 0.4f, 7.0f }, { 1.6f, 0.8f, 1.6f }, {},
 		BodyType::Dynamic, 60.0f, RED }));
+
+	// Trigger zone: translucent, objects pass through; turns green while something is inside
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+	eng::GameActor* zone = m_level.CreateGameActor("Trigger Zone");
+	zone->SetPosition({ 2.0f, 1.0f, 5.0f });
+	zone->SetScale({ 3.0f, 2.0f, 3.0f });
+	zone->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cube))
+		->CreateOwnMaterial().SetTint({ 60, 140, 255, 70 });
+	zone->AddComponent<eng::Collider>()->SetLayer(eng::Layer::Trigger);
+	zone->AddComponent<eng::TriggerVolume>();
+	m_triggerCounter = zone->AddComponent<TriggerCounter>();
 }
 
 bool ScaleGame::IsCrate(const eng::GameActor* actor) const
@@ -349,8 +361,8 @@ void ScaleGame::DrawPhysicsPanel() const
 			++sleeping;
 
 	const int x = 10, y = 140;
-	DrawRectangle(x, y, 330, 78, Fade(LIME, 0.35f));
-	DrawRectangleLines(x, y, 330, 78, DARKGREEN);
+	DrawRectangle(x, y, 330, 94, Fade(LIME, 0.35f));
+	DrawRectangleLines(x, y, 330, 94, DARKGREEN);
 	DrawText(TextFormat("Physics (Bullet)  |  bodies %d  |  actors %zu", eng::Engine::GetInstance().GetPhysics().GetObjectCount(),
 		m_level.GetActorCount()), x + 10, y + 10, 10, BLACK);
 	DrawText(TextFormat("Crates %zu  |  sleeping %d  |  deleted %d", m_crates.size(), sleeping, m_deletedCrates),
@@ -361,6 +373,11 @@ void ScaleGame::DrawPhysicsPanel() const
 			IsCrate(m_aimHit->actor) ? "  (LMB kick, X delete)" : ""), x + 10, y + 60, 10, BLACK);
 	else
 		DrawText("Aim: nothing within 30 m", x + 10, y + 60, 10, DARKGRAY);
+
+	if (m_triggerCounter)
+		DrawText(TextFormat("Trigger: inside %zu  |  enters %d  exits %d  |  %s", m_triggerCounter->GetInside(),
+			m_triggerCounter->GetEnters(), m_triggerCounter->GetExits(), m_triggerCounter->GetLast().c_str()),
+			x + 10, y + 76, 10, DARKGRAY);
 }
 
 void ScaleGame::DrawAudioPanel() const
@@ -370,7 +387,7 @@ void ScaleGame::DrawAudioPanel() const
 	const char*					track	= music.GetCurrent() == m_themeMenu ? "menu"
 										: music.GetCurrent() == m_themeGame ? "game" : "none";
 
-	const int x = 10, y = 228;
+	const int x = 10, y = 244;
 	DrawRectangle(x, y, 330, 45, Fade(BEIGE, 0.6f));
 	DrawRectangleLines(x, y, 330, 45, BROWN);
 	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
@@ -383,6 +400,7 @@ void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
 	m_aimHit.reset();
+	m_triggerCounter = nullptr;
 	m_crates.clear();
 	m_level.Clear();
 	m_sfxStretch	= nullptr;

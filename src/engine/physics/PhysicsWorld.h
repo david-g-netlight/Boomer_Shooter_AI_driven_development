@@ -10,6 +10,12 @@ class btDiscreteDynamicsWorld;	// Bullet type, only used by the engine's physics
 
 namespace eng
 {
+	class Collider;
+	class TriggerVolume;
+}
+
+namespace eng
+{
 	/// <summary>
 	/// The Bullet dynamics world, owned by the Engine and stepped once per fixed tick.
 	/// This header does not include Bullet (pimpl): the game never depends on it.
@@ -30,8 +36,9 @@ namespace eng
 		bool		IsReady() const;
 
 		/// <summary>
-		/// One fixed tick: stepSimulation(fixedDeltaTime, 1, fixedDeltaTime). The Engine owns the
-		/// accumulator, so FixedUpdate and physics ticks stay in lockstep.
+		/// One fixed tick: trigger poses from their actors, stepSimulation(fixedDeltaTime, 1, fixedDeltaTime),
+		/// then trigger Enter / Exit callbacks. The Engine owns the accumulator, so FixedUpdate and physics
+		/// ticks stay in lockstep.
 		/// </summary>
 		void		Step(float fixedDeltaTime);
 
@@ -55,6 +62,16 @@ namespace eng
 		/// nullptr when not initialized (or already shut down).
 		/// </summary>
 		btDiscreteDynamicsWorld*	GetNativeWorld() const;
+
+		void		RegisterTrigger(TriggerVolume& trigger);
+		void		UnregisterTrigger(TriggerVolume& trigger);
+		void		SyncTriggers();
+		void		DispatchTriggers();
+
+		/// <summary>
+		/// A body / ghost of `collider` left the world: forget it in every trigger (no Exit callback).
+		/// </summary>
+		void		OnColliderRemoved(const Collider* collider);
 
 		// Physics components reach the Bullet world through GetNativeWorld()
 		friend class RigidBody;

@@ -149,6 +149,22 @@ namespace eng
 				component->SubmitRenderables(queue);
 	}
 
+	void GameActor::NotifyTriggerEnter(GameActor& other)
+	{
+		const size_t count = m_components.size();
+		for (size_t i = 0; i < count && !m_isMarkedForDestroy; ++i)
+			if (m_components[i]->IsEnabled())
+				m_components[i]->OnTriggerEnter(other);
+	}
+
+	void GameActor::NotifyTriggerExit(GameActor& other)
+	{
+		const size_t count = m_components.size();
+		for (size_t i = 0; i < count && !m_isMarkedForDestroy; ++i)
+			if (m_components[i]->IsEnabled())
+				m_components[i]->OnTriggerExit(other);
+	}
+
 	//////////////////////////////////////////
 	/// Transform
 	//////////////////////////////////////////

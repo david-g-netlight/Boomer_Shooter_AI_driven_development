@@ -99,8 +99,10 @@ namespace eng
 			return;
 
 		// Always out of the world before deletion (the world may already be shut down)
-		if (btDiscreteDynamicsWorld* world = Engine::GetInstance().GetPhysics().GetNativeWorld())
+		PhysicsWorld& physics = Engine::GetInstance().GetPhysics();
+		if (btDiscreteDynamicsWorld* world = physics.GetNativeWorld())
 			world->removeRigidBody(m_impl->body.get());
+		physics.OnColliderRemoved(m_collider);	// no trigger may keep a pointer to it
 
 		m_impl->body.reset();
 		m_impl->motionState.reset();

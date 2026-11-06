@@ -33,3 +33,4 @@
 #include "physics/PhysicsWorld.h"
 #include "physics/Collider.h"
 #include "physics/RigidBody.h"
+#include "physics/TriggerVolume.h"

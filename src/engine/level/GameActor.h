@@ -132,6 +132,12 @@ namespace eng
 		void				FixedUpdate(float fixedDeltaTime);
 		void				SubmitRenderables(RenderQueue& queue) const;
 
+		//////////////////////////////////////////
+		/// Called by the PhysicsWorld
+		//////////////////////////////////////////
+		void				NotifyTriggerEnter(GameActor& other);
+		void				NotifyTriggerExit(GameActor& other);
+
 		std::string				m_name				= "Unnamed";
 		GameActor*				m_parent			= nullptr;
 		std::vector<GameActor*>	m_children;
@@ -146,5 +152,6 @@ namespace eng
 														{ 1.0f, 1.0f, 1.0f } };			// scale
 
 		friend class Level;
+		friend class PhysicsWorld;
 	};
 }
