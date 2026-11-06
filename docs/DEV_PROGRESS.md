@@ -43,7 +43,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `tools/build_bullet.sh` (bullet3 tag **3.25**, arm64, static, single precision, demos/extras off)
 - [x] Commit `lib/libBulletDynamics.a`, `lib/libBulletCollision.a`, `lib/libLinearMath.a` + `include/bullet/` + Bullet `LICENSE.txt`
 - [x] Bullet include path PRIVATE to `engine` (+ static libs linked)
-- [ ] `assets/` folder + post‑build copy
+- [x] `assets/` folder + post‑build copy
 - [ ] `ENG_EDITOR` compile definition (Debug)
 - [ ] **Done when:** the old free‑camera `main.cpp` runs from CMake, and a throw‑away `btDiscreteDynamicsWorld` links
 

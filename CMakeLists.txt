@@ -48,3 +48,12 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:Debug>:-g -O0 -Wall>
     $<$<CONFIG:Release>:-O2 -Wall>
 )
+
+# ---------------------------------------------------------------- Assets
+# Copy assets/ next to the executable so it runs from any working directory
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
+    COMMENT "Copying assets to build directory"
+)
