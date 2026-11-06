@@ -24,6 +24,14 @@ target_link_libraries(engine PUBLIC
     "-framework OpenGL"
 )
 
+# Bullet Physics: engine-private, the game never includes Bullet headers
+target_include_directories(engine PRIVATE include/bullet)
+target_link_libraries(engine PRIVATE
+    ${CMAKE_SOURCE_DIR}/lib/libBulletDynamics.a
+    ${CMAKE_SOURCE_DIR}/lib/libBulletCollision.a
+    ${CMAKE_SOURCE_DIR}/lib/libLinearMath.a
+)
+
 target_compile_options(engine PRIVATE
     $<$<CONFIG:Debug>:-g -O0 -Wall>
     $<$<CONFIG:Release>:-O2 -Wall>
