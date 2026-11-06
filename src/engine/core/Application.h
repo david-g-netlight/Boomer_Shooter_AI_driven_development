@@ -3,6 +3,7 @@
 namespace eng
 {
 	class Level; // Phase 4
+	class RenderQueue;
 
 	/// <summary>
 	/// Interface between the Engine and the game.
@@ -28,6 +29,12 @@ namespace eng
 		/// Called 0..N times per frame at a fixed rate (eng::FIXED_DELTA_TIME). Physics-related logic goes here.
 		/// </summary>
 		virtual void FixedUpdate(float /*fixedDeltaTime*/) {}
+
+		/// <summary>
+		/// Called every frame during rendering (also while paused): submit what should be drawn this frame.
+		/// The Engine draws the queue with the active camera, then clears it.
+		/// </summary>
+		virtual void SubmitRenderables(RenderQueue& /*queue*/) {}
 
 		/// <summary>
 		/// 2D drawing after the 3D pass (HUD, crosshair, debug text).

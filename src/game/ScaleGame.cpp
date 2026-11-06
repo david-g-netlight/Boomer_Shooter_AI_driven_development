@@ -6,10 +6,25 @@ bool ScaleGame::Init()
 {
 	m_camera.SetPosition({ 6.0f, 4.0f, 6.0f });
 	m_camera.LookAt({ 0.0f, 0.5f, 0.0f });
+	m_camera.SetPerspective({ 60.0f, 0.05f, 200.0f });
 	eng::Engine::GetInstance().GetMainCamera().SetActiveCamera(m_camera);
 
-	m_cubeMaterial.emplace();
-	m_cubeMaterial->SetTint(RED);
+	// Ring of cubes, each with its own material: hue around the circle, growing size
+	m_cubeMaterials.reserve(CUBE_COUNT);
+	m_cubeTransforms.reserve(CUBE_COUNT);
+	for (int i = 0; i < CUBE_COUNT; ++i)
+	{
+		const float t		= static_cast<float>(i) / CUBE_COUNT;
+		const float angle	= t * 2.0f * PI;
+		const float size	= 0.6f + 0.5f * t;
+
+		eng::Material& material = m_cubeMaterials.emplace_back();
+		material.SetTint(ColorFromHSV(t * 360.0f, 0.75f, 0.95f));
+
+		m_cubeTransforms.push_back(MatrixMultiply(
+			MatrixMultiply(MatrixScale(size, size, size), MatrixRotateY(angle)),
+			MatrixTranslate(std::cos(angle) * 4.0f, size * 0.5f, std::sin(angle) * 4.0f)));
+	}
 
 	BindInput();
 
@@ -89,18 +104,15 @@ void ScaleGame::FixedUpdate(float /*fixedDeltaTime*/)
 	++m_fixedStepsThisSecond;
 }
 
+void ScaleGame::SubmitRenderables(eng::RenderQueue& queue)
+{
+	const ::Mesh* cube = eng::Engine::GetInstance().GetResources().GetPrimitive(eng::Primitive::Cube);
+	for (int i = 0; i < CUBE_COUNT; ++i)
+		queue.Submit(*cube, m_cubeMaterials[i], m_cubeTransforms[i]);
+}
+
 void ScaleGame::DrawHUD()
 {
-	// TODO(Phase 3): the 3D pass moves into the Engine (RenderQueue inside BeginMode3D)
-	const eng::ActiveCamera& activeCamera = eng::Engine::GetInstance().GetMainCamera();
-	activeCamera.Begin3D();
-		const ::Mesh* cube = eng::Engine::GetInstance().GetResources().GetPrimitive(eng::Primitive::Cube);
-		m_cubeMaterial->Bind();
-		DrawMesh(*cube, m_cubeMaterial->Get(), MatrixTranslate(0.0f, 0.5f, 0.0f));
-		DrawCubeWires({ 0.0f, 0.5f, 0.0f }, 1.0f, 1.0f, 1.0f, MAROON);
-		DrawGrid(10, 1.0f);
-	activeCamera.End3D();
-
 	eng::Engine&			engine	= eng::Engine::GetInstance();
 	const eng::WindowInfo&	window	= engine.GetWindow();
 	const eng::Time&		time	= engine.GetTime();
@@ -109,7 +121,8 @@ void ScaleGame::DrawHUD()
 	DrawRectangleLines(10, 10, 330, 120, BLUE);
 	DrawText(TextFormat("%s %s  |  editor %s", eng::GetEngineName(), eng::GetEngineVersion(),
 		eng::IsEditorBuild() ? "ON" : "OFF"), 20, 20, 10, BLACK);
-	DrawText(TextFormat("FPS %d   dt %.4f s", GetFPS(), time.GetDeltaTime()), 20, 40, 10, DARKGRAY);
+	DrawText(TextFormat("FPS %d   dt %.4f s   draws %zu", GetFPS(), time.GetDeltaTime(),
+		engine.GetRenderQueue().GetCommandCount()), 20, 40, 10, DARKGRAY);
 	DrawText(TextFormat("Fixed steps/s %d (target %d)", m_fixedStepsPerSecond,
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
@@ -145,7 +158,8 @@ void ScaleGame::DrawInputPanel() const
 
 void ScaleGame::Destroy()
 {
-	m_cubeMaterial.reset();
+	m_cubeMaterials.clear();
+	m_cubeTransforms.clear();
 	eng::Log::Info("ScaleGame destroyed");
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include <eng.h>
-#include <optional>
+#include <vector>
 
 /// <summary>
 /// "Build to Scale" game. Phase 1: temporary scene with an orbiting camera and a cube,
@@ -12,6 +12,7 @@ public:
 	bool		Init()							override;
 	void		Update(float deltaTime)			override;
 	void		FixedUpdate(float fixedDeltaTime) override;
+	void		SubmitRenderables(eng::RenderQueue& queue) override;
 	void		DrawHUD()						override;
 	void		Destroy()						override;
 
@@ -22,7 +23,10 @@ private:
 	void		DrawInputPanel() const;
 
 	eng::Camera	m_camera;
-	std::optional<eng::Material>	m_cubeMaterial;	// created in Init (needs the window)
+	// Phase 3 "Done when" scene: a ring of cubes, one material each (created in Init: needs the window)
+	static constexpr int		CUBE_COUNT	= 10;
+	std::vector<eng::Material>	m_cubeMaterials;
+	std::vector<Matrix>			m_cubeTransforms;
 	float		m_orbitAngle			= 45.0f;	// degrees, used while the cursor is unlocked
 
 	// Fixed steps counted over the last second, to show the fixed rate on screen

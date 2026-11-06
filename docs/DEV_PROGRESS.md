@@ -65,7 +65,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `ResourceManager` (cache + `UnloadAll`, primitives)
 - [x] `Camera`, `ActiveCamera`
 - [x] `Material` (tint, shader, params)
-- [ ] `RenderCommand`, `RenderQueue`
+- [x] `RenderCommand`, `RenderQueue` (+ Engine 3D pass, `Application::SubmitRenderables`, 10‑cube scene)
 - [ ] `RenderTarget`, `DebugDraw`
 - [ ] Optional lit shader
 - [ ] **Done when:** 10 cubes with different materials render through the `RenderQueue`

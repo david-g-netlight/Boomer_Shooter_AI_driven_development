@@ -94,8 +94,16 @@ namespace eng
 			// 3. Render
 			BeginDrawing();
 				ClearBackground(m_world.skyColor);
+
+				m_app->SubmitRenderables(m_renderQueue);
+				m_activeCamera.Begin3D();
+					m_renderQueue.Draw();
+				m_activeCamera.End3D();
+
 				m_app->DrawHUD();
 			EndDrawing(); // Swaps buffers and polls input events
+
+			m_renderQueue.Clear();
 		}
 	}
 
@@ -150,6 +158,11 @@ namespace eng
 	ActiveCamera& Engine::GetMainCamera()
 	{
 		return m_activeCamera;
+	}
+
+	RenderQueue& Engine::GetRenderQueue()
+	{
+		return m_renderQueue;
 	}
 
 	Time& Engine::GetTime()

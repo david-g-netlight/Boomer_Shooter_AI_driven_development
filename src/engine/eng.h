@@ -17,3 +17,4 @@
 #include "resources/ResourceManager.h"
 #include "render/Camera.h"
 #include "render/Material.h"
+#include "render/RenderQueue.h"
