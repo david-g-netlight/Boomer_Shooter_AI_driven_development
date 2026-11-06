@@ -3,6 +3,7 @@
 #include "EngineInfo.h"
 #include "Log.h"
 #include "level/Level.h"
+#include "ui/UIStyle.h"
 #include <raylib.h>
 
 namespace eng
@@ -52,6 +53,8 @@ namespace eng
 		ChangeDirectory(GetApplicationDirectory());
 
 		SetTargetFPS(60);
+
+		UIStyle::Apply();
 
 		// A missing audio device is not fatal: the game runs silently
 		m_audio.Init();
@@ -110,6 +113,9 @@ namespace eng
 			m_app->Update(m_time.GetDeltaTime());
 			m_particles.Update(m_time.GetDeltaTime());
 
+			// UI (unscaled: menus work while the game is frozen)
+			m_ui.Update(m_time.GetUnscaledDeltaTime());
+
 			// 3. Audio (unscaled: fades and ducking keep running while the game is paused)
 			if (const Camera* listener = m_activeCamera.GetActiveCamera())
 				m_audio.SetListener(listener->GetPosition(), listener->Right());
@@ -133,6 +139,7 @@ namespace eng
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 
 				m_app->DrawHUD();
+				m_ui.Draw();	// menus and dialogs on top of everything
 			EndDrawing(); // Swaps buffers and polls input events
 
 			// 5. End of frame: queued events (handlers may still look at actors marked this frame),
@@ -146,6 +153,8 @@ namespace eng
 
 	void Engine::Shutdown()
 	{
+		m_ui.Clear();	// screens may refer to the game
+
 		if (m_app && m_isAppInitialized)
 		{
 			m_app->Destroy(); // logical clean up only
@@ -235,6 +244,11 @@ namespace eng
 	ModeMachine& Engine::GetModes()
 	{
 		return m_modes;
+	}
+
+	UIStack& Engine::GetUI()
+	{
+		return m_ui;
 	}
 
 	Time& Engine::GetTime()
