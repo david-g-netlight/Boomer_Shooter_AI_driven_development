@@ -45,6 +45,17 @@ namespace eng
 		float			GetMouseWheel() const;		// > 0 scroll up, < 0 scroll down
 
 		//////////////////////////////////////////
+		/// Cursor
+		//////////////////////////////////////////
+		/// <summary>
+		/// Locked: cursor hidden and captured, mouse delta keeps working (FPS look).
+		/// Unlocked: normal cursor (menus, editor). The delta of the frame after a change is
+		/// suppressed, because raylib recenters the cursor and reports a large fake jump.
+		/// </summary>
+		void			SetCursorLocked(bool locked);
+		bool			IsCursorLocked() const;
+
+		//////////////////////////////////////////
 		/// Named actions and axes
 		//////////////////////////////////////////
 		InputMap&		GetMap();
@@ -88,6 +99,9 @@ namespace eng
 		Vector2	m_mousePosition		= { 0.0f, 0.0f };
 		Vector2	m_mouseDelta		= { 0.0f, 0.0f };
 		float	m_mouseWheel		= 0.0f;
+
+		bool	m_isCursorLocked		= false;
+		int		m_suppressDeltaFrames	= 0;
 
 		InputMap m_map { *this };
 	};

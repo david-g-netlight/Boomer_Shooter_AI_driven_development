@@ -38,13 +38,34 @@ void ScaleGame::BindInput()
 	map.BindAction("Fire",		InputBinding::Mouse(MOUSE_BUTTON_LEFT));
 	map.BindAction("AltFire",	InputBinding::Mouse(MOUSE_BUTTON_RIGHT));
 	map.BindAxis("Scroll",		AxisBinding::Wheel());
+
+	// TODO(Phase 8): cursor is released by Pause (ESC); temporary toggle until then
+	map.BindAction("ToggleCursor", InputBinding::Key(KEY_C));
 }
 
 void ScaleGame::Update(float deltaTime)
 {
-	UpdateCamera(&m_camera, CAMERA_ORBITAL); // TODO(Phase 2, cursor lock): mouse look
+	eng::InputManager&		input	= eng::Engine::GetInstance().GetInputManager();
+	const eng::InputMap&	map		= input.GetMap();
 
-	const eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
+	if (map.IsActionPressed("ToggleCursor"))
+		input.SetCursorLocked(!input.IsCursorLocked());
+
+	if (input.IsCursorLocked())
+	{
+		// TODO(Phase 3/10): replaced by eng::Camera + FirstPersonLook / FirstPersonController
+		const Vector2 look = map.GetAxis2D("Look");
+		const Vector2 move = map.GetAxis2D("Move");
+		UpdateCameraPro(&m_camera,
+			{ move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f },	// forward, right, up
+			{ look.x * LOOK_SENSITIVITY, look.y * LOOK_SENSITIVITY, 0.0f },			// yaw, pitch, roll (degrees)
+			0.0f);
+	}
+	else
+	{
+		UpdateCamera(&m_camera, CAMERA_ORBITAL);
+	}
+
 	if (map.IsActionPressed("Jump"))	++m_jumpPresses;
 	if (map.IsActionPressed("Fire"))	++m_firePresses;
 	if (map.IsActionPressed("AltFire"))	++m_altFirePresses;
@@ -86,7 +107,8 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText("Close the window to quit (ESC is reserved for Pause)", 20, 100, 10, DARKGRAY);
+	DrawText(TextFormat("C: %s cursor  |  close the window to quit",
+		engine.GetInputManager().IsCursorLocked() ? "unlock" : "lock (mouse look + WASD fly)"), 20, 100, 10, DARKGRAY);
 
 	DrawInputPanel();
 }

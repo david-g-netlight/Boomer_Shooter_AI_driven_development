@@ -21,6 +21,11 @@ namespace eng
 
 		m_mousePosition	= ::GetMousePosition();
 		m_mouseDelta	= ::GetMouseDelta();
+		if (m_suppressDeltaFrames > 0)
+		{
+			m_mouseDelta = { 0.0f, 0.0f };
+			--m_suppressDeltaFrames;
+		}
 		m_mouseWheel	= ::GetMouseWheelMove();
 	}
 
@@ -41,6 +46,25 @@ namespace eng
 	const Vector2&	InputManager::GetMousePosition() const	{ return m_mousePosition; }
 	const Vector2&	InputManager::GetMouseDelta() const		{ return m_mouseDelta; }
 	float			InputManager::GetMouseWheel() const		{ return m_mouseWheel; }
+
+	void InputManager::SetCursorLocked(bool locked)
+	{
+		if (locked == m_isCursorLocked)
+			return;
+
+		if (locked)
+			::DisableCursor();
+		else
+			::EnableCursor();
+
+		m_isCursorLocked		= locked;
+		m_suppressDeltaFrames	= 1;
+	}
+
+	bool InputManager::IsCursorLocked() const
+	{
+		return m_isCursorLocked;
+	}
 
 	InputMap&		InputManager::GetMap()			{ return m_map; }
 	const InputMap&	InputManager::GetMap() const	{ return m_map; }
