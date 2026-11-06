@@ -79,7 +79,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 ### Phase 5 — Scene 🟡
 - [x] `GameActor` (transform, hierarchy, world matrix, `MarkForDestroy`)
 - [x] `Component` base + `AddComponent<T> / GetComponent<T>`
-- [ ] `Level` (factory, update, fixed update, submit, `FlushDestroyed`)
+- [x] `Level` (factory, update, fixed update, submit, `FlushDestroyed`) (+ Engine loop wiring)
 - [ ] `MeshRenderer`
 - [ ] `AudioSource` becomes a `Component` (position from its actor)
 - [ ] **Done when:** children follow a rotating parent; destroying an actor mid‑update is safe
