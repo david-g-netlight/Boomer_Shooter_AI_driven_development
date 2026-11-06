@@ -88,7 +88,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `BulletConvert` (Vector3 / Quaternion / Transform ↔ bt types)
 - [x] `PhysicsWorld` pimpl: init, `Step`, `Shutdown` (correct delete order) (+ Engine: init, step per fixed tick, shutdown before resources)
 - [x] `PhysicsLayers` groups and masks (default masks checked symmetric by `static_assert`)
-- [ ] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
+- [x] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
 - [ ] `RigidBody` (static / dynamic / kinematic, `Teleport`, `OnScaleChanged`, impulses)
 - [ ] `ActorMotionState`
 - [ ] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor)

@@ -29,3 +29,4 @@
 #include "render/MeshRenderer.h"
 #include "physics/PhysicsLayers.h"
 #include "physics/PhysicsWorld.h"
+#include "physics/Collider.h"
