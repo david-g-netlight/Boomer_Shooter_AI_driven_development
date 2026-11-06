@@ -1,12 +1,11 @@
 #include "ScaleGame.h"
+#include <cmath>
 
 bool ScaleGame::Init()
 {
-	m_camera.position	= { 6.0f, 4.0f, 6.0f };
-	m_camera.target		= { 0.0f, 0.5f, 0.0f };
-	m_camera.up			= eng::Engine::GetInstance().GetWorld().worldUp;
-	m_camera.fovy		= 60.0f;
-	m_camera.projection	= CAMERA_PERSPECTIVE;
+	m_camera.SetPosition({ 6.0f, 4.0f, 6.0f });
+	m_camera.LookAt({ 0.0f, 0.5f, 0.0f });
+	eng::Engine::GetInstance().GetMainCamera().SetActiveCamera(m_camera);
 
 	BindInput();
 
@@ -53,17 +52,18 @@ void ScaleGame::Update(float deltaTime)
 
 	if (input.IsCursorLocked())
 	{
-		// TODO(Phase 3/10): replaced by eng::Camera + FirstPersonLook / FirstPersonController
+		// TODO(Phase 10): replaced by FirstPersonLook / FirstPersonController
 		const Vector2 look = map.GetAxis2D("Look");
 		const Vector2 move = map.GetAxis2D("Move");
-		UpdateCameraPro(&m_camera,
-			{ move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f },	// forward, right, up
-			{ look.x * LOOK_SENSITIVITY, look.y * LOOK_SENSITIVITY, 0.0f },			// yaw, pitch, roll (degrees)
-			0.0f);
+		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
+		m_camera.MoveLocal(move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f);
 	}
 	else
 	{
-		UpdateCamera(&m_camera, CAMERA_ORBITAL);
+		m_orbitAngle += ORBIT_SPEED * deltaTime;
+		const float angle = m_orbitAngle * DEG2RAD;
+		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 4.0f, std::cos(angle) * ORBIT_RADIUS });
+		m_camera.LookAt({ 0.0f, 0.5f, 0.0f });
 	}
 
 	if (map.IsActionPressed("Jump"))	++m_jumpPresses;
@@ -88,11 +88,12 @@ void ScaleGame::FixedUpdate(float /*fixedDeltaTime*/)
 void ScaleGame::DrawHUD()
 {
 	// TODO(Phase 3): the 3D pass moves into the Engine (RenderQueue inside BeginMode3D)
-	BeginMode3D(m_camera);
+	const eng::ActiveCamera& activeCamera = eng::Engine::GetInstance().GetMainCamera();
+	activeCamera.Begin3D();
 		DrawCube({ 0.0f, 0.5f, 0.0f }, 1.0f, 1.0f, 1.0f, RED);
 		DrawCubeWires({ 0.0f, 0.5f, 0.0f }, 1.0f, 1.0f, 1.0f, MAROON);
 		DrawGrid(10, 1.0f);
-	EndMode3D();
+	activeCamera.End3D();
 
 	eng::Engine&			engine	= eng::Engine::GetInstance();
 	const eng::WindowInfo&	window	= engine.GetWindow();

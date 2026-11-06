@@ -52,6 +52,10 @@ namespace eng
 
 		SetTargetFPS(60);
 
+		m_defaultCamera.SetPosition({ 0.0f, 2.0f, 5.0f });
+		m_defaultCamera.LookAt({ 0.0f, 0.0f, 0.0f });
+		m_activeCamera.SetActiveCamera(m_defaultCamera);
+
 		m_window.Refresh();
 		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s",
 			GetEngineName(), GetEngineVersion(),
@@ -141,6 +145,11 @@ namespace eng
 	ResourceManager& Engine::GetResources()
 	{
 		return m_resources;
+	}
+
+	ActiveCamera& Engine::GetMainCamera()
+	{
+		return m_activeCamera;
 	}
 
 	Time& Engine::GetTime()

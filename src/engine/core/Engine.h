@@ -4,6 +4,7 @@
 #include "World.h"
 #include "input/InputManager.h"
 #include "resources/ResourceManager.h"
+#include "render/Camera.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -75,6 +76,7 @@ namespace eng
 		//////////////////////////////////////////////////////////////
 		InputManager&		GetInputManager();
 		ResourceManager&	GetResources();
+		ActiveCamera&		GetMainCamera();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -91,6 +93,9 @@ namespace eng
 		InputManager	m_inputManager;
 
 		ResourceManager	m_resources;
+
+		Camera			m_defaultCamera;	// used when the game sets no camera
+		ActiveCamera	m_activeCamera;
 
 		Time			m_time;
 		WindowInfo		m_window;

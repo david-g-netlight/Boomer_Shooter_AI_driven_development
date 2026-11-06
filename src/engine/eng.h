@@ -15,3 +15,4 @@
 #include "input/InputManager.h"
 #include "input/InputMap.h"
 #include "resources/ResourceManager.h"
+#include "render/Camera.h"

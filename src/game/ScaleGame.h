@@ -20,8 +20,8 @@ private:
 	void		BindInput();
 	void		DrawInputPanel() const;
 
-	// TODO(Phase 3): replaced by eng::Camera / eng::ActiveCamera
-	Camera3D	m_camera				= {};
+	eng::Camera	m_camera;
+	float		m_orbitAngle			= 45.0f;	// degrees, used while the cursor is unlocked
 
 	// Fixed steps counted over the last second, to show the fixed rate on screen
 	int			m_fixedStepsThisSecond	= 0;
@@ -31,6 +31,8 @@ private:
 	// Input debug: "pressed" must fire exactly once per press
 	static constexpr float	LOOK_SENSITIVITY	= 0.1f;	// degrees per screen point
 	static constexpr float	FLY_SPEED			= 5.0f;	// m/s, temporary fly camera
+	static constexpr float	ORBIT_SPEED			= 20.0f;	// degrees/s
+	static constexpr float	ORBIT_RADIUS		= 8.5f;
 
 	int			m_jumpPresses			= 0;
 	int			m_firePresses			= 0;
