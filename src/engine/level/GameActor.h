@@ -1,11 +1,17 @@
 #pragma once
+#include <concepts>
+#include <cstddef>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include <raylib.h>
+#include "Component.h"
 
 namespace eng
 {
 	class Level;
+	class RenderQueue;
 
 	/// <summary>
 	/// An object in a Level: name, local transform, parent/children, active flag.
@@ -69,7 +75,44 @@ namespace eng
 		[[nodiscard]] Vector3	GetWorldPosition() const;
 
 		//////////////////////////////////////////
-		/// Per-frame hooks for derived actors (called by the Level)
+		/// Components
+		//////////////////////////////////////////
+		/// <summary>
+		/// Creates a component owned by this actor, then calls OnCreate() and OnEnable().
+		/// Safe to call from inside an Update: the new component starts updating next frame.
+		/// </summary>
+		template<typename T, typename... Args>
+		requires std::derived_from<T, Component>
+		T* AddComponent(Args&&... args)
+		{
+			auto component	= std::make_unique<T>(std::forward<Args>(args)...);
+			T* raw			= component.get();
+			raw->m_owner	= this;
+			m_components.push_back(std::move(component));
+
+			raw->OnCreate();
+			if (raw->IsEnabled())
+				raw->OnEnable();
+			return raw;
+		}
+
+		/// <summary>
+		/// First component of type T (or derived from T), nullptr if none.
+		/// </summary>
+		template<typename T>
+		requires std::derived_from<T, Component>
+		T* GetComponent() const
+		{
+			for (const auto& component : m_components)
+				if (T* match = dynamic_cast<T*>(component.get()))
+					return match;
+			return nullptr;
+		}
+
+		size_t				GetComponentCount() const;
+
+		//////////////////////////////////////////
+		/// Per-frame hooks for derived actors, called after the components
 		//////////////////////////////////////////
 		virtual void		OnUpdate(float /*deltaTime*/) {}
 		virtual void		OnFixedUpdate(float /*fixedDeltaTime*/) {}
@@ -80,6 +123,14 @@ namespace eng
 
 	private:
 		void				DetachFromParent();
+		void				DestroyComponents();
+
+		//////////////////////////////////////////
+		/// Called by the Level
+		//////////////////////////////////////////
+		void				Update(float deltaTime);
+		void				FixedUpdate(float fixedDeltaTime);
+		void				SubmitRenderables(RenderQueue& queue) const;
 
 		std::string				m_name				= "Unnamed";
 		GameActor*				m_parent			= nullptr;
@@ -87,6 +138,8 @@ namespace eng
 		Level*					m_level				= nullptr;
 		bool					m_isActive			= true;
 		bool					m_isMarkedForDestroy= false;
+
+		std::vector<std::unique_ptr<Component>>	m_components;
 
 		::Transform				m_transform			= { { 0.0f, 0.0f, 0.0f },			// translation
 														{ 0.0f, 0.0f, 0.0f, 1.0f },		// rotation (identity)

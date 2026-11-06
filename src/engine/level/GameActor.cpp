@@ -6,6 +6,8 @@ namespace eng
 {
 	GameActor::~GameActor()
 	{
+		DestroyComponents();
+
 		// The Level clears hierarchy links before deleting; this keeps direct deletes safe too
 		DetachFromParent();
 		for (GameActor* child : m_children)
@@ -87,6 +89,63 @@ namespace eng
 		auto& siblings = m_parent->m_children;
 		siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
 		m_parent = nullptr;
+	}
+
+	//////////////////////////////////////////
+	/// Components
+	//////////////////////////////////////////
+	size_t GameActor::GetComponentCount() const
+	{
+		return m_components.size();
+	}
+
+	void GameActor::DestroyComponents()
+	{
+		// Reverse creation order, like destructors: later components may depend on earlier ones
+		for (auto it = m_components.rbegin(); it != m_components.rend(); ++it)
+		{
+			Component& component = **it;
+			if (component.IsEnabled())
+				component.OnDisable();
+			component.OnDestroy();
+		}
+		m_components.clear();
+	}
+
+	void GameActor::Update(float deltaTime)
+	{
+		// By index over a snapshot of the count: components added during the loop start next frame
+		const size_t count = m_components.size();
+		for (size_t i = 0; i < count && !m_isMarkedForDestroy; ++i)
+		{
+			Component& component = *m_components[i];
+			if (component.IsEnabled())
+				component.Update(deltaTime);
+		}
+
+		if (!m_isMarkedForDestroy)
+			OnUpdate(deltaTime);
+	}
+
+	void GameActor::FixedUpdate(float fixedDeltaTime)
+	{
+		const size_t count = m_components.size();
+		for (size_t i = 0; i < count && !m_isMarkedForDestroy; ++i)
+		{
+			Component& component = *m_components[i];
+			if (component.IsEnabled())
+				component.FixedUpdate(fixedDeltaTime);
+		}
+
+		if (!m_isMarkedForDestroy)
+			OnFixedUpdate(fixedDeltaTime);
+	}
+
+	void GameActor::SubmitRenderables(RenderQueue& queue) const
+	{
+		for (const auto& component : m_components)
+			if (component->IsEnabled())
+				component->SubmitRenderables(queue);
 	}
 
 	//////////////////////////////////////////
