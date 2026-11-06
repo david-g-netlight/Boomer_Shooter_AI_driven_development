@@ -58,9 +58,10 @@ rm -rf build
 
 CLion opens the project directly from `CMakeLists.txt`.
 
-> **Linker error `tapi error: malformed file ... unknown architecture`?** Your Command Line Tools SDK is newer than Xcode's linker. Point CMake at Xcode's SDK when configuring:
-> `cmake -S . -B build/release -DCMAKE_OSX_SYSROOT=$(DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun --sdk macosx --show-sdk-path)`
-> or update Xcode so its linker matches the SDK.
+> **Linker error `tapi error: malformed file ... unknown architecture`?** The active Xcode linker is older than the Command Line Tools SDK. Fix it with one of:
+> - Use the Command Line Tools toolchain (no download): `sudo xcode-select -s /Library/Developer/CommandLineTools`
+> - Update Xcode from the App Store so its linker matches the SDK
+> - Or point CMake at Xcode's own SDK for one build: `-DCMAKE_OSX_SYSROOT=$(DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcrun --sdk macosx --show-sdk-path)`
 
 ## 💻 OS Requirements
 
