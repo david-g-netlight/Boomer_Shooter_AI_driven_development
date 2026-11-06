@@ -7,3 +7,4 @@
 
 #include "core/EngineInfo.h"
 #include "core/Application.h"
+#include "core/Engine.h"
