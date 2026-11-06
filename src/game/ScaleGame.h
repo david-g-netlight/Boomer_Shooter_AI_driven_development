@@ -44,6 +44,7 @@ private:
 	void		SpawnPlayer();
 	void		ThrowPellet();
 	void		UpdatePellets();
+	void		EmitImpact(float sign);
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();

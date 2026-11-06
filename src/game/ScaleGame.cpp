@@ -212,6 +212,23 @@ void ScaleGame::SpawnPlayer()
 		->CreateOwnMaterial(m_litShader).SetTint({ 70, 110, 220, 255 });
 }
 
+void ScaleGame::EmitImpact(float sign)
+{
+	if (!m_aimHit)
+		return;
+
+	// Unity BeamImpactParticle / RayBeamController gradients: stretch blue, shrink yellow, alpha 1 -> 0
+	eng::ParticleEmitterSettings impact;
+	impact.burstCount		= 40;
+	impact.speed			= 3.5f;
+	impact.spreadDegrees	= 70.0f;
+	impact.gravity			= { 0.0f, -3.0f, 0.0f };
+	impact.additive			= true;
+	impact.startColor		= sign > 0.0f ? Color{ 40, 120, 255, 255 } : Color{ 255, 220, 40, 255 };
+	impact.endColor			= sign > 0.0f ? Color{ 40, 255, 120, 0 }   : Color{ 255, 60, 20, 0 };
+	eng::Engine::GetInstance().GetParticles().Emit(impact, m_aimHit->point, m_aimHit->normal);
+}
+
 bool ScaleGame::IsCrate(const eng::GameActor* actor) const
 {
 	return std::find(m_crates.begin(), m_crates.end(), actor) != m_crates.end();
@@ -224,6 +241,11 @@ void ScaleGame::UpdateAim()
 	// Center-screen ray, like the scaling gun (Unity ScalingProvider): Ground | Prop, ignores player and triggers
 	m_aimHit = eng::Engine::GetInstance().GetPhysics().Raycast(m_camera.GetPosition(), m_camera.Forward(), AIM_REACH,
 		eng::Layer::Ground | eng::Layer::Prop);
+
+	// Impact bursts wherever the ray hits (Phase 7)
+	if (map.IsActionPressed("Fire"))	EmitImpact(+1.0f);
+	if (map.IsActionPressed("AltFire"))	EmitImpact(-1.0f);
+
 	if (!m_aimHit || !IsCrate(m_aimHit->actor))
 		return;
 
@@ -453,8 +475,8 @@ void ScaleGame::DrawHUD()
 	DrawRectangleLines(10, 10, 330, 120, BLUE);
 	DrawText(TextFormat("%s %s  |  editor %s", eng::GetEngineName(), eng::GetEngineVersion(),
 		eng::IsEditorBuild() ? "ON" : "OFF"), 20, 20, 10, BLACK);
-	DrawText(TextFormat("FPS %d   dt %.4f s   draws %zu", GetFPS(), time.GetDeltaTime(),
-		engine.GetRenderQueue().GetCommandCount()), 20, 40, 10, DARKGRAY);
+	DrawText(TextFormat("FPS %d   dt %.4f s   draws %zu   particles %zu", GetFPS(), time.GetDeltaTime(),
+		engine.GetRenderQueue().GetCommandCount(), engine.GetParticles().GetAliveCount()), 20, 40, 10, DARKGRAY);
 	DrawText(TextFormat("Fixed steps/s %d (target %d)", m_fixedStepsPerSecond,
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,

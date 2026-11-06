@@ -35,3 +35,5 @@
 #include "physics/RigidBody.h"
 #include "physics/TriggerVolume.h"
 #include "physics/CharacterMotor.h"
+#include "fx/ParticleSystem.h"
+#include "fx/ParticleEmitter.h"

@@ -9,6 +9,7 @@
 #include "render/DebugDraw.h"
 #include "audio/AudioManager.h"
 #include "physics/PhysicsWorld.h"
+#include "fx/ParticleSystem.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -85,6 +86,7 @@ namespace eng
 		DebugDraw&			GetDebugDraw();
 		AudioManager&		GetAudio();
 		PhysicsWorld&		GetPhysics();
+		ParticleSystem&		GetParticles();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -108,6 +110,7 @@ namespace eng
 		DebugDraw		m_debugDraw;
 		AudioManager	m_audio;
 		PhysicsWorld	m_physics;
+		ParticleSystem	m_particles;
 
 		Time			m_time;
 		WindowInfo		m_window;
