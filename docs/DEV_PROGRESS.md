@@ -20,7 +20,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 3 | Resources and rendering | ✅ | 2026-11-06 | 2026-11-06 | [devlog](resources_and_rendering_devlog.md) |
 | 4 | Audio | ✅ | 2026-11-06 | 2026-11-06 | [devlog](audio_devlog.md). Moved before Scene/Physics (D9) |
 | 5 | Scene: GameActor, Component, Level | ✅ | 2026-11-06 | 2026-11-07 | [devlog](scene_devlog.md) |
-| 6 | Physics (Bullet 3.25) | ⬜ | | | |
+| 6 | Physics (Bullet 3.25) | 🟡 | 2026-11-07 | | |
 | 7 | FX: particles and lines | ⬜ | | | |
 | 8 | Events, modes, menus | ⬜ | | | |
 | 9 | Editor mode | ⬜ | | | |
@@ -84,8 +84,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `AudioSource` becomes a `Component` (position from its actor)
 - [x] **Done when:** children follow a rotating parent; destroying an actor mid‑update is safe *(validated by the developer)*
 
-### Phase 6 — Physics (Bullet 3.25) ⬜
-- [ ] `BulletConvert` (Vector3 / Quaternion / Transform ↔ bt types)
+### Phase 6 — Physics (Bullet 3.25) 🟡
+- [x] `BulletConvert` (Vector3 / Quaternion / Transform ↔ bt types)
 - [ ] `PhysicsWorld` pimpl: init, `Step`, `Shutdown` (correct delete order)
 - [ ] `PhysicsLayers` groups and masks
 - [ ] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
