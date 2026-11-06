@@ -15,7 +15,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | Phase | Name | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|
 | 0 | Project setup, CMake, raygui, Bullet static libs | ✅ | 2026-11-06 | 2026-11-06 | [devlog](project_setup_and_build_system_devlog.md) |
-| 1 | Core: Engine, Application, Time, Window | 🟡 | 2026-11-06 | | |
+| 1 | Core: Engine, Application, Time, Window | ✅ | 2026-11-06 | 2026-11-06 | [devlog](core_devlog.md) |
 | 2 | Input | ⬜ | | | |
 | 3 | Resources and rendering | ⬜ | | | |
 | 4 | Scene: GameActor, Component, Level | ⬜ | | | |
@@ -29,8 +29,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 1
-**Branch:** `core` (from `integration`)
+**Current focus:** Phase 2
+**Branch:** `input` (from `integration`)
 
 ---
 
@@ -47,13 +47,13 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `ENG_EDITOR` compile definition (Debug = 1, Release = 0, `-DENG_EDITOR_IN_RELEASE=ON` to force 1) + `eng::IsEditorBuild()`
 - [x] **Done when:** the old free‑camera `main.cpp` runs from CMake, and a throw‑away `btDiscreteDynamicsWorld` links
 
-### Phase 1 — Core 🟡
+### Phase 1 — Core ✅
 - [x] `eng::Application` (Init / Update / FixedUpdate / DrawHUD / Destroy + mode hooks)
 - [x] `eng::Engine` singleton, `SetApplication` ownership transfer, `Init / Run / Shutdown`
 - [x] Window flags (MSAA, VSync, resizable, HighDPI), `SetExitKey(KEY_NULL)`, `ChangeDirectory(GetApplicationDirectory())`
 - [x] `Time` (clamped dt, fixed‑step accumulator), `WindowInfo`, `World`, `Log`
 - [x] `main.cpp` reduced to the reference pattern; temporary `ScaleGame` draws a cube
-- [ ] **Done when:** window opens via `Engine::Run`, cube renders, clean shutdown
+- [x] **Done when:** window opens via `Engine::Run`, cube renders, clean shutdown *(validated by the developer)*
 
 ### Phase 2 — Input ⬜
 - [ ] `InputManager::Poll()` (down / pressed / released, mouse delta, wheel)
@@ -185,7 +185,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
-| 2026-11-06 | 1 | All 5 Phase 1 tasks committed on `core`; `Time` fixed-step unit check passed; 4 s smoke run: cwd switches to the app dir, HighDPI 1280×720 → 2560×1440, no warnings | Developer runs the Phase 1 **Done when** check (incl. closing the window → Destroy + Shutdown logs) | Waiting for green light to merge |
+| 2026-11-06 | 1 | Developer validated Phase 1; devlog written; merged into `integration` | Start Phase 2 on `input` | — |
+| 2026-11-06 | 1 | All 5 Phase 1 tasks committed on `core`; `Time` fixed-step unit check passed; 4 s smoke run: cwd switches to the app dir, HighDPI 1280×720 → 2560×1440, no warnings | Developer runs the Phase 1 **Done when** check (incl. closing the window → Destroy + Shutdown logs) | — |
 | 2026-11-06 | 0 | Toolchain switched to Command Line Tools (fixes `tapi` linker error); developer validated Phase 0; devlog written; merged into `integration` | Start Phase 1 on `core` | — |
 | 2026-11-06 | 0 | Branch `integration` + `project_setup_and_build_system`; all 8 Phase 0 tasks committed; Bullet link probe passed (box falls 10 → 5.19 m in 1 s); game target confirmed unable to include Bullet | Developer runs the Phase 0 **Done when** check | — |
 | 2026-11-06 | — | Player motor switched to a dynamic capsule (D8) | Start Phase 0 | — |
