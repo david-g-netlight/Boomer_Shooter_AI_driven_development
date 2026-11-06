@@ -26,3 +26,4 @@
 #include "level/Component.h"
 #include "level/GameActor.h"
 #include "level/Level.h"
+#include "render/MeshRenderer.h"

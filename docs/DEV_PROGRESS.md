@@ -80,7 +80,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `GameActor` (transform, hierarchy, world matrix, `MarkForDestroy`)
 - [x] `Component` base + `AddComponent<T> / GetComponent<T>`
 - [x] `Level` (factory, update, fixed update, submit, `FlushDestroyed`) (+ Engine loop wiring)
-- [ ] `MeshRenderer`
+- [x] `MeshRenderer` (+ demo scene as actors: rotating ring, Cube 0 → Moon, X self‑destruct, R rebuild)
 - [ ] `AudioSource` becomes a `Component` (position from its actor)
 - [ ] **Done when:** children follow a rotating parent; destroying an actor mid‑update is safe
 
