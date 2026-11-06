@@ -1,6 +1,7 @@
 #include "GameActor.h"
 #include <algorithm>
 #include <raymath.h>
+#include "core/MathUtils.h"
 
 namespace eng
 {
@@ -76,7 +77,7 @@ namespace eng
 			// local = world * inverse(parent world), then split back into translation / rotation / scale
 			const Matrix parentWorld	= parent ? parent->GetWorldMatrix() : MatrixIdentity();
 			const Matrix local			= MatrixMultiply(world, MatrixInvert(parentWorld));
-			MatrixDecompose(local, &m_transform.translation, &m_transform.rotation, &m_transform.scale);
+			DecomposeTransform(local, &m_transform.translation, &m_transform.rotation, &m_transform.scale);
 		}
 		return true;
 	}
@@ -146,6 +147,22 @@ namespace eng
 		for (const auto& component : m_components)
 			if (component->IsEnabled())
 				component->SubmitRenderables(queue);
+	}
+
+	void GameActor::NotifyTriggerEnter(GameActor& other)
+	{
+		const size_t count = m_components.size();
+		for (size_t i = 0; i < count && !m_isMarkedForDestroy; ++i)
+			if (m_components[i]->IsEnabled())
+				m_components[i]->OnTriggerEnter(other);
+	}
+
+	void GameActor::NotifyTriggerExit(GameActor& other)
+	{
+		const size_t count = m_components.size();
+		for (size_t i = 0; i < count && !m_isMarkedForDestroy; ++i)
+			if (m_components[i]->IsEnabled())
+				m_components[i]->OnTriggerExit(other);
 	}
 
 	//////////////////////////////////////////

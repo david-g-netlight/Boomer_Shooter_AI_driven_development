@@ -55,6 +55,7 @@ namespace eng
 
 		// A missing audio device is not fatal: the game runs silently
 		m_audio.Init();
+		m_physics.Init(m_world.gravity);
 
 		m_defaultCamera.SetPosition({ 0.0f, 2.0f, 5.0f });
 		m_defaultCamera.LookAt({ 0.0f, 0.0f, 0.0f });
@@ -96,6 +97,7 @@ namespace eng
 			{
 				if (level) level->FixedUpdate(m_time.GetFixedDeltaTime());
 				m_app->FixedUpdate(m_time.GetFixedDeltaTime());
+				m_physics.Step(m_time.GetFixedDeltaTime());
 			}
 
 			if (level) level->Update(m_time.GetDeltaTime());
@@ -118,6 +120,7 @@ namespace eng
 				m_activeCamera.Begin3D();
 					m_renderQueue.Draw(*m_activeCamera.GetActiveCamera());
 					m_debugDraw.Draw3D();
+					m_physics.DebugDraw();
 				m_activeCamera.End3D();
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 
@@ -142,8 +145,10 @@ namespace eng
 
 		if (m_isWindowOpen)
 		{
+			// Bodies were removed by the game's Destroy (level cleared); then the world itself.
 			// Aliases before the sounds they share data with; GPU/audio resources while the GL context
 			// and the audio device still exist
+			m_physics.Shutdown();
 			m_audio.ReleaseVoices();
 			m_resources.UnloadAll();
 			m_audio.Shutdown();
@@ -200,6 +205,11 @@ namespace eng
 	AudioManager& Engine::GetAudio()
 	{
 		return m_audio;
+	}
+
+	PhysicsWorld& Engine::GetPhysics()
+	{
+		return m_physics;
 	}
 
 	Time& Engine::GetTime()

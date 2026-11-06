@@ -1,25 +1,18 @@
 #include "ScaleGame.h"
-#include "components/Rotator.h"
-#include "components/SelfDestructTimer.h"
+#include "components/TriggerCounter.h"
 #include <algorithm>
 #include <cmath>
 #include <raymath.h>
 
 bool ScaleGame::Init()
 {
-	m_camera.SetPosition({ 6.0f, 4.0f, 6.0f });
-	m_camera.LookAt({ 0.0f, 0.5f, 0.0f });
-	m_camera.SetPerspective({ 60.0f, 0.05f, 200.0f });
+	m_camera.SetPerspective({ 60.0f, 0.05f, 300.0f });
 	eng::Engine::GetInstance().GetMainCamera().SetActiveCamera(m_camera);
 
-	// Lit shader for even cubes and the ground; odd cubes keep raylib's unlit default shader.
-	// If the shader fails to load, every material falls back to the default shader.
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
-	m_litShader = resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
-
+	m_litShader		= resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
 	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
 	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
-	m_ping			= resources.LoadSound("assets/audio/sfx_ping.wav");
 
 	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
 	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
@@ -30,12 +23,12 @@ bool ScaleGame::Init()
 		music.Play(*m_themeMenu, MUSIC_FADE_IN);
 	}
 
-	BuildScene();
+	BuildSandbox();
 
-	// Minimap: high above the ring looking down (pitch is clamped to -89), pixel size follows the DPI
-	m_minimapCamera.SetPosition({ 0.0f, 14.0f, 0.01f });
+	// Minimap: high above the sandbox looking down (pitch is clamped to -89), pixel size follows the DPI
+	m_minimapCamera.SetPosition({ 0.0f, 32.0f, 0.01f });
 	m_minimapCamera.SetYawPitch(0.0f, -89.0f);
-	m_minimapCamera.SetPerspective({ 45.0f, 0.1f, 50.0f });
+	m_minimapCamera.SetPerspective({ 60.0f, 0.1f, 100.0f });
 	const float dpi = eng::Engine::GetInstance().GetWindow().dpiScale;
 	m_minimap.Create(static_cast<int>(MINIMAP_WIDTH * dpi), static_cast<int>(MINIMAP_HEIGHT * dpi));
 
@@ -75,121 +68,185 @@ void ScaleGame::BindInput()
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
 	// TODO(Phase 8): replaced by the real Pause (ESC); simulates its audio side
 	map.BindAction("TogglePauseAudio", InputBinding::Key(KEY_P));
-	map.BindAction("PingCube", InputBinding::Key(KEY_K));
 	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
 
-	// Scene demo
-	map.BindAction("DestroyCube", InputBinding::Key(KEY_X));
-	map.BindAction("RebuildRing", InputBinding::Key(KEY_R));
+	// Physics sandbox
+	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
+	map.BindAction("TogglePlayer", InputBinding::Key(KEY_V));
+	map.BindAction("TogglePhysicsDebug", InputBinding::Key(KEY_F3));
+	map.BindAction("ThrowPellet", InputBinding::Key(KEY_T));
 }
 
 //////////////////////////////////////////
-/// Scene
+/// Sandbox
 //////////////////////////////////////////
-void ScaleGame::BuildScene()
+eng::GameActor* ScaleGame::SpawnBox(const BoxDesc& desc)
 {
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
 
-	// Ground (lit), 1 cm below y = 0 so the debug grid doesn't z-fight with it
-	eng::GameActor* ground = m_level.CreateGameActor("Ground");
-	ground->SetPosition({ 0.0f, -0.01f, 0.0f });
-	ground->SetScale({ 20.0f, 1.0f, 20.0f });
-	ground->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Plane))
-		->CreateOwnMaterial(m_litShader).SetTint({ 120, 140, 110, 255 });
+	eng::GameActor* actor = m_level.CreateGameActor(desc.name);
+	actor->SetPosition(desc.position);
+	actor->SetRotationEuler(desc.rotationDegrees);
+	actor->SetScale(desc.size);		// unit cube mesh and 1 m box collider, scaled by the actor
 
-	BuildRing();
+	eng::Material& material = actor->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cube))
+		->CreateOwnMaterial(m_litShader);
+	material.SetTint(desc.color);
+	material.SetParameter("specularStrength", desc.type == eng::BodyType::Static ? 0.1f : 0.4f);
+
+	actor->AddComponent<eng::Collider>()->SetLayer(desc.layer);	// default box: half extents 0.5 = unit cube
+	eng::RigidBodySettings settings;
+	settings.type = desc.type;
+	settings.mass = desc.mass;
+	actor->AddComponent<eng::RigidBody>(settings);
+	return actor;
 }
 
-void ScaleGame::BuildRing()
+void ScaleGame::BuildSandbox()
 {
+	using eng::BodyType;
+	constexpr Color GROUND	= { 120, 140, 110, 255 };
+	constexpr Color RAMP	= { 150, 150, 160, 255 };
+	constexpr Color STEEP	= { 170, 130, 150, 255 };
+	constexpr Color HEAVY	= { 139,  90,  43, 255 };
+	constexpr Color LIGHT	= { 235, 205,  80, 255 };
+	constexpr Color DROPPED	= { 230, 120,  40, 255 };
+
+	// Static level geometry. Ground top at y = -0.01 so the debug grid (y = 0) doesn't z-fight with it
+	SpawnBox({ "Ground", { 0.0f, -0.51f, 0.0f }, { 40.0f, 1.0f, 40.0f }, {}, BodyType::Static, 0.0f, GROUND, eng::Layer::Ground });
+
+	// Ramps rotated around Z: +angle raises the +X end. Centered so the low end sits on the ground
+	const float rampLength = 6.0f;
+	auto rampHeight = [rampLength](float degrees) { return 0.5f * rampLength * std::sin(degrees * DEG2RAD); };
+	SpawnBox({ "Ramp 30", { -9.0f, rampHeight(30.0f), -6.0f }, { rampLength, 0.4f, 4.0f }, { 0.0f, 0.0f, 30.0f },
+			   BodyType::Static, 0.0f, RAMP, eng::Layer::Ground });
+	SpawnBox({ "Ramp 50", {  9.0f, rampHeight(50.0f), -6.0f }, { rampLength, 0.4f, 4.0f }, { 0.0f, 0.0f, 50.0f },
+			   BodyType::Static, 0.0f, STEEP, eng::Layer::Ground });
+
+	// 20 dynamic crates: a heavy pyramid (10), a light tower (5), dropped crates (4), a low crate to jump on (1)
+	m_crates.clear();
+	for (int row = 0, count = 4; count > 0; ++row, --count)
+		for (int i = 0; i < count; ++i)
+			m_crates.push_back(SpawnBox({ TextFormat("Heavy %d.%d", row, i),
+				{ -1.53f + 1.02f * (i + 0.5f * row), 0.5f + 1.0f * row, -4.0f }, { 1.0f, 1.0f, 1.0f }, {},
+				BodyType::Dynamic, HEAVY_MASS, HEAVY }));
+
+	for (int i = 0; i < 5; ++i)
+		m_crates.push_back(SpawnBox({ TextFormat("Light %d", i), { 5.0f, 0.45f + 0.9f * i, 2.0f }, { 0.9f, 0.9f, 0.9f }, {},
+			BodyType::Dynamic, LIGHT_MASS, LIGHT }));
+
+	for (int i = 0; i < 4; ++i)
+		m_crates.push_back(SpawnBox({ TextFormat("Dropped %d", i), { -4.0f + 0.4f * i, 6.0f + 2.0f * i, 2.0f + 0.3f * i },
+			{ 0.8f, 0.8f, 0.8f }, { 15.0f * i, 30.0f * i, 10.0f }, BodyType::Dynamic, 5.0f, DROPPED }));
+
+	m_crates.push_back(SpawnBox({ "Jump crate", { -3.0f, 0.4f, 7.0f }, { 1.6f, 0.8f, 1.6f }, {},
+		BodyType::Dynamic, 60.0f, RED }));
+
+	// Trigger zone: translucent, objects pass through; turns green while something is inside
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
-	const ::Mesh* cube		= resources.GetPrimitive(eng::Primitive::Cube);
-	const ::Mesh* sphere	= resources.GetPrimitive(eng::Primitive::Sphere);
+	eng::GameActor* zone = m_level.CreateGameActor("Trigger Zone");
+	zone->SetPosition({ 2.0f, 1.0f, 5.0f });
+	zone->SetScale({ 3.0f, 2.0f, 3.0f });
+	zone->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cube))
+		->CreateOwnMaterial().SetTint({ 60, 140, 255, 70 });
+	zone->AddComponent<eng::Collider>()->SetLayer(eng::Layer::Trigger);
+	zone->AddComponent<eng::TriggerVolume>();
+	m_triggerCounter = zone->AddComponent<TriggerCounter>();
 
-	++m_ringBuilds;
-	m_ring = m_level.CreateGameActor(TextFormat("Ring %d", m_ringBuilds));
-	m_ring->AddComponent<Rotator>(RING_SPEED);
+	// Thin wall behind the pyramid, target for the CCD pellets
+	SpawnBox({ "Thin Wall", { 0.0f, 1.5f, WALL_Z }, { 6.0f, 3.0f, 0.05f }, {}, BodyType::Static, 0.0f,
+			   { 200, 200, 210, 255 }, eng::Layer::Ground });
 
-	m_cubes.clear();
-	m_cubes.reserve(CUBE_COUNT);
-	m_lastPingedCube = -1;
+	SpawnPlayer();
+}
 
-	// Ring of cubes, each with its own material: hue around the circle, growing size
-	for (int i = 0; i < CUBE_COUNT; ++i)
+void ScaleGame::ThrowPellet()
+{
+	// Oldest out when the cap is reached
+	if (m_pellets.size() >= MAX_PELLETS)
 	{
-		const float t		= static_cast<float>(i) / CUBE_COUNT;
-		const float angle	= t * 2.0f * PI;
-		const float size	= 0.6f + 0.5f * t;
-
-		eng::GameActor* actor = m_level.CreateGameActor(TextFormat("Cube %d", i), m_ring);
-		actor->SetPosition({ std::cos(angle) * RING_RADIUS, size * 0.5f, std::sin(angle) * RING_RADIUS });
-		actor->SetRotationEuler({ 0.0f, -angle * RAD2DEG, 0.0f });
-		actor->SetScale(size);
-
-		eng::Material& material = actor->AddComponent<eng::MeshRenderer>(cube)->CreateOwnMaterial(i % 2 == 0 ? m_litShader : nullptr);
-		material.SetTint(ColorFromHSV(t * 360.0f, 0.75f, 0.95f));
-		material.SetParameter("specularStrength", 0.6f);
-
-		// Spatial ping, positioned by the actor (follows the rotating ring)
-		eng::AudioSource* source = actor->AddComponent<eng::AudioSource>(m_ping);
-		source->SetSpatial(true);
-		source->SetRange(2.0f, 25.0f);
-		source->SetPitch(0.8f + 0.5f * t);		// each cube has its own note
-		source->SetPitchVariation(0.02f);
-
-		m_cubes.push_back(actor);
+		m_pellets.front()->MarkForDestroy();
+		m_pellets.erase(m_pellets.begin());
 	}
 
-	// Cube 0 spins fast and carries a moon: Ring -> Cube 0 -> Moon (scaled by both parents)
-	m_pulseCube = m_cubes[0];
-	m_pulseCube->AddComponent<Rotator>(90.0f);
-	eng::GameActor* moon = m_level.CreateGameActor("Moon", m_pulseCube);
-	moon->SetPosition({ 1.4f, 0.3f, 0.0f });
-	moon->SetScale(0.4f);
-	moon->AddComponent<eng::MeshRenderer>(sphere)->CreateOwnMaterial(m_litShader).SetTint(LIGHTGRAY);
+	eng::GameActor* pellet = SpawnBox({ "Pellet", Vector3Add(m_camera.GetPosition(), Vector3Scale(m_camera.Forward(), 1.0f)),
+		{ PELLET_SIZE, PELLET_SIZE, PELLET_SIZE }, {}, eng::BodyType::Dynamic, 0.05f, RAYWHITE });
+	pellet->GetComponent<eng::RigidBody>()->SetLinearVelocity(Vector3Scale(m_camera.Forward(), PELLET_SPEED));
+	m_pellets.push_back(pellet);
+	++m_pelletsThrown;
 }
 
-void ScaleGame::PruneDestroyedCubes()
+void ScaleGame::UpdatePellets()
 {
-	const size_t before = m_cubes.size();
-	m_cubes.erase(std::remove_if(m_cubes.begin(), m_cubes.end(),
-		[](const eng::GameActor* cube) { return cube->IsMarkedForDestroy(); }), m_cubes.end());
-
-	if (m_cubes.size() != before)
-		m_lastPingedCube = -1;
-	if (m_pulseCube && m_pulseCube->IsMarkedForDestroy())
-		m_pulseCube = nullptr;
-	if (m_ring && m_ring->IsMarkedForDestroy())
-		m_ring = nullptr;
+	// A pellet "tunnelled" if it ends up behind the wall's footprint (counted once, then removed)
+	for (eng::GameActor*& pellet : m_pellets)
+	{
+		const Vector3 p = pellet->GetWorldPosition();
+		if (p.z < WALL_Z - 0.3f && std::fabs(p.x) < 3.0f && p.y > 0.0f && p.y < 3.0f)
+		{
+			++m_tunnelled;
+			pellet->MarkForDestroy();
+		}
+	}
+	m_pellets.erase(std::remove_if(m_pellets.begin(), m_pellets.end(),
+		[](const eng::GameActor* pellet) { return pellet->IsMarkedForDestroy(); }), m_pellets.end());
 }
 
-void ScaleGame::UpdateSceneDemo()
+void ScaleGame::SpawnPlayer()
+{
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+
+	// Capsule radius 0.5, 1 m between the sphere centers: 2 m tall, actor position = capsule center
+	m_player = m_level.CreateGameActor("Player");
+	m_player->SetPosition(PLAYER_SPAWN);
+	eng::Collider* collider = m_player->AddComponent<eng::Collider>();
+	collider->SetCapsule(0.5f, 1.0f);
+	collider->SetLayer(eng::Layer::Player);
+	m_player->AddComponent<eng::CharacterMotor>();
+
+	// Visual: the unit cylinder sits on y = 0, so offset it down to cover the capsule (-1 .. +1)
+	eng::GameActor* body = m_level.CreateGameActor("Player Mesh", m_player);
+	body->SetPosition({ 0.0f, -1.0f, 0.0f });
+	body->SetScale({ 1.0f, 2.0f, 1.0f });
+	body->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cylinder))
+		->CreateOwnMaterial(m_litShader).SetTint({ 70, 110, 220, 255 });
+}
+
+bool ScaleGame::IsCrate(const eng::GameActor* actor) const
+{
+	return std::find(m_crates.begin(), m_crates.end(), actor) != m_crates.end();
+}
+
+void ScaleGame::UpdateAim()
 {
 	const eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
 
-	// X: a random cube destroys itself from inside its own Update next frame (with its children)
-	if (map.IsActionPressed("DestroyCube") && !m_cubes.empty())
+	// Center-screen ray, like the scaling gun (Unity ScalingProvider): Ground | Prop, ignores player and triggers
+	m_aimHit = eng::Engine::GetInstance().GetPhysics().Raycast(m_camera.GetPosition(), m_camera.Forward(), AIM_REACH,
+		eng::Layer::Ground | eng::Layer::Prop);
+	if (!m_aimHit || !IsCrate(m_aimHit->actor))
+		return;
+
+	// LMB: kick the crate at the hit point (off-center hits also spin it)
+	if (map.IsActionPressed("Fire"))
 	{
-		const int index = GetRandomValue(0, static_cast<int>(m_cubes.size()) - 1);
-		m_cubes[index]->AddComponent<SelfDestructTimer>(0.0f);
+		eng::RigidBody* body = m_aimHit->actor->GetComponent<eng::RigidBody>();
+		const Vector3 offset = Vector3Subtract(m_aimHit->point, m_aimHit->actor->GetWorldPosition());
+		body->AddImpulse(Vector3Scale(m_camera.Forward(), body->GetMass() * KICK_SPEED), offset);
 	}
 
-	// R: destroy the whole ring (children follow) and build a new one in the same frame
-	if (map.IsActionPressed("RebuildRing"))
+	// X: delete it mid-simulation (the body leaves the world at the end of the frame)
+	if (map.IsActionPressed("DeleteAimed"))
 	{
-		if (m_ring)
-			m_ring->MarkForDestroy();
-		BuildRing();
+		m_aimHit->actor->MarkForDestroy();
+		++m_deletedCrates;
 	}
+}
 
-	PruneDestroyedCubes();
-
-	// Cube 0 pulses its "emissive" material parameter (0 = lit, 1 = flat albedo)
-	if (m_pulseCube)
-	{
-		if (eng::Material* material = m_pulseCube->GetComponent<eng::MeshRenderer>()->GetOwnMaterial())
-			material->SetParameter("emissive", 0.5f + 0.5f * std::sin(m_pulseTime * 2.0f));
-	}
+void ScaleGame::PruneDestroyedCrates()
+{
+	m_crates.erase(std::remove_if(m_crates.begin(), m_crates.end(),
+		[](const eng::GameActor* crate) { return crate->IsMarkedForDestroy(); }), m_crates.end());
 }
 
 //////////////////////////////////////////
@@ -209,6 +266,84 @@ void ScaleGame::Update(float deltaTime)
 		debug.SetEnabled(!debug.IsEnabled());
 	}
 
+	if (map.IsActionPressed("TogglePhysicsDebug"))
+	{
+		eng::PhysicsWorld& physics = eng::Engine::GetInstance().GetPhysics();
+		physics.SetDebugDrawEnabled(!physics.IsDebugDrawEnabled());
+	}
+
+	if (map.IsActionPressed("TogglePlayer"))
+	{
+		m_isPlayerMode = !m_isPlayerMode;
+		if (m_isPlayerMode)
+		{
+			m_player->GetComponent<eng::CharacterMotor>()->Warp(PLAYER_SPAWN);
+			input.SetCursorLocked(true);
+		}
+	}
+
+	if (map.IsActionPressed("ThrowPellet"))
+		ThrowPellet();
+
+	UpdatePlayer(deltaTime);
+	UpdateCamera(deltaTime);
+	UpdateAim();
+	UpdatePellets();
+	UpdateAudioDemo();
+	PruneDestroyedCrates();
+
+	m_secondTimer += deltaTime;
+	if (m_secondTimer >= 1.0f)
+	{
+		m_fixedStepsPerSecond	= m_fixedStepsThisSecond;
+		m_fixedStepsThisSecond	= 0;
+		m_secondTimer			-= 1.0f;
+	}
+}
+
+void ScaleGame::UpdatePlayer(float /*deltaTime*/)
+{
+	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
+	const eng::InputMap&		map		= input.GetMap();
+	eng::CharacterMotor*		motor	= m_player->GetComponent<eng::CharacterMotor>();
+
+	if (!m_isPlayerMode)
+	{
+		motor->SetWalkVelocity({ 0.0f, 0.0f, 0.0f });
+		return;
+	}
+
+	// TODO(Phase 10): replaced by PlayerInput + FirstPersonController + FirstPersonLook
+	if (input.IsCursorLocked())
+	{
+		const Vector2 look = map.GetAxis2D("Look");
+		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
+	}
+
+	// Walk relative to where the camera faces, on the ground plane
+	const Vector2 move		= map.GetAxis2D("Move");
+	Vector3 forward			= m_camera.Forward();
+	forward.y				= 0.0f;
+	forward					= Vector3Normalize(forward);
+	const Vector3 right		= m_camera.Right();
+	motor->SetWalkVelocity(Vector3Scale(Vector3Add(Vector3Scale(forward, move.y), Vector3Scale(right, move.x)), WALK_SPEED));
+
+	if (map.IsActionPressed("Jump"))
+		motor->Jump(JUMP_SPEED);
+}
+
+void ScaleGame::UpdateCamera(float deltaTime)
+{
+	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
+	const eng::InputMap&		map		= input.GetMap();
+
+	if (m_isPlayerMode)
+	{
+		// Eyes on the capsule (the actor holds the physics position after the last fixed step)
+		m_camera.SetPosition(Vector3Add(m_player->GetWorldPosition(), { 0.0f, EYE_HEIGHT, 0.0f }));
+		return;
+	}
+
 	if (input.IsCursorLocked())
 	{
 		// TODO(Phase 10): replaced by FirstPersonLook / FirstPersonController
@@ -221,25 +356,8 @@ void ScaleGame::Update(float deltaTime)
 	{
 		m_orbitAngle += ORBIT_SPEED * deltaTime;
 		const float angle = m_orbitAngle * DEG2RAD;
-		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 4.0f, std::cos(angle) * ORBIT_RADIUS });
-		m_camera.LookAt({ 0.0f, 0.5f, 0.0f });
-	}
-
-	if (map.IsActionPressed("Jump"))	++m_jumpPresses;
-	if (map.IsActionPressed("Fire"))	++m_firePresses;
-	if (map.IsActionPressed("AltFire"))	++m_altFirePresses;
-	m_scrollTotal += map.GetAxis("Scroll");
-
-	m_pulseTime += deltaTime;
-	UpdateSceneDemo();
-	UpdateAudioDemo();
-
-	m_secondTimer += deltaTime;
-	if (m_secondTimer >= 1.0f)
-	{
-		m_fixedStepsPerSecond	= m_fixedStepsThisSecond;
-		m_fixedStepsThisSecond	= 0;
-		m_secondTimer			-= 1.0f;
+		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
+		m_camera.LookAt({ 0.0f, 1.0f, -1.0f });
 	}
 }
 
@@ -256,22 +374,9 @@ void ScaleGame::UpdateAudioDemo()
 
 	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
 	if (map.IsActionPressed("Fire") && m_sfxStretch)
-	{
-		m_lastPitch = 1.0f + factor + 0.02f;
-		audio.Play(*m_sfxStretch, 0.8f, m_lastPitch);
-	}
+		audio.Play(*m_sfxStretch, 0.8f, 1.0f + factor + 0.02f);
 	if (map.IsActionPressed("AltFire") && m_sfxShrink)
-	{
-		m_lastPitch = 1.0f - factor - 0.02f;
-		audio.Play(*m_sfxShrink, 0.8f, m_lastPitch);
-	}
-
-	// Spatial ping from a random cube: listen to pan (left / right) and distance falloff
-	if (map.IsActionPressed("PingCube") && !m_cubes.empty())
-	{
-		m_lastPingedCube = GetRandomValue(0, static_cast<int>(m_cubes.size()) - 1);
-		m_cubes[m_lastPingedCube]->GetComponent<eng::AudioSource>()->Play();
-	}
+		audio.Play(*m_sfxShrink, 0.8f, 1.0f - factor - 0.02f);
 
 	// Cross-fade between the menu and gameplay themes
 	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
@@ -305,15 +410,15 @@ void ScaleGame::SubmitDebugShapes() const
 	if (!debug.IsEnabled())
 		return;
 
-	debug.Grid(20, 1.0f);
+	debug.Grid(40, 1.0f);
 	debug.Axes({ 0.0f, 0.01f, 0.0f }, 1.5f);
-	debug.WireSphere({ 0.0f, 0.0f, 0.0f }, 5.2f, Fade(DARKGRAY, 0.4f));
-	for (const eng::GameActor* cube : m_cubes)
+	debug.Label({ -9.0f, 3.5f, -6.0f }, "30 deg ramp", BLACK);
+	debug.Label({  9.0f, 5.0f, -6.0f }, "50 deg ramp", BLACK);
+
+	if (m_aimHit)
 	{
-		// World bounds follow the ring's rotation (axis aligned, so they grow while a cube is turned)
-		const BoundingBox bounds = cube->GetComponent<eng::MeshRenderer>()->GetWorldBounds();
-		debug.WireBox(Vector3Scale(Vector3Add(bounds.min, bounds.max), 0.5f), Vector3Subtract(bounds.max, bounds.min), Fade(BLACK, 0.3f));
-		debug.Label(Vector3Add(cube->GetWorldPosition(), { 0.0f, 1.2f, 0.0f }), cube->GetName(), BLACK);
+		debug.WireSphere(m_aimHit->point, 0.08f, RED);
+		debug.Line(m_aimHit->point, Vector3Add(m_aimHit->point, Vector3Scale(m_aimHit->normal, 0.6f)), RED);
 	}
 }
 
@@ -328,8 +433,7 @@ void ScaleGame::DrawMinimap()
 		ClearBackground(Fade(DARKBLUE, 0.85f));
 		m_minimapCamera.Begin3D();
 			engine.GetRenderQueue().Draw(m_minimapCamera);
-			// Where the main camera is
-			DrawSphere(m_camera.GetPosition(), 0.4f, YELLOW);
+			DrawSphere(m_camera.GetPosition(), 0.6f, YELLOW);	// where the main camera is
 		m_minimapCamera.End3D();
 	m_minimap.End();
 
@@ -355,93 +459,86 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("C: %s  |  F2: debug draw  |  close to quit",
-		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "fly (mouse + WASD)"), 20, 100, 10, DARKGRAY);
+	DrawText(TextFormat("V: %s  |  C: %s cursor  |  F2 / F3 debug", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
+		engine.GetInputManager().IsCursorLocked() ? "unlock" : "lock"), 20, 100, 10, DARKGRAY);
 
-	DrawInputPanel();
+	DrawPhysicsPanel();
 	DrawAudioPanel();
-	DrawScenePanel();
 	DrawMinimap();
+
+	// Crosshair
+	const int cx = window.screenWidth / 2, cy = window.screenHeight / 2;
+	const Color crosshair = (m_aimHit && IsCrate(m_aimHit->actor)) ? RED : RAYWHITE;
+	DrawLine(cx - 8, cy, cx + 8, cy, crosshair);
+	DrawLine(cx, cy - 8, cx, cy + 8, crosshair);
 }
 
-void ScaleGame::DrawInputPanel() const
+void ScaleGame::DrawPhysicsPanel() const
 {
-	const eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
-	const Vector2 move = map.GetAxis2D("Move");
-	const Vector2 look = map.GetAxis2D("Look");
-
-	auto state = [&map](const char* action)
-	{
-		return map.IsActionDown(action) ? "DOWN" : "up";
-	};
+	int sleeping = 0;
+	for (const eng::GameActor* crate : m_crates)
+		if (const eng::RigidBody* body = crate->GetComponent<eng::RigidBody>(); body && body->IsSleeping())
+			++sleeping;
 
 	const int x = 10, y = 140;
-	DrawRectangle(x, y, 330, 120, Fade(LIGHTGRAY, 0.6f));
-	DrawRectangleLines(x, y, 330, 120, GRAY);
-	DrawText("Input (InputMap actions / axes)", x + 10, y + 10, 10, BLACK);
-	DrawText(TextFormat("Move  (WASD / arrows)  x %+.2f  y %+.2f", move.x, move.y), x + 10, y + 30, 10, DARKGRAY);
-	DrawText(TextFormat("Look  (mouse delta)    x %+.1f  y %+.1f", look.x, look.y), x + 10, y + 45, 10, DARKGRAY);
-	DrawText(TextFormat("Jump    (Space) %-4s  presses %d", state("Jump"), m_jumpPresses), x + 10, y + 60, 10, DARKGRAY);
-	DrawText(TextFormat("Fire    (LMB)   %-4s  presses %d", state("Fire"), m_firePresses), x + 10, y + 75, 10, DARKGRAY);
-	DrawText(TextFormat("AltFire (RMB)   %-4s  presses %d", state("AltFire"), m_altFirePresses), x + 10, y + 90, 10, DARKGRAY);
-	DrawText(TextFormat("Scroll  (wheel) total %+.1f", m_scrollTotal), x + 10, y + 105, 10, DARKGRAY);
+	DrawRectangle(x, y, 330, 126, Fade(LIME, 0.35f));
+	DrawRectangleLines(x, y, 330, 126, DARKGREEN);
+	DrawText(TextFormat("Physics (Bullet)  |  bodies %d  |  actors %zu", eng::Engine::GetInstance().GetPhysics().GetObjectCount(),
+		m_level.GetActorCount()), x + 10, y + 10, 10, BLACK);
+	DrawText(TextFormat("Crates %zu  |  sleeping %d  |  deleted %d", m_crates.size(), sleeping, m_deletedCrates),
+		x + 10, y + 28, 10, DARKGRAY);
+	DrawText("heavy 20 kg (brown)  light 2 kg (yellow)  jump crate (red)", x + 10, y + 44, 10, DARKGRAY);
+	if (m_aimHit)
+		DrawText(TextFormat("Aim: %s  %.1f m%s", m_aimHit->actor->GetName().c_str(), m_aimHit->distance,
+			IsCrate(m_aimHit->actor) ? "  (LMB kick, X delete)" : ""), x + 10, y + 60, 10, BLACK);
+	else
+		DrawText("Aim: nothing within 30 m", x + 10, y + 60, 10, DARKGRAY);
+
+	if (m_triggerCounter)
+		DrawText(TextFormat("Trigger: inside %zu  |  enters %d  exits %d  |  %s", m_triggerCounter->GetInside(),
+			m_triggerCounter->GetEnters(), m_triggerCounter->GetExits(), m_triggerCounter->GetLast().c_str()),
+			x + 10, y + 76, 10, DARKGRAY);
+
+	if (const eng::CharacterMotor* motor = m_player ? m_player->GetComponent<eng::CharacterMotor>() : nullptr)
+	{
+		const Vector3 v = motor->GetVelocity();
+		DrawText(TextFormat("Player: %s  slope %.0f deg%s  speed %.1f m/s  feet y %.2f",
+			motor->IsGrounded() ? "grounded" : "airborne", motor->GetGroundSlopeDegrees(),
+			motor->IsOnSteepSlope() ? " (too steep)" : "", std::sqrt(v.x * v.x + v.z * v.z),
+			m_player->GetWorldPosition().y - 1.0f), x + 10, y + 92, 10, BLACK);
+	}
+
+	DrawText(TextFormat("T: throw pellet at the thin wall (CCD)  |  thrown %d  tunnelled %d", m_pelletsThrown, m_tunnelled),
+		x + 10, y + 108, 10, m_tunnelled > 0 ? RED : DARKGRAY);
 }
 
 void ScaleGame::DrawAudioPanel() const
 {
-	const eng::AudioManager& audio = eng::Engine::GetInstance().GetAudio();
+	const eng::AudioManager&	audio	= eng::Engine::GetInstance().GetAudio();
+	const eng::MusicPlayer&		music	= audio.GetMusic();
+	const char*					track	= music.GetCurrent() == m_themeMenu ? "menu"
+										: music.GetCurrent() == m_themeGame ? "game" : "none";
 
-	const int x = 10, y = 270;
-	DrawRectangle(x, y, 330, 115, Fade(BEIGE, 0.6f));
-	DrawRectangleLines(x, y, 330, 115, BROWN);
-	DrawText(TextFormat("Audio %s  |  voices %d active / %d", audio.IsReady() ? "ON" : "OFF (no device)",
-		audio.GetActiveVoiceCount(), audio.GetVoiceCount()), x + 10, y + 10, 10, BLACK);
-	DrawText(TextFormat("LMB stretch / RMB shrink  factor x%.2f (wheel)  pitch %.2f",
-		SCALE_FACTORS[m_scaleFactorIndex], m_lastPitch), x + 10, y + 28, 10, DARKGRAY);
+	const int x = 10, y = 276;
+	DrawRectangle(x, y, 330, 45, Fade(BEIGE, 0.6f));
+	DrawRectangleLines(x, y, 330, 45, BROWN);
+	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
+		x + 10, y + 10, 10, DARKGRAY);
 	DrawText(TextFormat("P: %s  |  duck %.2f", m_isAudioPaused ? "resume audio" : "pause audio (demo of Pause)",
-		audio.GetDuckFactor()), x + 10, y + 46, 10, DARKGRAY);
-
-	if (m_lastPingedCube >= 0)
-	{
-		const eng::GameActor*	cube	= m_cubes[m_lastPingedCube];
-		const eng::AudioSource*	source	= cube->GetComponent<eng::AudioSource>();
-		DrawText(TextFormat("K: ping  |  %s  dist %.1f  gain %.2f  pan %+.2f", cube->GetName().c_str(),
-			Vector3Distance(source->GetPosition(), audio.GetListenerPosition()), source->ComputeGain(),
-			source->ComputePan()), x + 10, y + 64, 10, DARKGRAY);
-	}
-	else
-	{
-		DrawText("K: ping a random cube (spatial)", x + 10, y + 64, 10, DARKGRAY);
-	}
-
-	const eng::MusicPlayer&	music	= audio.GetMusic();
-	const char*				track	= music.GetCurrent() == m_themeMenu ? "menu"
-									: music.GetCurrent() == m_themeGame ? "game" : "none";
-	DrawText(TextFormat("M: switch theme  |  %s  fade %.2f  %.1f s", track, music.GetFade(), music.GetTimePlayed()),
-		x + 10, y + 82, 10, DARKGRAY);
-}
-
-void ScaleGame::DrawScenePanel() const
-{
-	const int x = 10, y = 395;
-	DrawRectangle(x, y, 330, 75, Fade(LIME, 0.35f));
-	DrawRectangleLines(x, y, 330, 75, DARKGREEN);
-	DrawText(TextFormat("Scene  |  actors %zu  |  cubes %zu / %d  |  ring #%d", m_level.GetActorCount(),
-		m_cubes.size(), CUBE_COUNT, m_ringBuilds), x + 10, y + 10, 10, BLACK);
-	DrawText("Ring -> Cube 0 -> Moon: children follow their parents", x + 10, y + 28, 10, DARKGRAY);
-	DrawText("X: a random cube destroys itself mid-update  |  R: rebuild ring", x + 10, y + 46, 10, DARKGRAY);
+		audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
 }
 
 void ScaleGame::Destroy()
 {
-	// Actors (and their materials) go first; resources are unloaded by the Engine afterwards
-	m_cubes.clear();
+	// Actors first: their bodies leave the physics world before it shuts down
+	m_aimHit.reset();
+	m_triggerCounter = nullptr;
+	m_player = nullptr;
+	m_pellets.clear();
+	m_crates.clear();
 	m_level.Clear();
-	m_ring			= nullptr;
-	m_pulseCube		= nullptr;
 	m_sfxStretch	= nullptr;
 	m_sfxShrink		= nullptr;
-	m_ping			= nullptr;
 	m_themeMenu		= nullptr;
 	m_themeGame		= nullptr;
 	m_litShader		= nullptr;

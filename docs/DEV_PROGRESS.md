@@ -20,7 +20,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 3 | Resources and rendering | ✅ | 2026-11-06 | 2026-11-06 | [devlog](resources_and_rendering_devlog.md) |
 | 4 | Audio | ✅ | 2026-11-06 | 2026-11-06 | [devlog](audio_devlog.md). Moved before Scene/Physics (D9) |
 | 5 | Scene: GameActor, Component, Level | ✅ | 2026-11-06 | 2026-11-07 | [devlog](scene_devlog.md) |
-| 6 | Physics (Bullet 3.25) | ⬜ | | | |
+| 6 | Physics (Bullet 3.25) | ✅ | 2026-11-07 | 2026-11-07 | [devlog](physics_devlog.md) |
 | 7 | FX: particles and lines | ⬜ | | | |
 | 8 | Events, modes, menus | ⬜ | | | |
 | 9 | Editor mode | ⬜ | | | |
@@ -29,8 +29,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 6
-**Branch:** `physics` (from `integration`)
+**Current focus:** Phase 7
+**Branch:** `fx` (from `integration`)
 
 ---
 
@@ -84,19 +84,19 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `AudioSource` becomes a `Component` (position from its actor)
 - [x] **Done when:** children follow a rotating parent; destroying an actor mid‑update is safe *(validated by the developer)*
 
-### Phase 6 — Physics (Bullet 3.25) ⬜
-- [ ] `BulletConvert` (Vector3 / Quaternion / Transform ↔ bt types)
-- [ ] `PhysicsWorld` pimpl: init, `Step`, `Shutdown` (correct delete order)
-- [ ] `PhysicsLayers` groups and masks
-- [ ] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
-- [ ] `RigidBody` (static / dynamic / kinematic, `Teleport`, `OnScaleChanged`, impulses)
-- [ ] `ActorMotionState`
-- [ ] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor)
-- [ ] `TriggerVolume` (ghost object, `btGhostPairCallback`, enter/exit diff)
-- [ ] `CharacterMotor` — dynamic capsule: no rotation, own gravity, walk velocity on the ground plane, sphere‑sweep grounding, 45° slope limit, jump + grace time, warp, ground‑body velocity
-- [ ] `PhysicsDebugDrawer` + F3 toggle
-- [ ] CCD for small dynamic bodies
-- [ ] **Done when:** sandbox (plane + 20 crates + ramp) at 60 FPS; crates stack and sleep; capsule climbs a 30° ramp without sliding, stops at 50°, jumps on a crate, pushes a light crate; center ray reports the hit crate; trigger Enter/Exit fire once each; F3 wireframes; deleting a crate mid‑sim is safe
+### Phase 6 — Physics (Bullet 3.25) ✅
+- [x] `BulletConvert` (Vector3 / Quaternion / Transform ↔ bt types)
+- [x] `PhysicsWorld` pimpl: init, `Step`, `Shutdown` (correct delete order) (+ Engine: init, step per fixed tick, shutdown before resources)
+- [x] `PhysicsLayers` groups and masks (default masks checked symmetric by `static_assert`)
+- [x] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
+- [x] `RigidBody` (static / dynamic / kinematic, `Teleport`, `OnScaleChanged`, impulses) (+ physics sandbox demo; fix: `eng::DecomposeTransform` replaces raymath's row‑based `MatrixDecompose`)
+- [x] `ActorMotionState` (world ↔ parent‑local, scale kept, optional rotation write‑back)
+- [x] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor) (+ crosshair aim, LMB kick, X delete in the sandbox)
+- [x] `TriggerVolume` (ghost object, `btGhostPairCallback`, enter/exit diff) (+ exact `contactPairTest`, `Component::OnTriggerEnter/Exit`, sandbox trigger zone)
+- [x] `CharacterMotor` — dynamic capsule: no rotation, own gravity, walk velocity on the ground plane, sphere‑sweep grounding, 45° slope limit, jump + grace time, warp, ground‑body velocity (+ grounded gravity along the normal, steep‑slope input cut, playable V mode in the sandbox)
+- [x] `PhysicsDebugDrawer` + F3 toggle (wireframes + contact normals in the Engine 3D pass)
+- [x] CCD for small dynamic bodies (`CcdMode` Auto / On / Off; Auto below 0.3 m, re‑checked on scale changes; sandbox pellets at a 5 cm wall)
+- [x] **Done when:** *(validated by the developer)* sandbox (plane + 20 crates + ramp) at 60 FPS; crates stack and sleep; capsule climbs a 30° ramp without sliding, stops at 50°, jumps on a crate, pushes a light crate; center ray reports the hit crate; trigger Enter/Exit fire once each; F3 wireframes; deleting a crate mid‑sim is safe
 
 ### Phase 7 — FX ⬜
 - [ ] `ParticleEmitter` (burst, gradient, alpha fade) + pooled `ParticleSystem`
@@ -123,6 +123,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [ ] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
 
 ### Phase 10 — Game: state and player ⬜
+- [ ] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11)
 - [ ] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList`
 - [ ] `PlayerInput`
 - [ ] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook`
@@ -167,6 +168,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | D8 | 2026-11-06 | **Player uses a dynamic capsule `btRigidBody`** (no rotation, own gravity, sweep grounding); fallback = `btKinematicCharacterController` | Review feedback; avoids the kinematic controller's slope jitter; pushes crates and rides stretched props for free | Phase 6, Phase 10, §10 |
 | D9 | 2026-11-06 | **Phase order changed by the developer:** 4 Audio, 5 Scene, 6 Physics (was 4 Scene, 5 Physics, 6 Audio) | Audio is simpler and has fewer dependencies. Devlogs written before this keep the old numbers | §5, tracker |
 | D10 | 2026-11-06 | `AudioSource` is a standalone class in Phase 4 and becomes a `Component` in Phase 5; "pause ducks music" is shown with a demo key until Phase 8 | `Component` and Pause don't exist yet when Audio is built | Phase 4, 5, 8 |
+| D11 | 2026-11-07 | `ActorHandle` (id‑based weak actor reference) added as the first Phase 10 task | Developer decision after the Phase 6 ASan finding: gameplay code (player, triggers, beams) must not hold raw `GameActor*` that can dangle | Phase 10, known issues |
 
 ---
 
@@ -176,6 +178,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 |---|---|---|---|
 | Dynamic capsule: slope sliding / bouncing / wall sticking | 6 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
 | Player launched by a crate scaling under them | 11 | open | Clamp player vertical velocity after the step |
+| Game code holding raw `GameActor*` dangles if the actor is destroyed after the game pruned its list that frame (ASan use‑after‑free in a Phase 6 test that deleted after the prune) | 6 → 10 | planned | Engine side is safe. `ActorHandle` scheduled as the first Phase 10 task (D11) |
 | Scaling causes deep penetration → velocity spikes | 11 | open | Clamp velocity, overlap check before stretch |
 | Bullet precision / arch mismatch | 0 | mitigated | Libs verified arm64, macOS 11.0, single precision |
 | Xcode 26 linker can't read the Command Line Tools SDK 27.2 (`tapi error: malformed file`) | 0 | resolved | Switched to the Command Line Tools toolchain (`xcode-select -s /Library/Developer/CommandLineTools`, ld‑27106); plain `cmake` builds with no SDK override. README lists the fixes |
@@ -188,6 +191,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-07 | 6 | Developer validated Phase 6; `ActorHandle` scheduled in Phase 10 (D11); devlog written; merged into `integration` | Start Phase 7 on `fx` | — |
+| 2026-11-07 | 6 | All 11 Phase 6 tasks committed on `physics`; headless tests (convert, collider, motion state, rigid body, raycast, trigger, character motor, CCD), most under ASan, all pass; found and fixed raymath `MatrixDecompose` (row‑based) bug, rotation‑lock bypass, convex hull margin, motor slope sliding; final ASan sandbox run: 0 of 15 pellets tunnelled, 59 FPS, 20/20 crates asleep | Developer runs the Phase 6 **Done when** check | — |
 | 2026-11-07 | 5 | Developer validated Phase 5; devlog written; merged into `integration` | Start Phase 6 on `physics` | — |
 | 2026-11-06 | 5 | All 5 Phase 5 tasks committed on `scene`; headless GameActor (12 checks), Component lifecycle (6) and Level destroy‑mid‑update (11, under AddressSanitizer) tests passed; full game built with ASan: self‑destruct, ring rebuild and destroy‑mid‑ping runs clean | Developer runs the Phase 5 **Done when** check | — |
 | 2026-11-06 | 4 | Developer validated Phase 4; devlog written; merged into `integration` | Start Phase 5 on `scene` | — |

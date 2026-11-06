@@ -29,6 +29,13 @@ namespace eng
 		virtual void		FixedUpdate(float /*fixedDeltaTime*/) {}
 		virtual void		SubmitRenderables(RenderQueue& /*queue*/) const {}
 
+		/// <summary>
+		/// A TriggerVolume involving this actor started / stopped overlapping `other` (called during the fixed tick).
+		/// Both sides are notified: the trigger's actor and the actor that entered it.
+		/// </summary>
+		virtual void		OnTriggerEnter(GameActor& /*other*/) {}
+		virtual void		OnTriggerExit(GameActor& /*other*/) {}
+
 		virtual const char*	TypeName() const = 0;
 
 		/// <summary>
