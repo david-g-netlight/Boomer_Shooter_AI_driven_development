@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "EngineInfo.h"
 #include "Log.h"
+#include "level/Level.h"
 #include <raylib.h>
 
 namespace eng
@@ -87,11 +88,17 @@ namespace eng
 			m_window.Refresh();
 			m_inputManager.Poll(); // State polled by the previous EndDrawing()
 
-			// 2. Fixed step (physics rate), then variable step
+			// 2. Fixed step (physics rate), then variable step. The level runs before the game
+			Level* level = m_app->GetActiveLevel();
+
 			m_time.AdvanceAccumulator();
 			while (m_time.ConsumeFixedStep())
+			{
+				if (level) level->FixedUpdate(m_time.GetFixedDeltaTime());
 				m_app->FixedUpdate(m_time.GetFixedDeltaTime());
+			}
 
+			if (level) level->Update(m_time.GetDeltaTime());
 			m_app->Update(m_time.GetDeltaTime());
 
 			// 3. Audio (unscaled: fades and ducking keep running while the game is paused)
@@ -103,6 +110,9 @@ namespace eng
 			BeginDrawing();
 				ClearBackground(m_world.skyColor);
 
+				// The game may have switched levels during Update
+				level = m_app->GetActiveLevel();
+				if (level) level->SubmitRenderables(m_renderQueue);
 				m_app->SubmitRenderables(m_renderQueue);
 				m_renderQueue.SetLighting({ m_world.sunDirection, m_world.sunColor, m_world.ambientColor });
 				m_activeCamera.Begin3D();
@@ -114,8 +124,10 @@ namespace eng
 				m_app->DrawHUD();
 			EndDrawing(); // Swaps buffers and polls input events
 
+			// 5. End of frame: actors marked for destroy are deleted (nothing refers to them anymore)
 			m_renderQueue.Clear();
 			m_debugDraw.EndFrame(m_time.GetUnscaledDeltaTime());
+			if (level) level->FlushDestroyed();
 		}
 	}
 
