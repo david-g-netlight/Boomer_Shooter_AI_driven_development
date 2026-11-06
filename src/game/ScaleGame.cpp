@@ -9,8 +9,12 @@ bool ScaleGame::Init()
 	m_camera.SetPerspective({ 60.0f, 0.05f, 200.0f });
 	eng::Engine::GetInstance().GetMainCamera().SetActiveCamera(m_camera);
 
+	// Lit shader for even cubes and the ground; odd cubes keep raylib's unlit default shader.
+	// If the shader fails to load, every material falls back to the default shader.
+	const Shader* lit = eng::Engine::GetInstance().GetResources().LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
+
 	// Ring of cubes, each with its own material: hue around the circle, growing size
-	m_cubeMaterials.reserve(CUBE_COUNT);
+	m_cubeMaterials.reserve(CUBE_COUNT + 1);
 	m_cubeTransforms.reserve(CUBE_COUNT);
 	m_cubePositions.reserve(CUBE_COUNT);
 	for (int i = 0; i < CUBE_COUNT; ++i)
@@ -19,8 +23,9 @@ bool ScaleGame::Init()
 		const float angle	= t * 2.0f * PI;
 		const float size	= 0.6f + 0.5f * t;
 
-		eng::Material& material = m_cubeMaterials.emplace_back();
+		eng::Material& material = m_cubeMaterials.emplace_back(i % 2 == 0 ? lit : nullptr);
 		material.SetTint(ColorFromHSV(t * 360.0f, 0.75f, 0.95f));
+		material.SetParameter("specularStrength", 0.6f);
 
 		const Vector3 position = { std::cos(angle) * 4.0f, size * 0.5f, std::sin(angle) * 4.0f };
 		m_cubePositions.push_back(position);
@@ -28,6 +33,10 @@ bool ScaleGame::Init()
 			MatrixMultiply(MatrixScale(size, size, size), MatrixRotateY(angle)),
 			MatrixTranslate(position.x, position.y, position.z)));
 	}
+
+	// Ground plane (lit), stored after the cubes. The pointer stays valid because of reserve(CUBE_COUNT + 1)
+	m_ground = &m_cubeMaterials.emplace_back(lit);
+	m_ground->SetTint({ 120, 140, 110, 255 });
 
 	// Minimap: high above the ring looking down (pitch is clamped to -89), pixel size follows the DPI
 	m_minimapCamera.SetPosition({ 0.0f, 14.0f, 0.01f });
@@ -107,6 +116,10 @@ void ScaleGame::Update(float deltaTime)
 	if (map.IsActionPressed("AltFire"))	++m_altFirePresses;
 	m_scrollTotal += map.GetAxis("Scroll");
 
+	// Cube 0 pulses its "emissive" material parameter (0 = lit, 1 = flat albedo)
+	m_pulseTime += deltaTime;
+	m_cubeMaterials[0].SetParameter("emissive", 0.5f + 0.5f * std::sin(m_pulseTime * 2.0f));
+
 	m_secondTimer += deltaTime;
 	if (m_secondTimer >= 1.0f)
 	{
@@ -123,9 +136,15 @@ void ScaleGame::FixedUpdate(float /*fixedDeltaTime*/)
 
 void ScaleGame::SubmitRenderables(eng::RenderQueue& queue)
 {
-	const ::Mesh* cube = eng::Engine::GetInstance().GetResources().GetPrimitive(eng::Primitive::Cube);
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+
+	const ::Mesh* cube = resources.GetPrimitive(eng::Primitive::Cube);
 	for (int i = 0; i < CUBE_COUNT; ++i)
 		queue.Submit(*cube, m_cubeMaterials[i], m_cubeTransforms[i]);
+
+	// 1 cm below y = 0 so the debug grid doesn't z-fight with it
+	queue.Submit(*resources.GetPrimitive(eng::Primitive::Plane), *m_ground,
+		MatrixMultiply(MatrixScale(20.0f, 1.0f, 20.0f), MatrixTranslate(0.0f, -0.01f, 0.0f)));
 
 	SubmitDebugShapes();
 }
@@ -150,7 +169,7 @@ void ScaleGame::DrawMinimap()
 	m_minimap.Begin();
 		ClearBackground(Fade(DARKBLUE, 0.85f));
 		m_minimapCamera.Begin3D();
-			engine.GetRenderQueue().Draw();
+			engine.GetRenderQueue().Draw(m_minimapCamera);
 			// Where the main camera is
 			DrawSphere(m_camera.GetPosition(), 0.4f, YELLOW);
 		m_minimapCamera.End3D();
@@ -178,8 +197,8 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("C: %s cursor  |  F2: debug draw  |  close to quit",
-		engine.GetInputManager().IsCursorLocked() ? "unlock" : "lock (mouse look + WASD fly)"), 20, 100, 10, DARKGRAY);
+	DrawText(TextFormat("C: %s  |  F2: debug draw  |  close to quit",
+		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "fly (mouse + WASD)"), 20, 100, 10, DARKGRAY);
 
 	DrawInputPanel();
 	DrawMinimap();
@@ -213,6 +232,7 @@ void ScaleGame::Destroy()
 	m_cubeMaterials.clear();
 	m_cubeTransforms.clear();
 	m_cubePositions.clear();
+	m_ground = nullptr;
 	m_minimap.Unload();
 	eng::Log::Info("ScaleGame destroyed");
 }

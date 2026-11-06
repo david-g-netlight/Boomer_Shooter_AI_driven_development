@@ -59,10 +59,12 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 )
 
 # ---------------------------------------------------------------- Assets
-# Copy assets/ next to the executable so it runs from any working directory
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+# Copy assets/ next to the executable so it runs from any working directory.
+# A target (not POST_BUILD) so asset-only changes are copied even when my_app doesn't relink.
+add_custom_target(copy_assets ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_SOURCE_DIR}/assets"
         "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
     COMMENT "Copying assets to build directory"
 )
+add_dependencies(${PROJECT_NAME} copy_assets)

@@ -30,6 +30,8 @@ private:
 	std::vector<eng::Material>	m_cubeMaterials;
 	std::vector<Matrix>			m_cubeTransforms;
 	std::vector<Vector3>		m_cubePositions;
+	eng::Material*				m_ground			= nullptr;	// last element of m_cubeMaterials
+	float						m_pulseTime			= 0.0f;
 
 	// Top-down minimap: the same RenderQueue drawn a second time with another camera
 	static constexpr int		MINIMAP_WIDTH	= 240;	// screen points

@@ -1,11 +1,24 @@
 #pragma once
 #include <cstddef>
+#include <string>
+#include <unordered_map>
 #include <vector>
 #include <raylib.h>
 
 namespace eng
 {
+	class Camera;
 	class Material;
+
+	/// <summary>
+	/// Scene-wide uniforms for lit shaders (see assets/shaders/lit.fs).
+	/// </summary>
+	struct SceneLighting
+	{
+		Vector3	sunDirection	= { -0.4f, -1.0f, -0.3f };
+		Vector3	sunColor		= { 1.0f, 1.0f, 1.0f };
+		Vector3	ambientColor	= { 0.3f, 0.3f, 0.3f };
+	};
 
 	/// <summary>
 	/// One draw: mesh + material + world transform. Pointers are NON-owning and must stay valid until
@@ -41,11 +54,14 @@ namespace eng
 		/// </summary>
 		void	SubmitModel(const Model& model, const Material* overrideMaterial, const Matrix& transform);
 
+		void	SetLighting(const SceneLighting& lighting);
+
 		/// <summary>
-		/// Draws every command. Call between BeginMode3D / EndMode3D. Can be called more than once per frame
-		/// (e.g. into a RenderTarget with another camera).
+		/// Draws every command with `camera` (inside its Begin3D / End3D). Can be called more than once per
+		/// frame (e.g. into a RenderTarget with another camera). Before drawing, each shader that declares
+		/// sunDirection / sunColor / ambientColor / viewPosition gets those uniforms once.
 		/// </summary>
-		void	Draw() const;
+		void	Draw(const Camera& camera) const;
 		void	Clear();
 
 		size_t	GetCommandCount() const;
@@ -53,6 +69,23 @@ namespace eng
 	private:
 		static constexpr size_t INITIAL_CAPACITY = 256;
 
-		std::vector<RenderCommand> m_commands;
+		struct SceneUniformLocations
+		{
+			int sunDirection	= -1;
+			int sunColor		= -1;
+			int ambientColor	= -1;
+			int viewPosition	= -1;
+		};
+
+		void	UploadSceneUniforms(const Shader& shader, const Vector3& viewPosition) const;
+		void	BindMaterial(const Material& material) const;
+
+		std::vector<RenderCommand>	m_commands;
+		SceneLighting				m_lighting;
+		mutable std::unordered_map<unsigned int, SceneUniformLocations>	m_sceneLocations;	// by shader id
+
+		// Material parameters ever uploaded to each shader (name -> location), so the ones a material doesn't
+		// set can be reset to 0 instead of leaking from the previous material on the same shader
+		mutable std::unordered_map<unsigned int, std::unordered_map<std::string, int>>	m_parameterLocations;
 	};
 }

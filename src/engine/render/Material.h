@@ -44,9 +44,13 @@ namespace eng
 		/// </summary>
 		void			SetParameter(const std::string& name, float value);
 		float			GetParameter(const std::string& name, float fallback = 0.0f) const;
+		bool			HasParameter(const std::string& name) const;
+		const std::unordered_map<std::string, float>&	GetParameters() const;
 
 		/// <summary>
 		/// Uploads the parameters to the shader. Called by the RenderQueue right before drawing.
+		/// Uniforms keep their value per shader program, so the RenderQueue first resets parameters set by
+		/// other materials on the same shader to 0: a parameter a material doesn't set reads as 0.
 		/// </summary>
 		void			Bind() const;
 

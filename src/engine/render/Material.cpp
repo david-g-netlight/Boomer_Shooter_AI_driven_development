@@ -90,6 +90,16 @@ namespace eng
 		return it != m_parameters.end() ? it->second : fallback;
 	}
 
+	bool Material::HasParameter(const std::string& name) const
+	{
+		return m_parameters.count(name) > 0;
+	}
+
+	const std::unordered_map<std::string, float>& Material::GetParameters() const
+	{
+		return m_parameters;
+	}
+
 	void Material::Bind() const
 	{
 		for (const auto& [name, value] : m_parameters)

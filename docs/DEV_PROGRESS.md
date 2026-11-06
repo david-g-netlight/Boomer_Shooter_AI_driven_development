@@ -67,7 +67,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `Material` (tint, shader, params)
 - [x] `RenderCommand`, `RenderQueue` (+ Engine 3D pass, `Application::SubmitRenderables`, 10‑cube scene)
 - [x] `RenderTarget`, `DebugDraw` (+ minimap and debug shapes in `ScaleGame`, F2 toggle)
-- [ ] Optional lit shader
+- [x] Optional lit shader (`assets/shaders/lit.vs/.fs`: sun + ambient + specular; scene uniforms from `World`)
 - [ ] **Done when:** 10 cubes with different materials render through the `RenderQueue`
 
 ### Phase 4 — Scene ⬜
@@ -185,6 +185,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-06 | 3 | All 6 Phase 3 tasks committed on `resources_and_rendering`; camera math check passed; screenshot check found and fixed a material‑parameter leak between materials sharing a shader; self‑closing run confirmed clean shutdown (3 resources unloaded) | Developer runs the Phase 3 **Done when** check | Waiting for green light to merge |
 | 2026-11-06 | 2 | Developer validated Phase 2; devlog written; merged into `integration` | Start Phase 3 on `resources_and_rendering` | — |
 | 2026-11-06 | 2 | All 3 Phase 2 tasks committed on `input`; 4 s smoke run clean (no unbound‑input warnings, no errors) | Developer runs the Phase 2 **Done when** check | — |
 | 2026-11-06 | 1 | Developer validated Phase 1; devlog written; merged into `integration` | Start Phase 2 on `input` | — |

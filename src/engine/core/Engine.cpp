@@ -96,8 +96,9 @@ namespace eng
 				ClearBackground(m_world.skyColor);
 
 				m_app->SubmitRenderables(m_renderQueue);
+				m_renderQueue.SetLighting({ m_world.sunDirection, m_world.sunColor, m_world.ambientColor });
 				m_activeCamera.Begin3D();
-					m_renderQueue.Draw();
+					m_renderQueue.Draw(*m_activeCamera.GetActiveCamera());
 					m_debugDraw.Draw3D();
 				m_activeCamera.End3D();
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
