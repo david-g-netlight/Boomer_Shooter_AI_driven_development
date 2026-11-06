@@ -1,6 +1,7 @@
 #include "ActorMotionState.h"
 #include "level/GameActor.h"
 #include <raymath.h>
+#include "core/MathUtils.h"
 
 namespace eng
 {
@@ -15,7 +16,7 @@ namespace eng
 		Vector3		position;
 		Quaternion	rotation;
 		Vector3		scale;
-		MatrixDecompose(m_actor.GetWorldMatrix(), &position, &rotation, &scale);
+		DecomposeTransform(m_actor.GetWorldMatrix(), &position, &rotation, &scale);
 		worldTransform = btTransform(bt::ToBt(rotation), bt::ToBt(position));
 	}
 
@@ -42,7 +43,7 @@ namespace eng
 			Vector3		parentPosition;
 			Quaternion	parentRotation;
 			Vector3		parentScale;
-			MatrixDecompose(parentWorld, &parentPosition, &parentRotation, &parentScale);
+			DecomposeTransform(parentWorld, &parentPosition, &parentRotation, &parentScale);
 			local.rotation = QuaternionNormalize(QuaternionMultiply(QuaternionInvert(parentRotation), worldRotation));
 		}
 	}

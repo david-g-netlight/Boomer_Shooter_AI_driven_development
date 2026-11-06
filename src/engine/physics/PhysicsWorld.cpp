@@ -69,6 +69,11 @@ namespace eng
 		return m_impl ? bt::ToRaylib(m_impl->world->getGravity()) : Vector3{ 0.0f, 0.0f, 0.0f };
 	}
 
+	btDiscreteDynamicsWorld* PhysicsWorld::GetNativeWorld() const
+	{
+		return m_impl ? m_impl->world.get() : nullptr;
+	}
+
 	int PhysicsWorld::GetObjectCount() const
 	{
 		return m_impl ? m_impl->world->getNumCollisionObjects() : 0;

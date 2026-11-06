@@ -5,6 +5,7 @@
 #include <btBulletDynamicsCommon.h>
 #include <cmath>
 #include <raymath.h>
+#include "core/MathUtils.h"
 
 namespace eng
 {
@@ -119,7 +120,7 @@ namespace eng
 		::Transform pose = owner->GetTransform();
 		const Matrix world = owner->GetWorldMatrix();
 		Vector3 scale;
-		MatrixDecompose(world, &pose.translation, &pose.rotation, &scale);
+		DecomposeTransform(world, &pose.translation, &pose.rotation, &scale);
 
 		btVector3 lo, hi;
 		root->getAabb(bt::ToBt(pose), lo, hi);

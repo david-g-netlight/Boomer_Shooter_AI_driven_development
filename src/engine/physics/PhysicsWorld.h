@@ -2,6 +2,8 @@
 #include <memory>
 #include <raylib.h>
 
+class btDiscreteDynamicsWorld;	// Bullet type, only used by the engine's physics code
+
 namespace eng
 {
 	/// <summary>
@@ -38,7 +40,12 @@ namespace eng
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;
 
-		// Physics components reach the Bullet world through Impl
+		/// <summary>
+		/// nullptr when not initialized (or already shut down).
+		/// </summary>
+		btDiscreteDynamicsWorld*	GetNativeWorld() const;
+
+		// Physics components reach the Bullet world through GetNativeWorld()
 		friend class RigidBody;
 		friend class TriggerVolume;
 		friend class CharacterMotor;

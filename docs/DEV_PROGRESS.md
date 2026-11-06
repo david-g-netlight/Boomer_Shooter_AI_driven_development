@@ -89,7 +89,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `PhysicsWorld` pimpl: init, `Step`, `Shutdown` (correct delete order) (+ Engine: init, step per fixed tick, shutdown before resources)
 - [x] `PhysicsLayers` groups and masks (default masks checked symmetric by `static_assert`)
 - [x] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
-- [ ] `RigidBody` (static / dynamic / kinematic, `Teleport`, `OnScaleChanged`, impulses)
+- [x] `RigidBody` (static / dynamic / kinematic, `Teleport`, `OnScaleChanged`, impulses) (+ physics sandbox demo; fix: `eng::DecomposeTransform` replaces raymath's row‑based `MatrixDecompose`)
 - [x] `ActorMotionState` (world ↔ parent‑local, scale kept, optional rotation write‑back)
 - [ ] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor)
 - [ ] `TriggerVolume` (ghost object, `btGhostPairCallback`, enter/exit diff)

@@ -12,6 +12,7 @@
 #include "core/WindowInfo.h"
 #include "core/World.h"
 #include "core/Log.h"
+#include "core/MathUtils.h"
 #include "input/InputManager.h"
 #include "input/InputMap.h"
 #include "resources/ResourceManager.h"
@@ -30,3 +31,4 @@
 #include "physics/PhysicsLayers.h"
 #include "physics/PhysicsWorld.h"
 #include "physics/Collider.h"
+#include "physics/RigidBody.h"

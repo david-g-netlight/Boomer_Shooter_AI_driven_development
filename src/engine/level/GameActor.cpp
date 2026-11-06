@@ -1,6 +1,7 @@
 #include "GameActor.h"
 #include <algorithm>
 #include <raymath.h>
+#include "core/MathUtils.h"
 
 namespace eng
 {
@@ -76,7 +77,7 @@ namespace eng
 			// local = world * inverse(parent world), then split back into translation / rotation / scale
 			const Matrix parentWorld	= parent ? parent->GetWorldMatrix() : MatrixIdentity();
 			const Matrix local			= MatrixMultiply(world, MatrixInvert(parentWorld));
-			MatrixDecompose(local, &m_transform.translation, &m_transform.rotation, &m_transform.scale);
+			DecomposeTransform(local, &m_transform.translation, &m_transform.rotation, &m_transform.scale);
 		}
 		return true;
 	}
