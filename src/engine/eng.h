@@ -16,3 +16,4 @@
 #include "input/InputMap.h"
 #include "resources/ResourceManager.h"
 #include "render/Camera.h"
+#include "render/Material.h"

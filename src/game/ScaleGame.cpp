@@ -1,11 +1,15 @@
 #include "ScaleGame.h"
 #include <cmath>
+#include <raymath.h>
 
 bool ScaleGame::Init()
 {
 	m_camera.SetPosition({ 6.0f, 4.0f, 6.0f });
 	m_camera.LookAt({ 0.0f, 0.5f, 0.0f });
 	eng::Engine::GetInstance().GetMainCamera().SetActiveCamera(m_camera);
+
+	m_cubeMaterial.emplace();
+	m_cubeMaterial->SetTint(RED);
 
 	BindInput();
 
@@ -90,7 +94,9 @@ void ScaleGame::DrawHUD()
 	// TODO(Phase 3): the 3D pass moves into the Engine (RenderQueue inside BeginMode3D)
 	const eng::ActiveCamera& activeCamera = eng::Engine::GetInstance().GetMainCamera();
 	activeCamera.Begin3D();
-		DrawCube({ 0.0f, 0.5f, 0.0f }, 1.0f, 1.0f, 1.0f, RED);
+		const ::Mesh* cube = eng::Engine::GetInstance().GetResources().GetPrimitive(eng::Primitive::Cube);
+		m_cubeMaterial->Bind();
+		DrawMesh(*cube, m_cubeMaterial->Get(), MatrixTranslate(0.0f, 0.5f, 0.0f));
 		DrawCubeWires({ 0.0f, 0.5f, 0.0f }, 1.0f, 1.0f, 1.0f, MAROON);
 		DrawGrid(10, 1.0f);
 	activeCamera.End3D();
@@ -139,6 +145,7 @@ void ScaleGame::DrawInputPanel() const
 
 void ScaleGame::Destroy()
 {
+	m_cubeMaterial.reset();
 	eng::Log::Info("ScaleGame destroyed");
 }
 

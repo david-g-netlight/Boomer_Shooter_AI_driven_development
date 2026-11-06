@@ -64,7 +64,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 ### Phase 3 — Resources and rendering 🟡
 - [x] `ResourceManager` (cache + `UnloadAll`, primitives)
 - [x] `Camera`, `ActiveCamera`
-- [ ] `Material` (tint, shader, params)
+- [x] `Material` (tint, shader, params)
 - [ ] `RenderCommand`, `RenderQueue`
 - [ ] `RenderTarget`, `DebugDraw`
 - [ ] Optional lit shader

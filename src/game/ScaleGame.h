@@ -1,5 +1,6 @@
 #pragma once
 #include <eng.h>
+#include <optional>
 
 /// <summary>
 /// "Build to Scale" game. Phase 1: temporary scene with an orbiting camera and a cube,
@@ -21,6 +22,7 @@ private:
 	void		DrawInputPanel() const;
 
 	eng::Camera	m_camera;
+	std::optional<eng::Material>	m_cubeMaterial;	// created in Init (needs the window)
 	float		m_orbitAngle			= 45.0f;	// degrees, used while the cursor is unlocked
 
 	// Fixed steps counted over the last second, to show the fixed rate on screen
