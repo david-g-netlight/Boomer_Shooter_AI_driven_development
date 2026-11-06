@@ -8,6 +8,7 @@
 #include "render/RenderQueue.h"
 #include "render/DebugDraw.h"
 #include "audio/AudioManager.h"
+#include "physics/PhysicsWorld.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -83,6 +84,7 @@ namespace eng
 		RenderQueue&		GetRenderQueue();
 		DebugDraw&			GetDebugDraw();
 		AudioManager&		GetAudio();
+		PhysicsWorld&		GetPhysics();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -105,6 +107,7 @@ namespace eng
 		RenderQueue		m_renderQueue;
 		DebugDraw		m_debugDraw;
 		AudioManager	m_audio;
+		PhysicsWorld	m_physics;
 
 		Time			m_time;
 		WindowInfo		m_window;
