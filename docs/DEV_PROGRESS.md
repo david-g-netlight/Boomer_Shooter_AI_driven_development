@@ -17,10 +17,10 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 0 | Project setup, CMake, raygui, Bullet static libs | ✅ | 2026-11-06 | 2026-11-06 | [devlog](project_setup_and_build_system_devlog.md) |
 | 1 | Core: Engine, Application, Time, Window | ✅ | 2026-11-06 | 2026-11-06 | [devlog](core_devlog.md) |
 | 2 | Input | ✅ | 2026-11-06 | 2026-11-06 | [devlog](input_devlog.md) |
-| 3 | Resources and rendering | 🟡 | 2026-11-06 | | |
-| 4 | Scene: GameActor, Component, Level | ⬜ | | | |
-| 5 | Physics (Bullet 3.25) | ⬜ | | | |
-| 6 | Audio | ⬜ | | | |
+| 3 | Resources and rendering | ✅ | 2026-11-06 | 2026-11-06 | [devlog](resources_and_rendering_devlog.md) |
+| 4 | Audio | ⬜ | | | Moved before Scene/Physics (D9) |
+| 5 | Scene: GameActor, Component, Level | ⬜ | | | |
+| 6 | Physics (Bullet 3.25) | ⬜ | | | |
 | 7 | FX: particles and lines | ⬜ | | | |
 | 8 | Events, modes, menus | ⬜ | | | |
 | 9 | Editor mode | ⬜ | | | |
@@ -29,8 +29,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 3
-**Branch:** `resources_and_rendering` (from `integration`)
+**Current focus:** Phase 4
+**Branch:** `audio` (from `integration`)
 
 ---
 
@@ -61,23 +61,30 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Cursor lock / unlock (+ temporary `C` toggle and mouse‑look fly camera in `ScaleGame`)
 - [x] **Done when:** debug overlay shows action states; mouse look works with the cursor locked *(validated by the developer)*
 
-### Phase 3 — Resources and rendering 🟡
+### Phase 3 — Resources and rendering ✅
 - [x] `ResourceManager` (cache + `UnloadAll`, primitives)
 - [x] `Camera`, `ActiveCamera`
 - [x] `Material` (tint, shader, params)
 - [x] `RenderCommand`, `RenderQueue` (+ Engine 3D pass, `Application::SubmitRenderables`, 10‑cube scene)
 - [x] `RenderTarget`, `DebugDraw` (+ minimap and debug shapes in `ScaleGame`, F2 toggle)
 - [x] Optional lit shader (`assets/shaders/lit.vs/.fs`: sun + ambient + specular; scene uniforms from `World`)
-- [ ] **Done when:** 10 cubes with different materials render through the `RenderQueue`
+- [x] **Done when:** 10 cubes with different materials render through the `RenderQueue` *(validated by the developer)*
 
-### Phase 4 — Scene ⬜
+### Phase 4 — Audio ⬜
+- [ ] `AudioManager` (alias voice pool, volumes, duck)
+- [ ] `AudioSource` (standalone class; becomes a `Component` in Phase 5, D10)
+- [ ] `MusicPlayer` (stream, loop, fade)
+- [ ] **Done when:** pitched SFX on key press, music fades in, pause ducks music (demo key until Phase 8)
+
+### Phase 5 — Scene ⬜
 - [ ] `GameActor` (transform, hierarchy, world matrix, `MarkForDestroy`)
 - [ ] `Component` base + `AddComponent<T> / GetComponent<T>`
 - [ ] `Level` (factory, update, fixed update, submit, `FlushDestroyed`)
 - [ ] `MeshRenderer`
+- [ ] `AudioSource` becomes a `Component` (position from its actor)
 - [ ] **Done when:** children follow a rotating parent; destroying an actor mid‑update is safe
 
-### Phase 5 — Physics (Bullet 3.25) ⬜
+### Phase 6 — Physics (Bullet 3.25) ⬜
 - [ ] `BulletConvert` (Vector3 / Quaternion / Transform ↔ bt types)
 - [ ] `PhysicsWorld` pimpl: init, `Step`, `Shutdown` (correct delete order)
 - [ ] `PhysicsLayers` groups and masks
@@ -90,12 +97,6 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [ ] `PhysicsDebugDrawer` + F3 toggle
 - [ ] CCD for small dynamic bodies
 - [ ] **Done when:** sandbox (plane + 20 crates + ramp) at 60 FPS; crates stack and sleep; capsule climbs a 30° ramp without sliding, stops at 50°, jumps on a crate, pushes a light crate; center ray reports the hit crate; trigger Enter/Exit fire once each; F3 wireframes; deleting a crate mid‑sim is safe
-
-### Phase 6 — Audio ⬜
-- [ ] `AudioManager` (alias voice pool, volumes, duck)
-- [ ] `AudioSource`
-- [ ] `MusicPlayer` (stream, loop, fade)
-- [ ] **Done when:** pitched SFX on key press, music fades in, pause ducks music
 
 ### Phase 7 — FX ⬜
 - [ ] `ParticleEmitter` (burst, gradient, alpha fade) + pooled `ParticleSystem`
@@ -157,13 +158,15 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | # | Date | Decision | Reason | Plan section |
 |---|---|---|---|---|
 | D1 | 2026-11-06 | raylib replaces GLFW/GLEW/GraphicsAPI/ImGui; raygui for UI | Task requirement; one ecosystem | §0, §2 |
-| D2 | 2026-11-06 | `GameActor` + light `Component`s | Unity scripts map 1:1 to components | §0, Phase 4 |
+| D2 | 2026-11-06 | `GameActor` + light `Component`s | Unity scripts map 1:1 to components | §0, Phase 5 |
 | D3 | 2026-11-06 | Engine `ModeMachine` (Menu/Play/Paused/Editor); game `GameState` (win/lose) | Engine modes are generic; win/lose are game rules | §3.3 |
-| D4 | 2026-11-06 | **Physics: Bullet 3.25** instead of a custom AABB layer | Review feedback; real rigid bodies, rotated shapes, runtime scaling | §0, Phase 5 |
+| D4 | 2026-11-06 | **Physics: Bullet 3.25** instead of a custom AABB layer | Review feedback; real rigid bodies, rotated shapes, runtime scaling | §0, Phase 6 |
 | D5 | 2026-11-06 | Bullet shipped as prebuilt static libs in `lib/` + headers in `include/bullet/` (not a submodule) | Keeps the repo's "clone and run" setup | Phase 0 |
-| D6 | 2026-11-06 | Bullet hidden behind `eng::PhysicsWorld` pimpl; game never includes Bullet | Backend swappable, faster game builds | Phase 5 |
-| D7 | 2026-11-06 | ~~Player uses `btKinematicCharacterController`; fallback = dynamic capsule~~ **Superseded by D8** | Closest match to Unity `CharacterController` | Phase 5, §10 |
-| D8 | 2026-11-06 | **Player uses a dynamic capsule `btRigidBody`** (no rotation, own gravity, sweep grounding); fallback = `btKinematicCharacterController` | Review feedback; avoids the kinematic controller's slope jitter; pushes crates and rides stretched props for free | Phase 5, Phase 10, §10 |
+| D6 | 2026-11-06 | Bullet hidden behind `eng::PhysicsWorld` pimpl; game never includes Bullet | Backend swappable, faster game builds | Phase 6 |
+| D7 | 2026-11-06 | ~~Player uses `btKinematicCharacterController`; fallback = dynamic capsule~~ **Superseded by D8** | Closest match to Unity `CharacterController` | Phase 6, §10 |
+| D8 | 2026-11-06 | **Player uses a dynamic capsule `btRigidBody`** (no rotation, own gravity, sweep grounding); fallback = `btKinematicCharacterController` | Review feedback; avoids the kinematic controller's slope jitter; pushes crates and rides stretched props for free | Phase 6, Phase 10, §10 |
+| D9 | 2026-11-06 | **Phase order changed by the developer:** 4 Audio, 5 Scene, 6 Physics (was 4 Scene, 5 Physics, 6 Audio) | Audio is simpler and has fewer dependencies. Devlogs written before this keep the old numbers | §5, tracker |
+| D10 | 2026-11-06 | `AudioSource` is a standalone class in Phase 4 and becomes a `Component` in Phase 5; "pause ducks music" is shown with a demo key until Phase 8 | `Component` and Pause don't exist yet when Audio is built | Phase 4, 5, 8 |
 
 ---
 
@@ -171,7 +174,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 | Issue | Phase | Status | Notes |
 |---|---|---|---|
-| Dynamic capsule: slope sliding / bouncing / wall sticking | 5 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
+| Dynamic capsule: slope sliding / bouncing / wall sticking | 6 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
 | Player launched by a crate scaling under them | 11 | open | Clamp player vertical velocity after the step |
 | Scaling causes deep penetration → velocity spikes | 11 | open | Clamp velocity, overlap check before stretch |
 | Bullet precision / arch mismatch | 0 | mitigated | Libs verified arm64, macOS 11.0, single precision |
@@ -185,7 +188,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
-| 2026-11-06 | 3 | All 6 Phase 3 tasks committed on `resources_and_rendering`; camera math check passed; screenshot check found and fixed a material‑parameter leak between materials sharing a shader; self‑closing run confirmed clean shutdown (3 resources unloaded) | Developer runs the Phase 3 **Done when** check | Waiting for green light to merge |
+| 2026-11-06 | 3 | Developer validated Phase 3 and moved Audio to Phase 4; plan, tracker and code comments renumbered (D9, D10); devlog written; merged into `integration` | Start Phase 4 on `audio` | — |
+| 2026-11-06 | 3 | All 6 Phase 3 tasks committed on `resources_and_rendering`; camera math check passed; screenshot check found and fixed a material‑parameter leak between materials sharing a shader; self‑closing run confirmed clean shutdown (3 resources unloaded) | Developer runs the Phase 3 **Done when** check | — |
 | 2026-11-06 | 2 | Developer validated Phase 2; devlog written; merged into `integration` | Start Phase 3 on `resources_and_rendering` | — |
 | 2026-11-06 | 2 | All 3 Phase 2 tasks committed on `input`; 4 s smoke run clean (no unbound‑input warnings, no errors) | Developer runs the Phase 2 **Done when** check | — |
 | 2026-11-06 | 1 | Developer validated Phase 1; devlog written; merged into `integration` | Start Phase 2 on `input` | — |

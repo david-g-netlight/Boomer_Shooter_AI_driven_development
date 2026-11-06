@@ -2,7 +2,7 @@
 
 namespace eng
 {
-	class Level; // Phase 4
+	class Level; // Phase 5
 	class RenderQueue;
 
 	/// <summary>
@@ -63,7 +63,7 @@ namespace eng
 		virtual const char*	GetTitle() const;
 
 		/// <summary>
-		/// Level used by the renderer and the editor (Phase 4). Non-owning.
+		/// Level used by the renderer and the editor (Phase 5). Non-owning.
 		/// </summary>
 		virtual Level*		GetActiveLevel() { return nullptr; }
 

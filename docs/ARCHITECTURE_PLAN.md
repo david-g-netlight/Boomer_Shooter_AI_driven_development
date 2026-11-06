@@ -321,6 +321,8 @@ Engine::Run()
 
 Each phase ends with something you can run. Do not start a phase before the previous one's **Done when** passes.
 
+> Order changed on 2026-11-06 (decision D9): Audio moved before Scene and Physics because it has fewer dependencies. Phases 4–6 are now Audio, Scene, Physics.
+
 ### Phase 0 — Project setup and build system
 - Switch to **CMake as the only build** (the `Makefile` is already deleted in the working tree); update `README.md`.
 - Root `CMakeLists.txt`: `engine` static library + `my_app` executable, C++20, raylib frameworks linked `PUBLIC` on `engine`.
@@ -398,16 +400,24 @@ add_custom_command(TARGET my_app POST_BUILD
 
 **Done when:** a hard‑coded scene of 10 cubes with different materials renders through the `RenderQueue`.
 
-### Phase 4 — Scene: GameActor, Component, Level
+### Phase 4 — Audio
+- `AudioManager`: `PlaySound(sound, volume, pitch)` with a small pool of `LoadSoundAlias` voices so the same SFX can overlap; master/music/SFX volumes; `Duck(bool)` for Pause/Editor.
+- `AudioSource` (sound + volume + pitch, optional 3D attenuation by distance to the camera). A standalone class in this phase; it becomes a `Component` in Phase 5 (decision D10).
+- `MusicPlayer`: `LoadMusicStream`, looping, `UpdateMusicStream` each frame, cross‑fade / fade‑in (Unity: max 0.2, speed 0.05/s).
+
+**Done when:** a key plays a pitched SFX and music fades in, and pausing ducks the music (a demo key until Phase 8's Pause calls the same `Duck()`).
+
+### Phase 5 — Scene: GameActor, Component, Level
 - `GameActor`: name, `::Transform`, parent/children, `IsActive`, `MarkForDestroy`, `GetLocalMatrix()` / `GetWorldMatrix()` (`MatrixScale * QuaternionToMatrix * MatrixTranslate`, times the parent's).
 - `Component`: `owner`, `OnCreate`, `OnEnable/OnDisable`, `Update`, `FixedUpdate`, `OnTriggerEnter/Exit`, `DrawInspector` (editor), `Serialize/Deserialize`.
 - `GameActor::AddComponent<T>() / GetComponent<T>()` (`requires std::derived_from<T, Component>`).
 - `Level`: `CreateGameActor<T>(name, parent)` (as in the reference), `Update`, `FixedUpdate`, `SubmitRenderables`, `FlushDestroyed`, `Clear`, `FindByName`.
 - `MeshRenderer` component (model + material → `RenderCommand`).
+- `AudioSource` (Phase 4) becomes a `Component`, positioned from its actor.
 
 **Done when:** a parent actor rotates and its children follow, and destroying an actor mid‑update doesn't crash.
 
-### Phase 5 — Physics (Bullet 3.25)
+### Phase 6 — Physics (Bullet 3.25)
 Bullet is hidden behind `eng::` classes. Public headers forward‑declare `class btRigidBody;` etc. or use pimpl, so `eng.h` never includes Bullet.
 
 - **`BulletConvert`** (internal): `ToBt(Vector3)`, `ToBt(Quaternion)` (raylib `{x,y,z,w}` ↔ `btQuaternion(x,y,z,w)`), `ToBt(::Transform)` → `btTransform`, and back. Both libraries are right‑handed, Y‑up, in meters, so no axis swap is needed.
@@ -438,13 +448,6 @@ Bullet is hidden behind `eng::` classes. Public headers forward‑declare `class
 - Fixed‑step loop wired into `Engine::Run` (`FIXED_DT = 0.02`, Unity default) as in §4.
 
 **Done when:** a sandbox level (plane + 20 dynamic crates + a ramp) runs at 60 FPS. Crates fall, stack and settle (go to sleep); the `CharacterMotor` capsule walks up the 30° ramp without sliding back, stops at a 50° slope, jumps onto a crate, and pushes a light crate; a center‑screen ray reports the crate it hits; a `TriggerVolume` fires Enter/Exit exactly once each; F3 shows Bullet wireframes. Deleting a crate mid‑simulation doesn't crash (removed before deleted).
-
-### Phase 6 — Audio
-- `AudioManager`: `PlaySound(sound, volume, pitch)` with a small pool of `LoadSoundAlias` voices so the same SFX can overlap; master/music/SFX volumes; `Duck(bool)` for Pause/Editor.
-- `AudioSource` component (sound + volume + pitch, optional 3D attenuation by distance to the camera).
-- `MusicPlayer`: `LoadMusicStream`, looping, `UpdateMusicStream` each frame, cross‑fade / fade‑in (Unity: max 0.2, speed 0.05/s).
-
-**Done when:** a key plays a pitched SFX and music fades in, and pausing ducks the music.
 
 ### Phase 7 — FX: particles and lines
 - `ParticleEmitter` (burst count, lifetime, speed, spread cone, size, **color gradient over lifetime with alpha fade**) and `ParticleSystem` (pooled, max ~1024, drawn as billboards or small cubes).

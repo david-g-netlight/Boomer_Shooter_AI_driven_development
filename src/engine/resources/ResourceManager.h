@@ -25,7 +25,7 @@ namespace eng
 	/// Owns every GPU resource loaded from disk. Loads each path once and returns the cached resource after that.
 	/// Pointers stay valid until UnloadAll(). A failed load returns nullptr, logs a warning and is not cached.
 	/// UnloadAll() is called by Engine::Shutdown() before the window (GL context) is closed.
-	/// Sounds and music are added with the audio device (Phase 6).
+	/// Sounds and music are added with the audio device (Phase 4).
 	/// </summary>
 	class ResourceManager
 	{
