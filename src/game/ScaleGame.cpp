@@ -47,6 +47,10 @@ bool ScaleGame::Init()
 
 	BindInput();
 
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
+	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
+
 	eng::Log::Info("ScaleGame initialized");
 	return true;
 }
@@ -79,6 +83,8 @@ void ScaleGame::BindInput()
 	// TODO(Phase 8): cursor is released by Pause (ESC); temporary toggle until then
 	map.BindAction("ToggleCursor", InputBinding::Key(KEY_C));
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
+	// TODO(Phase 8): replaced by the real Pause (ESC); simulates its audio side
+	map.BindAction("TogglePauseAudio", InputBinding::Key(KEY_P));
 }
 
 void ScaleGame::Update(float deltaTime)
@@ -116,6 +122,8 @@ void ScaleGame::Update(float deltaTime)
 	if (map.IsActionPressed("AltFire"))	++m_altFirePresses;
 	m_scrollTotal += map.GetAxis("Scroll");
 
+	UpdateAudioDemo();
+
 	// Cube 0 pulses its "emissive" material parameter (0 = lit, 1 = flat albedo)
 	m_pulseTime += deltaTime;
 	m_cubeMaterials[0].SetParameter("emissive", 0.5f + 0.5f * std::sin(m_pulseTime * 2.0f));
@@ -126,6 +134,37 @@ void ScaleGame::Update(float deltaTime)
 		m_fixedStepsPerSecond	= m_fixedStepsThisSecond;
 		m_fixedStepsThisSecond	= 0;
 		m_secondTimer			-= 1.0f;
+	}
+}
+
+void ScaleGame::UpdateAudioDemo()
+{
+	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
+	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
+
+	// Wheel picks the scale factor (Unity PlayerState::ChangeFactor)
+	const float scroll = map.GetAxis("Scroll");
+	if (scroll > 0.0f && m_scaleFactorIndex < 2)	++m_scaleFactorIndex;
+	if (scroll < 0.0f && m_scaleFactorIndex > 0)	--m_scaleFactorIndex;
+	const float factor = SCALE_FACTORS[m_scaleFactorIndex];
+
+	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
+	if (map.IsActionPressed("Fire") && m_sfxStretch)
+	{
+		m_lastPitch = 1.0f + factor + 0.02f;
+		audio.Play(*m_sfxStretch, 0.8f, m_lastPitch);
+	}
+	if (map.IsActionPressed("AltFire") && m_sfxShrink)
+	{
+		m_lastPitch = 1.0f - factor - 0.02f;
+		audio.Play(*m_sfxShrink, 0.8f, m_lastPitch);
+	}
+
+	if (map.IsActionPressed("TogglePauseAudio"))
+	{
+		m_isAudioPaused = !m_isAudioPaused;
+		audio.Duck(m_isAudioPaused);
+		if (m_isAudioPaused) audio.PauseAll(); else audio.ResumeAll();
 	}
 }
 
@@ -201,6 +240,7 @@ void ScaleGame::DrawHUD()
 		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "fly (mouse + WASD)"), 20, 100, 10, DARKGRAY);
 
 	DrawInputPanel();
+	DrawAudioPanel();
 	DrawMinimap();
 }
 
@@ -227,8 +267,25 @@ void ScaleGame::DrawInputPanel() const
 	DrawText(TextFormat("Scroll  (wheel) total %+.1f", m_scrollTotal), x + 10, y + 105, 10, DARKGRAY);
 }
 
+void ScaleGame::DrawAudioPanel() const
+{
+	const eng::AudioManager& audio = eng::Engine::GetInstance().GetAudio();
+
+	const int x = 10, y = 270;
+	DrawRectangle(x, y, 330, 75, Fade(BEIGE, 0.6f));
+	DrawRectangleLines(x, y, 330, 75, BROWN);
+	DrawText(TextFormat("Audio %s  |  voices %d active / %d", audio.IsReady() ? "ON" : "OFF (no device)",
+		audio.GetActiveVoiceCount(), audio.GetVoiceCount()), x + 10, y + 10, 10, BLACK);
+	DrawText(TextFormat("LMB stretch / RMB shrink  factor x%.2f (wheel)  pitch %.2f",
+		SCALE_FACTORS[m_scaleFactorIndex], m_lastPitch), x + 10, y + 28, 10, DARKGRAY);
+	DrawText(TextFormat("P: %s  |  duck %.2f", m_isAudioPaused ? "resume audio" : "pause audio (demo of Pause)",
+		audio.GetDuckFactor()), x + 10, y + 46, 10, DARKGRAY);
+}
+
 void ScaleGame::Destroy()
 {
+	m_sfxStretch	= nullptr;
+	m_sfxShrink		= nullptr;
 	m_cubeMaterials.clear();
 	m_cubeTransforms.clear();
 	m_cubePositions.clear();

@@ -52,15 +52,18 @@ namespace eng
 
 		SetTargetFPS(60);
 
+		// A missing audio device is not fatal: the game runs silently
+		m_audio.Init();
+
 		m_defaultCamera.SetPosition({ 0.0f, 2.0f, 5.0f });
 		m_defaultCamera.LookAt({ 0.0f, 0.0f, 0.0f });
 		m_activeCamera.SetActiveCamera(m_defaultCamera);
 
 		m_window.Refresh();
-		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s",
+		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s | audio %s",
 			GetEngineName(), GetEngineVersion(),
 			m_window.screenWidth, m_window.screenHeight, m_window.renderWidth, m_window.renderHeight,
-			IsEditorBuild() ? "ON" : "OFF");
+			IsEditorBuild() ? "ON" : "OFF", m_audio.IsReady() ? "ON" : "OFF");
 
 		m_isAppInitialized = m_app->Init();
 		if (!m_isAppInitialized)
@@ -91,7 +94,10 @@ namespace eng
 
 			m_app->Update(m_time.GetDeltaTime());
 
-			// 3. Render
+			// 3. Audio (unscaled: fades and ducking keep running while the game is paused)
+			m_audio.Update(m_time.GetUnscaledDeltaTime());
+
+			// 4. Render
 			BeginDrawing();
 				ClearBackground(m_world.skyColor);
 
@@ -122,8 +128,11 @@ namespace eng
 
 		if (m_isWindowOpen)
 		{
-			// GPU resources must be released while the GL context still exists
+			// Aliases before the sounds they share data with; GPU/audio resources while the GL context
+			// and the audio device still exist
+			m_audio.ReleaseVoices();
 			m_resources.UnloadAll();
+			m_audio.Shutdown();
 			CloseWindow();
 			m_isWindowOpen = false;
 			Log::Info("Engine shut down");
@@ -172,6 +181,11 @@ namespace eng
 	DebugDraw& Engine::GetDebugDraw()
 	{
 		return m_debugDraw;
+	}
+
+	AudioManager& Engine::GetAudio()
+	{
+		return m_audio;
 	}
 
 	Time& Engine::GetTime()

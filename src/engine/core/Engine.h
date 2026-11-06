@@ -7,6 +7,7 @@
 #include "render/Camera.h"
 #include "render/RenderQueue.h"
 #include "render/DebugDraw.h"
+#include "audio/AudioManager.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -81,6 +82,7 @@ namespace eng
 		ActiveCamera&		GetMainCamera();
 		RenderQueue&		GetRenderQueue();
 		DebugDraw&			GetDebugDraw();
+		AudioManager&		GetAudio();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -102,6 +104,7 @@ namespace eng
 		ActiveCamera	m_activeCamera;
 		RenderQueue		m_renderQueue;
 		DebugDraw		m_debugDraw;
+		AudioManager	m_audio;
 
 		Time			m_time;
 		WindowInfo		m_window;

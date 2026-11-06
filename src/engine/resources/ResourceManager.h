@@ -25,7 +25,7 @@ namespace eng
 	/// Owns every GPU resource loaded from disk. Loads each path once and returns the cached resource after that.
 	/// Pointers stay valid until UnloadAll(). A failed load returns nullptr, logs a warning and is not cached.
 	/// UnloadAll() is called by Engine::Shutdown() before the window (GL context) is closed.
-	/// Sounds and music are added with the audio device (Phase 4).
+	/// Sounds need the audio device (AudioManager::Init) and must be unloaded before it closes.
 	/// </summary>
 	class ResourceManager
 	{
@@ -43,6 +43,7 @@ namespace eng
 		Texture2D*	LoadTexture	(const std::string& path);
 		Shader*		LoadShader	(const std::string& vertexPath, const std::string& fragmentPath); // "" = raylib default stage
 		Font*		LoadFont	(const std::string& path, int baseSize = 32);
+		Sound*		LoadSound	(const std::string& path);	// whole file in memory, for short effects
 
 		//////////////////////////////////////////
 		/// Primitives
@@ -58,6 +59,7 @@ namespace eng
 		std::unordered_map<std::string, Texture2D>	m_textures;
 		std::unordered_map<std::string, Shader>		m_shaders;
 		std::unordered_map<std::string, Font>		m_fonts;
+		std::unordered_map<std::string, Sound>		m_sounds;
 
 		std::array<::Mesh, static_cast<size_t>(Primitive::Count)>	m_primitives			= {};
 		std::array<bool,   static_cast<size_t>(Primitive::Count)>	m_isPrimitiveLoaded		= {};

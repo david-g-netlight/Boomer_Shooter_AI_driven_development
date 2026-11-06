@@ -18,7 +18,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 1 | Core: Engine, Application, Time, Window | ✅ | 2026-11-06 | 2026-11-06 | [devlog](core_devlog.md) |
 | 2 | Input | ✅ | 2026-11-06 | 2026-11-06 | [devlog](input_devlog.md) |
 | 3 | Resources and rendering | ✅ | 2026-11-06 | 2026-11-06 | [devlog](resources_and_rendering_devlog.md) |
-| 4 | Audio | ⬜ | | | Moved before Scene/Physics (D9) |
+| 4 | Audio | 🟡 | 2026-11-06 | | Moved before Scene/Physics (D9) |
 | 5 | Scene: GameActor, Component, Level | ⬜ | | | |
 | 6 | Physics (Bullet 3.25) | ⬜ | | | |
 | 7 | FX: particles and lines | ⬜ | | | |
@@ -70,8 +70,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Optional lit shader (`assets/shaders/lit.vs/.fs`: sun + ambient + specular; scene uniforms from `World`)
 - [x] **Done when:** 10 cubes with different materials render through the `RenderQueue` *(validated by the developer)*
 
-### Phase 4 — Audio ⬜
-- [ ] `AudioManager` (alias voice pool, volumes, duck)
+### Phase 4 — Audio 🟡
+- [x] `AudioManager` (alias voice pool, volumes, duck) (+ placeholder SFX generator, pitched stretch/shrink demo)
 - [ ] `AudioSource` (standalone class; becomes a `Component` in Phase 5, D10)
 - [ ] `MusicPlayer` (stream, loop, fade)
 - [ ] **Done when:** pitched SFX on key press, music fades in, pause ducks music (demo key until Phase 8)
