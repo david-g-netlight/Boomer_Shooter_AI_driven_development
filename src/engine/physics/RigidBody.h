@@ -17,6 +17,19 @@ namespace eng
 		Kinematic,	// moved by code through the actor's transform; pushes dynamic bodies
 	};
 
+	/// <summary>
+	/// Continuous collision detection: stops small fast bodies from passing through thin geometry in one step.
+	/// Auto = on for dynamic bodies whose smallest dimension is below CCD_AUTO_SIZE.
+	/// </summary>
+	enum class CcdMode : uint8_t
+	{
+		Auto,
+		On,
+		Off,
+	};
+
+	constexpr float CCD_AUTO_SIZE = 0.3f;	// m
+
 	struct RigidBodySettings
 	{
 		BodyType	type			= BodyType::Dynamic;
@@ -26,6 +39,7 @@ namespace eng
 		float		linearDamping	= 0.05f;
 		float		angularDamping	= 0.1f;
 		bool		lockRotation	= false;	// angular factor 0: never tips over
+		CcdMode		ccd				= CcdMode::Auto;
 	};
 
 	/// <summary>
@@ -52,6 +66,8 @@ namespace eng
 		void				SetRestitution(float restitution);
 		void				SetDamping(float linear, float angular);
 		void				SetLockRotation(bool locked);
+		void				SetCcdMode(CcdMode mode);
+		bool				IsCcdActive() const;
 		const RigidBodySettings& GetSettings() const;
 
 		//////////////////////////////////////////
@@ -95,6 +111,7 @@ namespace eng
 		void				DestroyBody();
 		void				ApplySettings();
 		void				UpdateMassProperties();
+		void				UpdateCcd();
 
 		struct Impl;
 		std::unique_ptr<Impl>	m_impl;

@@ -42,6 +42,8 @@ private:
 	void		UpdateCamera(float deltaTime);
 	void		UpdatePlayer(float deltaTime);
 	void		SpawnPlayer();
+	void		ThrowPellet();
+	void		UpdatePellets();
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();
@@ -73,6 +75,15 @@ private:
 	static constexpr float		EYE_HEIGHT		= 0.7f;		// above the capsule center (1.7 m above the feet)
 	eng::GameActor*				m_player		= nullptr;
 	bool						m_isPlayerMode	= false;
+
+	// CCD check: T throws small fast pellets at a 5 cm wall; none should end up behind it
+	static constexpr float		WALL_Z			= -9.0f;
+	static constexpr float		PELLET_SIZE		= 0.12f;	// m, below CCD_AUTO_SIZE
+	static constexpr float		PELLET_SPEED	= 40.0f;	// m/s = 0.8 m per fixed tick
+	static constexpr size_t		MAX_PELLETS		= 30;
+	std::vector<eng::GameActor*>	m_pellets;
+	int							m_pelletsThrown	= 0;
+	int							m_tunnelled		= 0;
 	const Shader*			m_litShader		= nullptr;
 
 	//////////////////////////////////////////

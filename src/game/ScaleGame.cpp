@@ -74,6 +74,7 @@ void ScaleGame::BindInput()
 	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
 	map.BindAction("TogglePlayer", InputBinding::Key(KEY_V));
 	map.BindAction("TogglePhysicsDebug", InputBinding::Key(KEY_F3));
+	map.BindAction("ThrowPellet", InputBinding::Key(KEY_T));
 }
 
 //////////////////////////////////////////
@@ -152,7 +153,43 @@ void ScaleGame::BuildSandbox()
 	zone->AddComponent<eng::TriggerVolume>();
 	m_triggerCounter = zone->AddComponent<TriggerCounter>();
 
+	// Thin wall behind the pyramid, target for the CCD pellets
+	SpawnBox({ "Thin Wall", { 0.0f, 1.5f, WALL_Z }, { 6.0f, 3.0f, 0.05f }, {}, BodyType::Static, 0.0f,
+			   { 200, 200, 210, 255 }, eng::Layer::Ground });
+
 	SpawnPlayer();
+}
+
+void ScaleGame::ThrowPellet()
+{
+	// Oldest out when the cap is reached
+	if (m_pellets.size() >= MAX_PELLETS)
+	{
+		m_pellets.front()->MarkForDestroy();
+		m_pellets.erase(m_pellets.begin());
+	}
+
+	eng::GameActor* pellet = SpawnBox({ "Pellet", Vector3Add(m_camera.GetPosition(), Vector3Scale(m_camera.Forward(), 1.0f)),
+		{ PELLET_SIZE, PELLET_SIZE, PELLET_SIZE }, {}, eng::BodyType::Dynamic, 0.05f, RAYWHITE });
+	pellet->GetComponent<eng::RigidBody>()->SetLinearVelocity(Vector3Scale(m_camera.Forward(), PELLET_SPEED));
+	m_pellets.push_back(pellet);
+	++m_pelletsThrown;
+}
+
+void ScaleGame::UpdatePellets()
+{
+	// A pellet "tunnelled" if it ends up behind the wall's footprint (counted once, then removed)
+	for (eng::GameActor*& pellet : m_pellets)
+	{
+		const Vector3 p = pellet->GetWorldPosition();
+		if (p.z < WALL_Z - 0.3f && std::fabs(p.x) < 3.0f && p.y > 0.0f && p.y < 3.0f)
+		{
+			++m_tunnelled;
+			pellet->MarkForDestroy();
+		}
+	}
+	m_pellets.erase(std::remove_if(m_pellets.begin(), m_pellets.end(),
+		[](const eng::GameActor* pellet) { return pellet->IsMarkedForDestroy(); }), m_pellets.end());
 }
 
 void ScaleGame::SpawnPlayer()
@@ -245,9 +282,13 @@ void ScaleGame::Update(float deltaTime)
 		}
 	}
 
+	if (map.IsActionPressed("ThrowPellet"))
+		ThrowPellet();
+
 	UpdatePlayer(deltaTime);
 	UpdateCamera(deltaTime);
 	UpdateAim();
+	UpdatePellets();
 	UpdateAudioDemo();
 	PruneDestroyedCrates();
 
@@ -418,8 +459,8 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("V: %s  |  C: %s  |  F2 debug  F3 physics", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
-		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "lock cursor"), 20, 100, 10, DARKGRAY);
+	DrawText(TextFormat("V: %s  |  C: %s cursor  |  F2 / F3 debug", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
+		engine.GetInputManager().IsCursorLocked() ? "unlock" : "lock"), 20, 100, 10, DARKGRAY);
 
 	DrawPhysicsPanel();
 	DrawAudioPanel();
@@ -440,8 +481,8 @@ void ScaleGame::DrawPhysicsPanel() const
 			++sleeping;
 
 	const int x = 10, y = 140;
-	DrawRectangle(x, y, 330, 110, Fade(LIME, 0.35f));
-	DrawRectangleLines(x, y, 330, 110, DARKGREEN);
+	DrawRectangle(x, y, 330, 126, Fade(LIME, 0.35f));
+	DrawRectangleLines(x, y, 330, 126, DARKGREEN);
 	DrawText(TextFormat("Physics (Bullet)  |  bodies %d  |  actors %zu", eng::Engine::GetInstance().GetPhysics().GetObjectCount(),
 		m_level.GetActorCount()), x + 10, y + 10, 10, BLACK);
 	DrawText(TextFormat("Crates %zu  |  sleeping %d  |  deleted %d", m_crates.size(), sleeping, m_deletedCrates),
@@ -466,6 +507,9 @@ void ScaleGame::DrawPhysicsPanel() const
 			motor->IsOnSteepSlope() ? " (too steep)" : "", std::sqrt(v.x * v.x + v.z * v.z),
 			m_player->GetWorldPosition().y - 1.0f), x + 10, y + 92, 10, BLACK);
 	}
+
+	DrawText(TextFormat("T: throw pellet at the thin wall (CCD)  |  thrown %d  tunnelled %d", m_pelletsThrown, m_tunnelled),
+		x + 10, y + 108, 10, m_tunnelled > 0 ? RED : DARKGRAY);
 }
 
 void ScaleGame::DrawAudioPanel() const
@@ -475,7 +519,7 @@ void ScaleGame::DrawAudioPanel() const
 	const char*					track	= music.GetCurrent() == m_themeMenu ? "menu"
 										: music.GetCurrent() == m_themeGame ? "game" : "none";
 
-	const int x = 10, y = 260;
+	const int x = 10, y = 276;
 	DrawRectangle(x, y, 330, 45, Fade(BEIGE, 0.6f));
 	DrawRectangleLines(x, y, 330, 45, BROWN);
 	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
@@ -490,6 +534,7 @@ void ScaleGame::Destroy()
 	m_aimHit.reset();
 	m_triggerCounter = nullptr;
 	m_player = nullptr;
+	m_pellets.clear();
 	m_crates.clear();
 	m_level.Clear();
 	m_sfxStretch	= nullptr;

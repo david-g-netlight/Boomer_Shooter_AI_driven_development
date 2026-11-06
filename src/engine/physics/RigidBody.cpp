@@ -89,6 +89,7 @@ namespace eng
 			body->setCollisionFlags(body->getCollisionFlags() | btCollisionObject::CF_STATIC_OBJECT);
 		}
 		ApplySettings();
+		UpdateCcd();
 
 		world->addRigidBody(body, static_cast<int>(m_collider->GetLayer()), static_cast<int>(m_collider->GetMask()));
 	}
@@ -120,6 +121,37 @@ namespace eng
 		body->setAngularFactor(m_settings.lockRotation ? 0.0f : 1.0f);
 		if (m_settings.lockRotation)
 			body->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));	// the factor only scales impulses/torques
+	}
+
+	void RigidBody::UpdateCcd()
+	{
+		btRigidBody* body = m_impl->body.get();
+		if (!body)
+			return;
+
+		// Smallest dimension of the (scaled) shape
+		btVector3 lo, hi;
+		body->getCollisionShape()->getAabb(btTransform::getIdentity(), lo, hi);
+		const btVector3	size	= hi - lo;
+		const float		minSize	= std::min({ size.x(), size.y(), size.z() });
+
+		const bool active = m_settings.type == BodyType::Dynamic
+			&& (m_settings.ccd == CcdMode::On || (m_settings.ccd == CcdMode::Auto && minSize < CCD_AUTO_SIZE));
+
+		// Engages when a step moves more than half the smallest size; the swept sphere fits inside the body
+		body->setCcdMotionThreshold(active ? 0.5f * minSize : 0.0f);
+		body->setCcdSweptSphereRadius(active ? 0.4f * minSize : 0.0f);
+	}
+
+	void RigidBody::SetCcdMode(CcdMode mode)
+	{
+		m_settings.ccd = mode;
+		UpdateCcd();
+	}
+
+	bool RigidBody::IsCcdActive() const
+	{
+		return m_impl->body && m_impl->body->getCcdMotionThreshold() > 0.0f;
 	}
 
 	void RigidBody::UpdateMassProperties()
@@ -254,6 +286,7 @@ namespace eng
 
 		m_collider->SyncScaleFromActor();
 		UpdateMassProperties();
+		UpdateCcd();	// a shrunk prop may now need CCD
 		if (btRigidBody* body = m_impl->body.get())
 		{
 			body->activate(true);

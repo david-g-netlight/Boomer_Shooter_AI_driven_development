@@ -95,7 +95,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `TriggerVolume` (ghost object, `btGhostPairCallback`, enter/exit diff) (+ exact `contactPairTest`, `Component::OnTriggerEnter/Exit`, sandbox trigger zone)
 - [x] `CharacterMotor` — dynamic capsule: no rotation, own gravity, walk velocity on the ground plane, sphere‑sweep grounding, 45° slope limit, jump + grace time, warp, ground‑body velocity (+ grounded gravity along the normal, steep‑slope input cut, playable V mode in the sandbox)
 - [x] `PhysicsDebugDrawer` + F3 toggle (wireframes + contact normals in the Engine 3D pass)
-- [ ] CCD for small dynamic bodies
+- [x] CCD for small dynamic bodies (`CcdMode` Auto / On / Off; Auto below 0.3 m, re‑checked on scale changes; sandbox pellets at a 5 cm wall)
 - [ ] **Done when:** sandbox (plane + 20 crates + ramp) at 60 FPS; crates stack and sleep; capsule climbs a 30° ramp without sliding, stops at 50°, jumps on a crate, pushes a light crate; center ray reports the hit crate; trigger Enter/Exit fire once each; F3 wireframes; deleting a crate mid‑sim is safe
 
 ### Phase 7 — FX ⬜
@@ -189,6 +189,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-07 | 6 | All 11 Phase 6 tasks committed on `physics`; headless tests (convert, collider, motion state, rigid body, raycast, trigger, character motor, CCD), most under ASan, all pass; found and fixed raymath `MatrixDecompose` (row‑based) bug, rotation‑lock bypass, convex hull margin, motor slope sliding; final ASan sandbox run: 0 of 15 pellets tunnelled, 59 FPS, 20/20 crates asleep | Developer runs the Phase 6 **Done when** check | Waiting for green light to merge |
 | 2026-11-07 | 5 | Developer validated Phase 5; devlog written; merged into `integration` | Start Phase 6 on `physics` | — |
 | 2026-11-06 | 5 | All 5 Phase 5 tasks committed on `scene`; headless GameActor (12 checks), Component lifecycle (6) and Level destroy‑mid‑update (11, under AddressSanitizer) tests passed; full game built with ASan: self‑destruct, ring rebuild and destroy‑mid‑ping runs clean | Developer runs the Phase 5 **Done when** check | — |
 | 2026-11-06 | 4 | Developer validated Phase 4; devlog written; merged into `integration` | Start Phase 5 on `scene` | — |
