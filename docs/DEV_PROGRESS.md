@@ -90,7 +90,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `PhysicsLayers` groups and masks (default masks checked symmetric by `static_assert`)
 - [x] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
 - [ ] `RigidBody` (static / dynamic / kinematic, `Teleport`, `OnScaleChanged`, impulses)
-- [ ] `ActorMotionState`
+- [x] `ActorMotionState` (world ↔ parent‑local, scale kept, optional rotation write‑back)
 - [ ] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor)
 - [ ] `TriggerVolume` (ghost object, `btGhostPairCallback`, enter/exit diff)
 - [ ] `CharacterMotor` — dynamic capsule: no rotation, own gravity, walk velocity on the ground plane, sphere‑sweep grounding, 45° slope limit, jump + grace time, warp, ground‑body velocity
