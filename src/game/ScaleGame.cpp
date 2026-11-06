@@ -130,17 +130,18 @@ void ScaleGame::BuildRing()
 		material.SetTint(ColorFromHSV(t * 360.0f, 0.75f, 0.95f));
 		material.SetParameter("specularStrength", 0.6f);
 
-		CubeEntry& entry = m_cubes.emplace_back();
-		entry.actor = actor;
-		entry.source.SetSound(m_ping);
-		entry.source.SetSpatial(true);
-		entry.source.SetRange(2.0f, 25.0f);
-		entry.source.SetPitch(0.8f + 0.5f * t);		// each cube has its own note
-		entry.source.SetPitchVariation(0.02f);
+		// Spatial ping, positioned by the actor (follows the rotating ring)
+		eng::AudioSource* source = actor->AddComponent<eng::AudioSource>(m_ping);
+		source->SetSpatial(true);
+		source->SetRange(2.0f, 25.0f);
+		source->SetPitch(0.8f + 0.5f * t);		// each cube has its own note
+		source->SetPitchVariation(0.02f);
+
+		m_cubes.push_back(actor);
 	}
 
 	// Cube 0 spins fast and carries a moon: Ring -> Cube 0 -> Moon (scaled by both parents)
-	m_pulseCube = m_cubes[0].actor;
+	m_pulseCube = m_cubes[0];
 	m_pulseCube->AddComponent<Rotator>(90.0f);
 	eng::GameActor* moon = m_level.CreateGameActor("Moon", m_pulseCube);
 	moon->SetPosition({ 1.4f, 0.3f, 0.0f });
@@ -152,7 +153,7 @@ void ScaleGame::PruneDestroyedCubes()
 {
 	const size_t before = m_cubes.size();
 	m_cubes.erase(std::remove_if(m_cubes.begin(), m_cubes.end(),
-		[](const CubeEntry& entry) { return entry.actor->IsMarkedForDestroy(); }), m_cubes.end());
+		[](const eng::GameActor* cube) { return cube->IsMarkedForDestroy(); }), m_cubes.end());
 
 	if (m_cubes.size() != before)
 		m_lastPingedCube = -1;
@@ -170,7 +171,7 @@ void ScaleGame::UpdateSceneDemo()
 	if (map.IsActionPressed("DestroyCube") && !m_cubes.empty())
 	{
 		const int index = GetRandomValue(0, static_cast<int>(m_cubes.size()) - 1);
-		m_cubes[index].actor->AddComponent<SelfDestructTimer>(0.0f);
+		m_cubes[index]->AddComponent<SelfDestructTimer>(0.0f);
 	}
 
 	// R: destroy the whole ring (children follow) and build a new one in the same frame
@@ -265,18 +266,11 @@ void ScaleGame::UpdateAudioDemo()
 		audio.Play(*m_sfxShrink, 0.8f, m_lastPitch);
 	}
 
-	// The cubes move with the ring: keep each source on its cube
-	for (CubeEntry& entry : m_cubes)
-	{
-		entry.source.SetPosition(entry.actor->GetWorldPosition());
-		entry.source.Update();
-	}
-
 	// Spatial ping from a random cube: listen to pan (left / right) and distance falloff
 	if (map.IsActionPressed("PingCube") && !m_cubes.empty())
 	{
 		m_lastPingedCube = GetRandomValue(0, static_cast<int>(m_cubes.size()) - 1);
-		m_cubes[m_lastPingedCube].source.Play();
+		m_cubes[m_lastPingedCube]->GetComponent<eng::AudioSource>()->Play();
 	}
 
 	// Cross-fade between the menu and gameplay themes
@@ -314,12 +308,12 @@ void ScaleGame::SubmitDebugShapes() const
 	debug.Grid(20, 1.0f);
 	debug.Axes({ 0.0f, 0.01f, 0.0f }, 1.5f);
 	debug.WireSphere({ 0.0f, 0.0f, 0.0f }, 5.2f, Fade(DARKGRAY, 0.4f));
-	for (const CubeEntry& entry : m_cubes)
+	for (const eng::GameActor* cube : m_cubes)
 	{
 		// World bounds follow the ring's rotation (axis aligned, so they grow while a cube is turned)
-		const BoundingBox bounds = entry.actor->GetComponent<eng::MeshRenderer>()->GetWorldBounds();
+		const BoundingBox bounds = cube->GetComponent<eng::MeshRenderer>()->GetWorldBounds();
 		debug.WireBox(Vector3Scale(Vector3Add(bounds.min, bounds.max), 0.5f), Vector3Subtract(bounds.max, bounds.min), Fade(BLACK, 0.3f));
-		debug.Label(Vector3Add(entry.actor->GetWorldPosition(), { 0.0f, 1.2f, 0.0f }), entry.actor->GetName(), BLACK);
+		debug.Label(Vector3Add(cube->GetWorldPosition(), { 0.0f, 1.2f, 0.0f }), cube->GetName(), BLACK);
 	}
 }
 
@@ -409,10 +403,11 @@ void ScaleGame::DrawAudioPanel() const
 
 	if (m_lastPingedCube >= 0)
 	{
-		const CubeEntry& entry = m_cubes[m_lastPingedCube];
-		DrawText(TextFormat("K: ping  |  %s  dist %.1f  gain %.2f  pan %+.2f", entry.actor->GetName().c_str(),
-			Vector3Distance(entry.source.GetPosition(), audio.GetListenerPosition()), entry.source.ComputeGain(),
-			entry.source.ComputePan()), x + 10, y + 64, 10, DARKGRAY);
+		const eng::GameActor*	cube	= m_cubes[m_lastPingedCube];
+		const eng::AudioSource*	source	= cube->GetComponent<eng::AudioSource>();
+		DrawText(TextFormat("K: ping  |  %s  dist %.1f  gain %.2f  pan %+.2f", cube->GetName().c_str(),
+			Vector3Distance(source->GetPosition(), audio.GetListenerPosition()), source->ComputeGain(),
+			source->ComputePan()), x + 10, y + 64, 10, DARKGRAY);
 	}
 	else
 	{

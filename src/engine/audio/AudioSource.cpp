@@ -1,5 +1,6 @@
 #include "AudioSource.h"
 #include "core/Engine.h"
+#include "level/GameActor.h"
 #include <algorithm>
 #include <raymath.h>
 
@@ -34,6 +35,7 @@ namespace eng
 		if (!m_sound)
 			return;
 
+		FollowOwner();
 		float pitch = m_pitch;
 		if (m_pitchVariation > 0.0f)
 			pitch += m_pitchVariation * (static_cast<float>(GetRandomValue(-1000, 1000)) / 1000.0f);
@@ -52,7 +54,29 @@ namespace eng
 		return Engine::GetInstance().GetAudio().IsPlaying(m_voice);
 	}
 
-	void AudioSource::Update()
+	void AudioSource::FollowOwner()
+	{
+		if (const GameActor* owner = GetOwner())
+			m_position = owner->GetWorldPosition();
+	}
+
+	void AudioSource::Update(float /*deltaTime*/)
+	{
+		FollowOwner();
+		RefreshSpatial();
+	}
+
+	void AudioSource::OnDisable()
+	{
+		Stop();
+	}
+
+	void AudioSource::OnDestroy()
+	{
+		Stop();
+	}
+
+	void AudioSource::RefreshSpatial()
 	{
 		if (!m_isSpatial || !IsPlaying())
 			return;

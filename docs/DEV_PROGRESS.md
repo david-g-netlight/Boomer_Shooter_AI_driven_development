@@ -81,7 +81,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `Component` base + `AddComponent<T> / GetComponent<T>`
 - [x] `Level` (factory, update, fixed update, submit, `FlushDestroyed`) (+ Engine loop wiring)
 - [x] `MeshRenderer` (+ demo scene as actors: rotating ring, Cube 0 → Moon, X self‑destruct, R rebuild)
-- [ ] `AudioSource` becomes a `Component` (position from its actor)
+- [x] `AudioSource` becomes a `Component` (position from its actor)
 - [ ] **Done when:** children follow a rotating parent; destroying an actor mid‑update is safe
 
 ### Phase 6 — Physics (Bullet 3.25) ⬜
@@ -188,6 +188,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-06 | 5 | All 5 Phase 5 tasks committed on `scene`; headless GameActor (12 checks), Component lifecycle (6) and Level destroy‑mid‑update (11, under AddressSanitizer) tests passed; full game built with ASan: self‑destruct, ring rebuild and destroy‑mid‑ping runs clean | Developer runs the Phase 5 **Done when** check | Waiting for green light to merge |
 | 2026-11-06 | 4 | Developer validated Phase 4; devlog written; merged into `integration` | Start Phase 5 on `scene` | — |
 | 2026-11-06 | 4 | All 3 Phase 4 tasks committed on `audio`; voice pool check (3 overlapping plays → own voices), AudioSource gain/pan headless check, timed fade/cross‑fade/duck check all passed; clean shutdown order verified | Developer runs the Phase 4 **Done when** check | — |
 | 2026-11-06 | 3 | Developer validated Phase 3 and moved Audio to Phase 4; plan, tracker and code comments renumbered (D9, D10); devlog written; merged into `integration` | Start Phase 4 on `audio` | — |

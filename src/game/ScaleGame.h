@@ -43,16 +43,10 @@ private:
 	static constexpr float	RING_RADIUS		= 4.0f;
 	static constexpr float	RING_SPEED		= 15.0f;	// degrees/s
 
-	struct CubeEntry
-	{
-		eng::GameActor*		actor = nullptr;
-		eng::AudioSource	source;			// TODO(Phase 5, AudioSource component): becomes a component of the actor
-	};
-
 	eng::Level				m_level;
 	eng::GameActor*			m_ring			= nullptr;
 	eng::GameActor*			m_pulseCube		= nullptr;	// cube 0, pulses its "emissive" parameter
-	std::vector<CubeEntry>	m_cubes;					// alive cubes; destroyed ones are pruned every frame
+	std::vector<eng::GameActor*>	m_cubes;			// alive cubes (MeshRenderer + AudioSource); destroyed ones are pruned every frame
 	const Shader*			m_litShader		= nullptr;
 	const Sound*			m_ping			= nullptr;
 	int						m_ringBuilds	= 0;
