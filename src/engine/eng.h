@@ -6,3 +6,4 @@
 */
 
 #include "core/EngineInfo.h"
+#include "core/Application.h"

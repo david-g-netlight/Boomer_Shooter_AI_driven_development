@@ -15,7 +15,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | Phase | Name | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|
 | 0 | Project setup, CMake, raygui, Bullet static libs | ✅ | 2026-11-06 | 2026-11-06 | [devlog](project_setup_and_build_system_devlog.md) |
-| 1 | Core: Engine, Application, Time, Window | ⬜ | | | |
+| 1 | Core: Engine, Application, Time, Window | 🟡 | 2026-11-06 | | |
 | 2 | Input | ⬜ | | | |
 | 3 | Resources and rendering | ⬜ | | | |
 | 4 | Scene: GameActor, Component, Level | ⬜ | | | |
@@ -47,8 +47,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `ENG_EDITOR` compile definition (Debug = 1, Release = 0, `-DENG_EDITOR_IN_RELEASE=ON` to force 1) + `eng::IsEditorBuild()`
 - [x] **Done when:** the old free‑camera `main.cpp` runs from CMake, and a throw‑away `btDiscreteDynamicsWorld` links
 
-### Phase 1 — Core ⬜
-- [ ] `eng::Application` (Init / Update / FixedUpdate / DrawHUD / Destroy + mode hooks)
+### Phase 1 — Core 🟡
+- [x] `eng::Application` (Init / Update / FixedUpdate / DrawHUD / Destroy + mode hooks)
 - [ ] `eng::Engine` singleton, `SetApplication` ownership transfer, `Init / Run / Shutdown`
 - [ ] Window flags (MSAA, VSync, resizable, HighDPI), `SetExitKey(KEY_NULL)`, `ChangeDirectory(GetApplicationDirectory())`
 - [ ] `Time` (clamped dt, fixed‑step accumulator), `WindowInfo`, `World`, `Log`
