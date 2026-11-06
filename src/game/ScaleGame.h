@@ -22,6 +22,8 @@ public:
 
 	const char*	GetTitle() const				override;
 	eng::Level*	GetActiveLevel()				override;
+	// TODO(Phase 8, menus): back to the default (MainMenu) once the menu screens exist
+	eng::EngineMode	GetStartMode() const		override { return eng::EngineMode::Play; }
 
 private:
 	struct BoxDesc
@@ -118,7 +120,6 @@ private:
 	int			m_scaleFactorIndex		= 0;
 	const Sound*	m_sfxStretch		= nullptr;
 	const Sound*	m_sfxShrink			= nullptr;
-	bool		m_isAudioPaused			= false;
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
 	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds

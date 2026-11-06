@@ -11,6 +11,7 @@
 #include "audio/AudioManager.h"
 #include "physics/PhysicsWorld.h"
 #include "fx/ParticleSystem.h"
+#include "modes/ModeMachine.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -89,6 +90,7 @@ namespace eng
 		PhysicsWorld&		GetPhysics();
 		ParticleSystem&		GetParticles();
 		EventBus&			GetEvents();
+		ModeMachine&		GetModes();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -114,6 +116,7 @@ namespace eng
 		PhysicsWorld	m_physics;
 		ParticleSystem	m_particles;
 		EventBus		m_events;
+		ModeMachine		m_modes;
 
 		Time			m_time;
 		WindowInfo		m_window;

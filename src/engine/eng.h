@@ -13,6 +13,8 @@
 #include "core/World.h"
 #include "core/Log.h"
 #include "core/EventBus.h"
+#include "modes/EngineMode.h"
+#include "modes/ModeMachine.h"
 #include "core/MathUtils.h"
 #include "input/InputManager.h"
 #include "input/InputMap.h"

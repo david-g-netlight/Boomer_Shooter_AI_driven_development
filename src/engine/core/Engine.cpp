@@ -70,6 +70,8 @@ namespace eng
 		m_isAppInitialized = m_app->Init();
 		if (!m_isAppInitialized)
 			Log::Error("Application::Init() failed");
+		else
+			m_modes.Begin(m_app->GetStartMode());
 
 		return m_isAppInitialized;
 	}
@@ -88,6 +90,10 @@ namespace eng
 			m_time.BeginFrame(GetFrameTime());
 			m_window.Refresh();
 			m_inputManager.Poll(); // State polled by the previous EndDrawing()
+
+			// Mode changes requested last frame (menus) or by ESC / TAB now take effect before anything updates
+			m_modes.HandleInput(m_inputManager);
+			m_modes.ApplyPendingTransition();
 
 			// 2. Fixed step (physics rate), then variable step. The level runs before the game
 			Level* level = m_app->GetActiveLevel();
@@ -224,6 +230,11 @@ namespace eng
 	EventBus& Engine::GetEvents()
 	{
 		return m_events;
+	}
+
+	ModeMachine& Engine::GetModes()
+	{
+		return m_modes;
 	}
 
 	Time& Engine::GetTime()

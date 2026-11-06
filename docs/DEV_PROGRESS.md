@@ -105,7 +105,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 ### Phase 8 — Events, modes, menus 🟡
 - [x] `EventBus` (queued dispatch)
-- [ ] `ModeMachine` (MainMenu / Play / Paused / Editor; cursor, audio duck, hooks)
+- [x] `ModeMachine` (MainMenu / Play / Paused / Editor; cursor, audio duck, hooks) (+ ESC / TAB, `ModeChangedEvent`, `Application::GetStartMode`; removed the C / P demo keys)
 - [ ] `UIStack`, `UIScreen`, `UIStyle`, `RayGuiImpl.cpp`
 - [ ] `MainMenuScreen`, `PauseMenuScreen`, `MessageScreen`
 - [ ] Auto‑pause on focus loss

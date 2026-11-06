@@ -52,10 +52,14 @@ namespace eng
 		if (locked == m_isCursorLocked)
 			return;
 
-		if (locked)
-			::DisableCursor();
-		else
-			::EnableCursor();
+		// Without a window (headless tools / tests) only the state is kept
+		if (::IsWindowReady())
+		{
+			if (locked)
+				::DisableCursor();
+			else
+				::EnableCursor();
+		}
 
 		m_isCursorLocked		= locked;
 		m_suppressDeltaFrames	= 1;

@@ -1,4 +1,5 @@
 #pragma once
+#include "modes/EngineMode.h"
 
 namespace eng
 {
@@ -56,6 +57,11 @@ namespace eng
 		virtual void OnExitEditor()			{}
 		virtual void OnReturnToMainMenu()	{}
 		virtual void OnRestartRequested()	{}
+
+		/// <summary>
+		/// Mode the engine enters after Init(). Defaults to the main menu.
+		/// </summary>
+		virtual EngineMode	GetStartMode() const { return EngineMode::MainMenu; }
 
 		/// <summary>
 		/// Window title. Defaults to the engine name.
