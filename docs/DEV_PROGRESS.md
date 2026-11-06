@@ -14,7 +14,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 | Phase | Name | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|
-| 0 | Project setup, CMake, raygui, Bullet static libs | ⬜ | | | |
+| 0 | Project setup, CMake, raygui, Bullet static libs | 🟡 | 2026-11-06 | | |
 | 1 | Core: Engine, Application, Time, Window | ⬜ | | | |
 | 2 | Input | ⬜ | | | |
 | 3 | Resources and rendering | ⬜ | | | |
@@ -30,14 +30,14 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 13 | Polish and release | ⬜ | | | |
 
 **Current focus:** Phase 0
-**Branch:** `ai-generated-playanble-engine`
+**Branch:** `project_setup_and_build_system` (from `integration`)
 
 ---
 
 ## Phase checklists
 
-### Phase 0 — Project setup and build system ⬜
-- [ ] Root `CMakeLists.txt`: `engine` static lib + `my_app` exe, C++20
+### Phase 0 — Project setup and build system 🟡
+- [x] Root `CMakeLists.txt`: `engine` static lib + `my_app` exe, C++20
 - [ ] Remove the `Makefile` for good; update `README.md` build instructions
 - [ ] Vendor `raygui.h` into `include/raylib/`
 - [ ] `tools/build_bullet.sh` (bullet3 tag **3.25**, arm64, static, single precision, demos/extras off)
