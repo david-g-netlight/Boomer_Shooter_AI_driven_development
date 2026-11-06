@@ -23,3 +23,4 @@
 #include "audio/AudioManager.h"
 #include "audio/AudioSource.h"
 #include "audio/MusicPlayer.h"
+#include "level/GameActor.h"

@@ -19,7 +19,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 2 | Input | ✅ | 2026-11-06 | 2026-11-06 | [devlog](input_devlog.md) |
 | 3 | Resources and rendering | ✅ | 2026-11-06 | 2026-11-06 | [devlog](resources_and_rendering_devlog.md) |
 | 4 | Audio | ✅ | 2026-11-06 | 2026-11-06 | [devlog](audio_devlog.md). Moved before Scene/Physics (D9) |
-| 5 | Scene: GameActor, Component, Level | ⬜ | | | |
+| 5 | Scene: GameActor, Component, Level | 🟡 | 2026-11-06 | | |
 | 6 | Physics (Bullet 3.25) | ⬜ | | | |
 | 7 | FX: particles and lines | ⬜ | | | |
 | 8 | Events, modes, menus | ⬜ | | | |
@@ -76,8 +76,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `MusicPlayer` (stream, loop, fade) (+ cross‑fade, `LoadMusic`, placeholder menu/game themes, M / P demo)
 - [x] **Done when:** pitched SFX on key press, music fades in, pause ducks music (demo key until Phase 8) *(validated by the developer)*
 
-### Phase 5 — Scene ⬜
-- [ ] `GameActor` (transform, hierarchy, world matrix, `MarkForDestroy`)
+### Phase 5 — Scene 🟡
+- [x] `GameActor` (transform, hierarchy, world matrix, `MarkForDestroy`)
 - [ ] `Component` base + `AddComponent<T> / GetComponent<T>`
 - [ ] `Level` (factory, update, fixed update, submit, `FlushDestroyed`)
 - [ ] `MeshRenderer`
