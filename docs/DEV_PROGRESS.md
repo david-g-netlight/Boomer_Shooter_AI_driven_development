@@ -91,7 +91,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `Collider` (box, sphere, capsule, convex hull, static mesh, compound bottom pivot, `SetScale`)
 - [x] `RigidBody` (static / dynamic / kinematic, `Teleport`, `OnScaleChanged`, impulses) (+ physics sandbox demo; fix: `eng::DecomposeTransform` replaces raymath's row‑based `MatrixDecompose`)
 - [x] `ActorMotionState` (world ↔ parent‑local, scale kept, optional rotation write‑back)
-- [ ] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor)
+- [x] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor) (+ crosshair aim, LMB kick, X delete in the sandbox)
 - [ ] `TriggerVolume` (ghost object, `btGhostPairCallback`, enter/exit diff)
 - [ ] `CharacterMotor` — dynamic capsule: no rotation, own gravity, walk velocity on the ground plane, sphere‑sweep grounding, 45° slope limit, jump + grace time, warp, ground‑body velocity
 - [ ] `PhysicsDebugDrawer` + F3 toggle
@@ -176,6 +176,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 |---|---|---|---|
 | Dynamic capsule: slope sliding / bouncing / wall sticking | 6 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
 | Player launched by a crate scaling under them | 11 | open | Clamp player vertical velocity after the step |
+| Game code holding raw `GameActor*` dangles if the actor is destroyed after the game pruned its list that frame (ASan use‑after‑free in a Phase 6 test that deleted after the prune) | 6 → 10 | open | Engine side is safe. Proposed: `ActorHandle` (id + Level lookup, null once deleted) before gameplay code holds references (Phase 10) |
 | Scaling causes deep penetration → velocity spikes | 11 | open | Clamp velocity, overlap check before stretch |
 | Bullet precision / arch mismatch | 0 | mitigated | Libs verified arm64, macOS 11.0, single precision |
 | Xcode 26 linker can't read the Command Line Tools SDK 27.2 (`tapi error: malformed file`) | 0 | resolved | Switched to the Command Line Tools toolchain (`xcode-select -s /Library/Developer/CommandLineTools`, ld‑27106); plain `cmake` builds with no SDK override. README lists the fixes |

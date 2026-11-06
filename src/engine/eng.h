@@ -29,6 +29,7 @@
 #include "level/Level.h"
 #include "render/MeshRenderer.h"
 #include "physics/PhysicsLayers.h"
+#include "physics/RaycastHit.h"
 #include "physics/PhysicsWorld.h"
 #include "physics/Collider.h"
 #include "physics/RigidBody.h"

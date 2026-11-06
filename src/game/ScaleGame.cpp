@@ -68,6 +68,9 @@ void ScaleGame::BindInput()
 	// TODO(Phase 8): replaced by the real Pause (ESC); simulates its audio side
 	map.BindAction("TogglePauseAudio", InputBinding::Key(KEY_P));
 	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
+
+	// Physics sandbox
+	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
 }
 
 //////////////////////////////////////////
@@ -136,6 +139,37 @@ void ScaleGame::BuildSandbox()
 		BodyType::Dynamic, 60.0f, RED }));
 }
 
+bool ScaleGame::IsCrate(const eng::GameActor* actor) const
+{
+	return std::find(m_crates.begin(), m_crates.end(), actor) != m_crates.end();
+}
+
+void ScaleGame::UpdateAim()
+{
+	const eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
+
+	// Center-screen ray, like the scaling gun (Unity ScalingProvider): Ground | Prop, ignores player and triggers
+	m_aimHit = eng::Engine::GetInstance().GetPhysics().Raycast(m_camera.GetPosition(), m_camera.Forward(), AIM_REACH,
+		eng::Layer::Ground | eng::Layer::Prop);
+	if (!m_aimHit || !IsCrate(m_aimHit->actor))
+		return;
+
+	// LMB: kick the crate at the hit point (off-center hits also spin it)
+	if (map.IsActionPressed("Fire"))
+	{
+		eng::RigidBody* body = m_aimHit->actor->GetComponent<eng::RigidBody>();
+		const Vector3 offset = Vector3Subtract(m_aimHit->point, m_aimHit->actor->GetWorldPosition());
+		body->AddImpulse(Vector3Scale(m_camera.Forward(), body->GetMass() * KICK_SPEED), offset);
+	}
+
+	// X: delete it mid-simulation (the body leaves the world at the end of the frame)
+	if (map.IsActionPressed("DeleteAimed"))
+	{
+		m_aimHit->actor->MarkForDestroy();
+		++m_deletedCrates;
+	}
+}
+
 void ScaleGame::PruneDestroyedCrates()
 {
 	m_crates.erase(std::remove_if(m_crates.begin(), m_crates.end(),
@@ -160,6 +194,7 @@ void ScaleGame::Update(float deltaTime)
 	}
 
 	UpdateCamera(deltaTime);
+	UpdateAim();
 	UpdateAudioDemo();
 	PruneDestroyedCrates();
 
@@ -247,6 +282,12 @@ void ScaleGame::SubmitDebugShapes() const
 	debug.Axes({ 0.0f, 0.01f, 0.0f }, 1.5f);
 	debug.Label({ -9.0f, 3.5f, -6.0f }, "30 deg ramp", BLACK);
 	debug.Label({  9.0f, 5.0f, -6.0f }, "50 deg ramp", BLACK);
+
+	if (m_aimHit)
+	{
+		debug.WireSphere(m_aimHit->point, 0.08f, RED);
+		debug.Line(m_aimHit->point, Vector3Add(m_aimHit->point, Vector3Scale(m_aimHit->normal, 0.6f)), RED);
+	}
 }
 
 //////////////////////////////////////////
@@ -292,6 +333,12 @@ void ScaleGame::DrawHUD()
 	DrawPhysicsPanel();
 	DrawAudioPanel();
 	DrawMinimap();
+
+	// Crosshair
+	const int cx = window.screenWidth / 2, cy = window.screenHeight / 2;
+	const Color crosshair = (m_aimHit && IsCrate(m_aimHit->actor)) ? RED : RAYWHITE;
+	DrawLine(cx - 8, cy, cx + 8, cy, crosshair);
+	DrawLine(cx, cy - 8, cx, cy + 8, crosshair);
 }
 
 void ScaleGame::DrawPhysicsPanel() const
@@ -302,12 +349,18 @@ void ScaleGame::DrawPhysicsPanel() const
 			++sleeping;
 
 	const int x = 10, y = 140;
-	DrawRectangle(x, y, 330, 60, Fade(LIME, 0.35f));
-	DrawRectangleLines(x, y, 330, 60, DARKGREEN);
+	DrawRectangle(x, y, 330, 78, Fade(LIME, 0.35f));
+	DrawRectangleLines(x, y, 330, 78, DARKGREEN);
 	DrawText(TextFormat("Physics (Bullet)  |  bodies %d  |  actors %zu", eng::Engine::GetInstance().GetPhysics().GetObjectCount(),
 		m_level.GetActorCount()), x + 10, y + 10, 10, BLACK);
-	DrawText(TextFormat("Crates %zu  |  sleeping %d", m_crates.size(), sleeping), x + 10, y + 28, 10, DARKGRAY);
+	DrawText(TextFormat("Crates %zu  |  sleeping %d  |  deleted %d", m_crates.size(), sleeping, m_deletedCrates),
+		x + 10, y + 28, 10, DARKGRAY);
 	DrawText("heavy 20 kg (brown)  light 2 kg (yellow)  jump crate (red)", x + 10, y + 44, 10, DARKGRAY);
+	if (m_aimHit)
+		DrawText(TextFormat("Aim: %s  %.1f m%s", m_aimHit->actor->GetName().c_str(), m_aimHit->distance,
+			IsCrate(m_aimHit->actor) ? "  (LMB kick, X delete)" : ""), x + 10, y + 60, 10, BLACK);
+	else
+		DrawText("Aim: nothing within 30 m", x + 10, y + 60, 10, DARKGRAY);
 }
 
 void ScaleGame::DrawAudioPanel() const
@@ -317,7 +370,7 @@ void ScaleGame::DrawAudioPanel() const
 	const char*					track	= music.GetCurrent() == m_themeMenu ? "menu"
 										: music.GetCurrent() == m_themeGame ? "game" : "none";
 
-	const int x = 10, y = 210;
+	const int x = 10, y = 228;
 	DrawRectangle(x, y, 330, 45, Fade(BEIGE, 0.6f));
 	DrawRectangleLines(x, y, 330, 45, BROWN);
 	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
@@ -329,6 +382,7 @@ void ScaleGame::DrawAudioPanel() const
 void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
+	m_aimHit.reset();
 	m_crates.clear();
 	m_level.Clear();
 	m_sfxStretch	= nullptr;

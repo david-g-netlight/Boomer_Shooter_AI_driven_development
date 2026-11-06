@@ -1,5 +1,6 @@
 #pragma once
 #include <eng.h>
+#include <optional>
 #include <vector>
 
 /// <summary>
@@ -39,6 +40,8 @@ private:
 	void		UpdateCamera(float deltaTime);
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
+	void		UpdateAim();
+	bool		IsCrate(const eng::GameActor* actor) const;
 	void		SubmitDebugShapes() const;
 	void		DrawMinimap();
 	void		DrawPhysicsPanel() const;
@@ -53,6 +56,10 @@ private:
 	static constexpr float	HEAVY_MASS		= 20.0f;	// kg, the pyramid
 	static constexpr float	LIGHT_MASS		= 2.0f;		// kg, the tower: light enough to push
 	std::vector<eng::GameActor*>	m_crates;			// dynamic crates still alive
+	static constexpr float	AIM_REACH		= 30.0f;	// m, Unity PlayerState ray reach
+	static constexpr float	KICK_SPEED		= 6.0f;		// m/s given to the aimed crate by LMB
+	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
+	int						m_deletedCrates	= 0;
 	const Shader*			m_litShader		= nullptr;
 
 	//////////////////////////////////////////

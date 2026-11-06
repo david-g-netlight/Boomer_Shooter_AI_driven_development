@@ -1,5 +1,8 @@
 #include "PhysicsWorldImpl.h"
 #include "core/Log.h"
+#include "physics/Collider.h"
+#include "level/GameActor.h"
+#include <raymath.h>
 
 namespace eng
 {
@@ -67,6 +70,38 @@ namespace eng
 	Vector3 PhysicsWorld::GetGravity() const
 	{
 		return m_impl ? bt::ToRaylib(m_impl->world->getGravity()) : Vector3{ 0.0f, 0.0f, 0.0f };
+	}
+
+	std::optional<RaycastHit> PhysicsWorld::Raycast(const Vector3& origin, const Vector3& direction, float maxDistance,
+													uint32_t mask) const
+	{
+		if (!m_impl || maxDistance <= 0.0f || Vector3LengthSqr(direction) < 1e-12f)
+			return std::nullopt;
+
+		const btVector3 from	= bt::ToBt(origin);
+		const btVector3 to		= bt::ToBt(Vector3Add(origin, Vector3Scale(Vector3Normalize(direction), maxDistance)));
+
+		btCollisionWorld::ClosestRayResultCallback callback(from, to);
+		// Bullet tests (object group & ray mask) && (ray group & object mask): an all-bits ray group means
+		// only `mask` decides what can be hit
+		callback.m_collisionFilterGroup	= btBroadphaseProxy::AllFilter;
+		callback.m_collisionFilterMask	= static_cast<int>(mask);
+		m_impl->world->rayTest(from, to, callback);
+
+		if (!callback.hasHit() || !callback.m_collisionObject)
+			return std::nullopt;
+
+		Collider* collider = static_cast<Collider*>(callback.m_collisionObject->getUserPointer());
+		if (!collider)
+			return std::nullopt;
+
+		RaycastHit hit;
+		hit.collider	= collider;
+		hit.actor		= collider->GetOwner();
+		hit.point		= bt::ToRaylib(callback.m_hitPointWorld);
+		hit.normal		= bt::ToRaylib(callback.m_hitNormalWorld.normalized());
+		hit.distance	= callback.m_closestHitFraction * maxDistance;
+		return hit;
 	}
 
 	btDiscreteDynamicsWorld* PhysicsWorld::GetNativeWorld() const

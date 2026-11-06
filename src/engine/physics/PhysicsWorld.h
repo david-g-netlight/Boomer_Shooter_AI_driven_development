@@ -1,6 +1,10 @@
 #pragma once
+#include <cstdint>
 #include <memory>
+#include <optional>
 #include <raylib.h>
+#include "physics/PhysicsLayers.h"
+#include "physics/RaycastHit.h"
 
 class btDiscreteDynamicsWorld;	// Bullet type, only used by the engine's physics code
 
@@ -35,6 +39,13 @@ namespace eng
 		Vector3		GetGravity() const;
 
 		int			GetObjectCount() const;		// collision objects in the world
+
+		/// <summary>
+		/// Closest hit along the ray. `mask` = the layers the ray may hit (e.g. Layer::Ground | Layer::Prop);
+		/// the hit objects' own masks are not checked. Triggers are hit only if Layer::Trigger is in the mask.
+		/// </summary>
+		std::optional<RaycastHit>	Raycast(const Vector3& origin, const Vector3& direction, float maxDistance,
+											uint32_t mask = Layer::All) const;
 
 	private:
 		struct Impl;
