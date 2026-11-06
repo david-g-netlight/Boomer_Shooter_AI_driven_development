@@ -30,6 +30,9 @@ namespace eng
 			return false;
 		}
 
+		// Window hints must be set before the window exists
+		SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
+
 		InitWindow(width, height, m_app->GetTitle());
 		if (!IsWindowReady())
 		{
@@ -37,6 +40,15 @@ namespace eng
 			return false;
 		}
 		m_isWindowOpen = true;
+
+		// ESC is used for Pause (Phase 8), raylib closes the window on ESC by default
+		SetExitKey(KEY_NULL);
+
+		// Assets are copied next to the executable, so resolve paths from there,
+		// no matter which directory the app was launched from
+		ChangeDirectory(GetApplicationDirectory());
+
+		SetTargetFPS(60);
 
 		m_isAppInitialized = m_app->Init();
 		return m_isAppInitialized;

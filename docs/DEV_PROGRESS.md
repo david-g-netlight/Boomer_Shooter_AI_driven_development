@@ -50,7 +50,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 ### Phase 1 — Core 🟡
 - [x] `eng::Application` (Init / Update / FixedUpdate / DrawHUD / Destroy + mode hooks)
 - [x] `eng::Engine` singleton, `SetApplication` ownership transfer, `Init / Run / Shutdown`
-- [ ] Window flags (MSAA, VSync, resizable, HighDPI), `SetExitKey(KEY_NULL)`, `ChangeDirectory(GetApplicationDirectory())`
+- [x] Window flags (MSAA, VSync, resizable, HighDPI), `SetExitKey(KEY_NULL)`, `ChangeDirectory(GetApplicationDirectory())`
 - [ ] `Time` (clamped dt, fixed‑step accumulator), `WindowInfo`, `World`, `Log`
 - [ ] `main.cpp` reduced to the reference pattern; temporary `ScaleGame` draws a cube
 - [ ] **Done when:** window opens via `Engine::Run`, cube renders, clean shutdown
