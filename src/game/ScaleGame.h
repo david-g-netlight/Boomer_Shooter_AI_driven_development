@@ -64,5 +64,7 @@ private:
 	const Sound*	m_sfxStretch		= nullptr;
 	const Sound*	m_sfxShrink			= nullptr;
 	float		m_lastPitch				= 0.0f;
+	std::vector<eng::AudioSource>	m_cubeSources;		// spatial "ping" per cube (K)
+	int			m_lastPingedCube		= -1;
 	bool		m_isAudioPaused			= false;
 };

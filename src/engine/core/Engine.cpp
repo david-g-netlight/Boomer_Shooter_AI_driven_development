@@ -95,6 +95,8 @@ namespace eng
 			m_app->Update(m_time.GetDeltaTime());
 
 			// 3. Audio (unscaled: fades and ducking keep running while the game is paused)
+			if (const Camera* listener = m_activeCamera.GetActiveCamera())
+				m_audio.SetListener(listener->GetPosition(), listener->Right());
 			m_audio.Update(m_time.GetUnscaledDeltaTime());
 
 			// 4. Render

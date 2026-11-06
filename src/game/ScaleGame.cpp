@@ -11,7 +11,12 @@ bool ScaleGame::Init()
 
 	// Lit shader for even cubes and the ground; odd cubes keep raylib's unlit default shader.
 	// If the shader fails to load, every material falls back to the default shader.
-	const Shader* lit = eng::Engine::GetInstance().GetResources().LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+	const Shader* lit = resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
+
+	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
+	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
+	const Sound* ping = resources.LoadSound("assets/audio/sfx_ping.wav");
 
 	// Ring of cubes, each with its own material: hue around the circle, growing size
 	m_cubeMaterials.reserve(CUBE_COUNT + 1);
@@ -29,6 +34,13 @@ bool ScaleGame::Init()
 
 		const Vector3 position = { std::cos(angle) * 4.0f, size * 0.5f, std::sin(angle) * 4.0f };
 		m_cubePositions.push_back(position);
+
+		eng::AudioSource& source = m_cubeSources.emplace_back(ping);
+		source.SetSpatial(true);
+		source.SetPosition(position);
+		source.SetRange(2.0f, 25.0f);
+		source.SetPitch(0.8f + 0.5f * t);		// each cube has its own note
+		source.SetPitchVariation(0.02f);
 		m_cubeTransforms.push_back(MatrixMultiply(
 			MatrixMultiply(MatrixScale(size, size, size), MatrixRotateY(angle)),
 			MatrixTranslate(position.x, position.y, position.z)));
@@ -46,10 +58,6 @@ bool ScaleGame::Init()
 	m_minimap.Create(static_cast<int>(MINIMAP_WIDTH * dpi), static_cast<int>(MINIMAP_HEIGHT * dpi));
 
 	BindInput();
-
-	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
-	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
-	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
 
 	eng::Log::Info("ScaleGame initialized");
 	return true;
@@ -85,6 +93,7 @@ void ScaleGame::BindInput()
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
 	// TODO(Phase 8): replaced by the real Pause (ESC); simulates its audio side
 	map.BindAction("TogglePauseAudio", InputBinding::Key(KEY_P));
+	map.BindAction("PingCube", InputBinding::Key(KEY_K));
 }
 
 void ScaleGame::Update(float deltaTime)
@@ -159,6 +168,15 @@ void ScaleGame::UpdateAudioDemo()
 		m_lastPitch = 1.0f - factor - 0.02f;
 		audio.Play(*m_sfxShrink, 0.8f, m_lastPitch);
 	}
+
+	// Spatial ping from a random cube: listen to pan (left / right) and distance falloff
+	if (map.IsActionPressed("PingCube") && !m_cubeSources.empty())
+	{
+		m_lastPingedCube = GetRandomValue(0, static_cast<int>(m_cubeSources.size()) - 1);
+		m_cubeSources[m_lastPingedCube].Play();
+	}
+	for (eng::AudioSource& source : m_cubeSources)
+		source.Update();	// the listener (camera) moves
 
 	if (map.IsActionPressed("TogglePauseAudio"))
 	{
@@ -272,14 +290,26 @@ void ScaleGame::DrawAudioPanel() const
 	const eng::AudioManager& audio = eng::Engine::GetInstance().GetAudio();
 
 	const int x = 10, y = 270;
-	DrawRectangle(x, y, 330, 75, Fade(BEIGE, 0.6f));
-	DrawRectangleLines(x, y, 330, 75, BROWN);
+	DrawRectangle(x, y, 330, 95, Fade(BEIGE, 0.6f));
+	DrawRectangleLines(x, y, 330, 95, BROWN);
 	DrawText(TextFormat("Audio %s  |  voices %d active / %d", audio.IsReady() ? "ON" : "OFF (no device)",
 		audio.GetActiveVoiceCount(), audio.GetVoiceCount()), x + 10, y + 10, 10, BLACK);
 	DrawText(TextFormat("LMB stretch / RMB shrink  factor x%.2f (wheel)  pitch %.2f",
 		SCALE_FACTORS[m_scaleFactorIndex], m_lastPitch), x + 10, y + 28, 10, DARKGRAY);
 	DrawText(TextFormat("P: %s  |  duck %.2f", m_isAudioPaused ? "resume audio" : "pause audio (demo of Pause)",
 		audio.GetDuckFactor()), x + 10, y + 46, 10, DARKGRAY);
+
+	if (m_lastPingedCube >= 0)
+	{
+		const eng::AudioSource& source = m_cubeSources[m_lastPingedCube];
+		DrawText(TextFormat("K: ping  |  cube %d  dist %.1f  gain %.2f  pan %+.2f", m_lastPingedCube,
+			Vector3Distance(source.GetPosition(), audio.GetListenerPosition()), source.ComputeGain(), source.ComputePan()),
+			x + 10, y + 64, 10, DARKGRAY);
+	}
+	else
+	{
+		DrawText("K: ping a random cube (spatial)", x + 10, y + 64, 10, DARKGRAY);
+	}
 }
 
 void ScaleGame::Destroy()
@@ -289,6 +319,7 @@ void ScaleGame::Destroy()
 	m_cubeMaterials.clear();
 	m_cubeTransforms.clear();
 	m_cubePositions.clear();
+	m_cubeSources.clear();
 	m_ground = nullptr;
 	m_minimap.Unload();
 	eng::Log::Info("ScaleGame destroyed");

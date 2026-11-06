@@ -21,3 +21,4 @@
 #include "render/RenderTarget.h"
 #include "render/DebugDraw.h"
 #include "audio/AudioManager.h"
+#include "audio/AudioSource.h"

@@ -166,6 +166,18 @@ namespace eng
 	}
 
 	//////////////////////////////////////////
+	/// Listener
+	//////////////////////////////////////////
+	void AudioManager::SetListener(const Vector3& position, const Vector3& right)
+	{
+		m_listenerPosition	= position;
+		m_listenerRight		= right;
+	}
+
+	const Vector3& AudioManager::GetListenerPosition() const	{ return m_listenerPosition; }
+	const Vector3& AudioManager::GetListenerRight() const		{ return m_listenerRight; }
+
+	//////////////////////////////////////////
 	/// Called by the Engine
 	//////////////////////////////////////////
 	void AudioManager::Update(float unscaledDeltaTime)

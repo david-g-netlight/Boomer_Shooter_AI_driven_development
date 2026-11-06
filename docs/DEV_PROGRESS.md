@@ -72,7 +72,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 ### Phase 4 — Audio 🟡
 - [x] `AudioManager` (alias voice pool, volumes, duck) (+ placeholder SFX generator, pitched stretch/shrink demo)
-- [ ] `AudioSource` (standalone class; becomes a `Component` in Phase 5, D10)
+- [x] `AudioSource` (standalone class; becomes a `Component` in Phase 5, D10) (+ listener from the active camera, spatial ping demo on K)
 - [ ] `MusicPlayer` (stream, loop, fade)
 - [ ] **Done when:** pitched SFX on key press, music fades in, pause ducks music (demo key until Phase 8)
 

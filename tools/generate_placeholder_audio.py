@@ -52,6 +52,18 @@ def chirp(start_hz, end_hz, seconds, volume=0.6):
     return out
 
 
+def bell(base_hz, seconds, volume=0.6):
+    """Inharmonic partials with fast decay: a short 'ping' for spatial audio tests."""
+    count = int(seconds * SAMPLE_RATE)
+    partials = [(1.0, 1.0), (2.76, 0.45), (5.4, 0.25), (8.93, 0.12)]   # (ratio, gain)
+    out = []
+    for i in range(count):
+        t = i / SAMPLE_RATE
+        tone = sum(g * math.sin(2.0 * math.pi * base_hz * r * t) * math.exp(-t * (4.0 + 3.0 * r)) for r, g in partials)
+        out.append(volume * 0.55 * tone * min(1.0, t / 0.003))
+    return out
+
+
 def main():
     random.seed(1234)
     print("Generating placeholder audio:")
@@ -59,6 +71,9 @@ def main():
     # Scaling sounds (Unity: ScalingAudioFX). Played with pitch = scale factor +- 0.02
     write_wav("sfx_stretch.wav", chirp(320.0, 960.0, 0.35))
     write_wav("sfx_shrink.wav", chirp(960.0, 280.0, 0.35))
+
+    # Spatial test sound (AudioSource demo)
+    write_wav("sfx_ping.wav", bell(1320.0, 0.6))
 
 
 if __name__ == "__main__":

@@ -78,6 +78,13 @@ namespace eng
 		float		GetDuckFactor() const;		// current smoothed factor, 1 = not ducked
 
 		//////////////////////////////////////////
+		/// Listener (set by the Engine from the active camera every frame)
+		//////////////////////////////////////////
+		void			SetListener(const Vector3& position, const Vector3& right);
+		const Vector3&	GetListenerPosition() const;
+		const Vector3&	GetListenerRight() const;
+
+		//////////////////////////////////////////
 		/// Called by the Engine
 		//////////////////////////////////////////
 		void		Update(float unscaledDeltaTime);
@@ -120,5 +127,8 @@ namespace eng
 
 		bool				m_isDucked		= false;
 		float				m_duckFactor	= 1.0f;
+
+		Vector3				m_listenerPosition	= { 0.0f, 0.0f, 0.0f };
+		Vector3				m_listenerRight		= { 1.0f, 0.0f, 0.0f };
 	};
 }
