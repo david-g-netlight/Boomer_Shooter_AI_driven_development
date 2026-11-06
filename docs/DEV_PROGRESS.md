@@ -16,7 +16,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 |---|---|---|---|---|---|
 | 0 | Project setup, CMake, raygui, Bullet static libs | ✅ | 2026-11-06 | 2026-11-06 | [devlog](project_setup_and_build_system_devlog.md) |
 | 1 | Core: Engine, Application, Time, Window | ✅ | 2026-11-06 | 2026-11-06 | [devlog](core_devlog.md) |
-| 2 | Input | ⬜ | | | |
+| 2 | Input | 🟡 | 2026-11-06 | | |
 | 3 | Resources and rendering | ⬜ | | | |
 | 4 | Scene: GameActor, Component, Level | ⬜ | | | |
 | 5 | Physics (Bullet 3.25) | ⬜ | | | |
@@ -55,8 +55,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `main.cpp` reduced to the reference pattern; temporary `ScaleGame` draws a cube
 - [x] **Done when:** window opens via `Engine::Run`, cube renders, clean shutdown *(validated by the developer)*
 
-### Phase 2 — Input ⬜
-- [ ] `InputManager::Poll()` (down / pressed / released, mouse delta, wheel)
+### Phase 2 — Input 🟡
+- [x] `InputManager::Poll()` (down / pressed / released, mouse delta, wheel)
 - [ ] `InputMap` actions and axes
 - [ ] Cursor lock / unlock
 - [ ] **Done when:** debug overlay shows action states; mouse look works with the cursor locked
