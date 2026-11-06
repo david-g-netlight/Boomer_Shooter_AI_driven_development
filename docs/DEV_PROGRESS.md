@@ -21,7 +21,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 4 | Audio | ✅ | 2026-11-06 | 2026-11-06 | [devlog](audio_devlog.md). Moved before Scene/Physics (D9) |
 | 5 | Scene: GameActor, Component, Level | ✅ | 2026-11-06 | 2026-11-07 | [devlog](scene_devlog.md) |
 | 6 | Physics (Bullet 3.25) | ✅ | 2026-11-07 | 2026-11-07 | [devlog](physics_devlog.md) |
-| 7 | FX: particles and lines | 🟡 | 2026-11-07 | | |
+| 7 | FX: particles and lines | ✅ | 2026-11-07 | 2026-11-07 | [devlog](fx_devlog.md) |
 | 8 | Events, modes, menus | ⬜ | | | |
 | 9 | Editor mode | ⬜ | | | |
 | 10 | Game: state and player | ⬜ | | | |
@@ -29,8 +29,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 7
-**Branch:** `fx` (from `integration`)
+**Current focus:** Phase 8
+**Branch:** `events_modes_menus` (from `integration`)
 
 ---
 
@@ -98,10 +98,10 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] CCD for small dynamic bodies (`CcdMode` Auto / On / Off; Auto below 0.3 m, re‑checked on scale changes; sandbox pellets at a 5 cm wall)
 - [x] **Done when:** *(validated by the developer)* sandbox (plane + 20 crates + ramp) at 60 FPS; crates stack and sleep; capsule climbs a 30° ramp without sliding, stops at 50°, jumps on a crate, pushes a light crate; center ray reports the hit crate; trigger Enter/Exit fire once each; F3 wireframes; deleting a crate mid‑sim is safe
 
-### Phase 7 — FX 🟡
+### Phase 7 — FX ✅
 - [x] `ParticleEmitter` (burst, gradient, alpha fade) + pooled `ParticleSystem` (+ LMB / RMB impact bursts in the sandbox)
 - [x] `LineRenderer` (thick gradient line) (+ RenderQueue transparent line pass: open tube, per‑vertex gradient; LMB / RMB beams that fade in 0.35 s)
-- [ ] **Done when:** click spawns a colored burst and a fading beam
+- [x] **Done when:** click spawns a colored burst and a fading beam *(validated by the developer)*
 
 ### Phase 8 — Events, modes, menus ⬜
 - [ ] `EventBus` (queued dispatch)
@@ -191,7 +191,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
-| 2026-11-07 | 7 | Both Phase 7 tasks committed on `fx`; particle pool test passed; ASan screenshot runs: 80 particles + 2 beams on fire, both beams gone after the fade; replaced capped cylinders (stacked hexagon artifacts) with an open per‑vertex‑colored tube | Developer runs the Phase 7 **Done when** check | Waiting for green light to merge |
+| 2026-11-07 | 7 | Developer validated Phase 7 (and deleted the accidental `list` branch); devlog written; merged into `integration` | Start Phase 8 on `events_modes_menus` | — |
+| 2026-11-07 | 7 | Both Phase 7 tasks committed on `fx`; particle pool test passed; ASan screenshot runs: 80 particles + 2 beams on fire, both beams gone after the fade; replaced capped cylinders (stacked hexagon artifacts) with an open per‑vertex‑colored tube | Developer runs the Phase 7 **Done when** check | — |
 | 2026-11-07 | 6 | Developer validated Phase 6; `ActorHandle` scheduled in Phase 10 (D11); devlog written; merged into `integration` | Start Phase 7 on `fx` | — |
 | 2026-11-07 | 6 | All 11 Phase 6 tasks committed on `physics`; headless tests (convert, collider, motion state, rigid body, raycast, trigger, character motor, CCD), most under ASan, all pass; found and fixed raymath `MatrixDecompose` (row‑based) bug, rotation‑lock bypass, convex hull margin, motor slope sliding; final ASan sandbox run: 0 of 15 pellets tunnelled, 59 FPS, 20/20 crates asleep | Developer runs the Phase 6 **Done when** check | — |
 | 2026-11-07 | 5 | Developer validated Phase 5; devlog written; merged into `integration` | Start Phase 6 on `physics` | — |
