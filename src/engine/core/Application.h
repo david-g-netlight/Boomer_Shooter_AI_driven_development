@@ -2,7 +2,8 @@
 
 namespace eng
 {
-	class Level; // Phase 4
+	class Level; // Phase 5
+	class RenderQueue;
 
 	/// <summary>
 	/// Interface between the Engine and the game.
@@ -28,6 +29,12 @@ namespace eng
 		/// Called 0..N times per frame at a fixed rate (eng::FIXED_DELTA_TIME). Physics-related logic goes here.
 		/// </summary>
 		virtual void FixedUpdate(float /*fixedDeltaTime*/) {}
+
+		/// <summary>
+		/// Called every frame during rendering (also while paused): submit what should be drawn this frame.
+		/// The Engine draws the queue with the active camera, then clears it.
+		/// </summary>
+		virtual void SubmitRenderables(RenderQueue& /*queue*/) {}
 
 		/// <summary>
 		/// 2D drawing after the 3D pass (HUD, crosshair, debug text).
@@ -56,7 +63,7 @@ namespace eng
 		virtual const char*	GetTitle() const;
 
 		/// <summary>
-		/// Level used by the renderer and the editor (Phase 4). Non-owning.
+		/// Level used by the renderer and the editor (Phase 5). Non-owning.
 		/// </summary>
 		virtual Level*		GetActiveLevel() { return nullptr; }
 

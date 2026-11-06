@@ -52,6 +52,10 @@ namespace eng
 
 		SetTargetFPS(60);
 
+		m_defaultCamera.SetPosition({ 0.0f, 2.0f, 5.0f });
+		m_defaultCamera.LookAt({ 0.0f, 0.0f, 0.0f });
+		m_activeCamera.SetActiveCamera(m_defaultCamera);
+
 		m_window.Refresh();
 		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s",
 			GetEngineName(), GetEngineVersion(),
@@ -90,8 +94,20 @@ namespace eng
 			// 3. Render
 			BeginDrawing();
 				ClearBackground(m_world.skyColor);
+
+				m_app->SubmitRenderables(m_renderQueue);
+				m_renderQueue.SetLighting({ m_world.sunDirection, m_world.sunColor, m_world.ambientColor });
+				m_activeCamera.Begin3D();
+					m_renderQueue.Draw(*m_activeCamera.GetActiveCamera());
+					m_debugDraw.Draw3D();
+				m_activeCamera.End3D();
+				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
+
 				m_app->DrawHUD();
 			EndDrawing(); // Swaps buffers and polls input events
+
+			m_renderQueue.Clear();
+			m_debugDraw.EndFrame(m_time.GetUnscaledDeltaTime());
 		}
 	}
 
@@ -106,6 +122,8 @@ namespace eng
 
 		if (m_isWindowOpen)
 		{
+			// GPU resources must be released while the GL context still exists
+			m_resources.UnloadAll();
 			CloseWindow();
 			m_isWindowOpen = false;
 			Log::Info("Engine shut down");
@@ -134,6 +152,26 @@ namespace eng
 	InputManager& Engine::GetInputManager()
 	{
 		return m_inputManager;
+	}
+
+	ResourceManager& Engine::GetResources()
+	{
+		return m_resources;
+	}
+
+	ActiveCamera& Engine::GetMainCamera()
+	{
+		return m_activeCamera;
+	}
+
+	RenderQueue& Engine::GetRenderQueue()
+	{
+		return m_renderQueue;
+	}
+
+	DebugDraw& Engine::GetDebugDraw()
+	{
+		return m_debugDraw;
 	}
 
 	Time& Engine::GetTime()

@@ -1,0 +1,65 @@
+#pragma once
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <raylib.h>
+
+namespace eng
+{
+	/// <summary>
+	/// Unit primitives generated once and shared: cube 1x1x1, plane 1x1 (XZ), sphere r=0.5, cylinder r=0.5 h=1.
+	/// All are centered on the origin, except the cylinder and plane which sit on y=0 (raylib's convention).
+	/// </summary>
+	enum class Primitive : uint8_t
+	{
+		Cube,
+		Plane,
+		Sphere,
+		Cylinder,
+		Count,
+	};
+
+	/// <summary>
+	/// Owns every GPU resource loaded from disk. Loads each path once and returns the cached resource after that.
+	/// Pointers stay valid until UnloadAll(). A failed load returns nullptr, logs a warning and is not cached.
+	/// UnloadAll() is called by Engine::Shutdown() before the window (GL context) is closed.
+	/// Sounds and music are added with the audio device (Phase 4).
+	/// </summary>
+	class ResourceManager
+	{
+	public:
+		ResourceManager() = default;
+		~ResourceManager();
+
+		ResourceManager(const ResourceManager&) = delete;
+		ResourceManager& operator = (const ResourceManager&) = delete;
+
+		//////////////////////////////////////////
+		/// Loading (paths are relative to the executable directory, e.g. "assets/models/crate.glb")
+		//////////////////////////////////////////
+		Model*		LoadModel	(const std::string& path);
+		Texture2D*	LoadTexture	(const std::string& path);
+		Shader*		LoadShader	(const std::string& vertexPath, const std::string& fragmentPath); // "" = raylib default stage
+		Font*		LoadFont	(const std::string& path, int baseSize = 32);
+
+		//////////////////////////////////////////
+		/// Primitives
+		//////////////////////////////////////////
+		const ::Mesh*	GetPrimitive(Primitive primitive);
+
+		void		UnloadAll();
+
+		size_t		GetLoadedCount() const;
+
+	private:
+		std::unordered_map<std::string, Model>		m_models;
+		std::unordered_map<std::string, Texture2D>	m_textures;
+		std::unordered_map<std::string, Shader>		m_shaders;
+		std::unordered_map<std::string, Font>		m_fonts;
+
+		std::array<::Mesh, static_cast<size_t>(Primitive::Count)>	m_primitives			= {};
+		std::array<bool,   static_cast<size_t>(Primitive::Count)>	m_isPrimitiveLoaded		= {};
+	};
+}

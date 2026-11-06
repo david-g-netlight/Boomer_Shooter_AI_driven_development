@@ -3,6 +3,10 @@
 #include "WindowInfo.h"
 #include "World.h"
 #include "input/InputManager.h"
+#include "resources/ResourceManager.h"
+#include "render/Camera.h"
+#include "render/RenderQueue.h"
+#include "render/DebugDraw.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -73,6 +77,10 @@ namespace eng
 		// Getters to core objects
 		//////////////////////////////////////////////////////////////
 		InputManager&		GetInputManager();
+		ResourceManager&	GetResources();
+		ActiveCamera&		GetMainCamera();
+		RenderQueue&		GetRenderQueue();
+		DebugDraw&			GetDebugDraw();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -87,6 +95,13 @@ namespace eng
 		///////////////////////////////////////////////////////
 		// The Engine can call InputManager's private constructor because it is a friend class
 		InputManager	m_inputManager;
+
+		ResourceManager	m_resources;
+
+		Camera			m_defaultCamera;	// used when the game sets no camera
+		ActiveCamera	m_activeCamera;
+		RenderQueue		m_renderQueue;
+		DebugDraw		m_debugDraw;
 
 		Time			m_time;
 		WindowInfo		m_window;
