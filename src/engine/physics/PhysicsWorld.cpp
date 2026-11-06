@@ -33,6 +33,8 @@ namespace eng
 			m_impl->dispatcher.get(), m_impl->broadphase.get(), m_impl->solver.get(), m_impl->configuration.get());
 
 		m_impl->world->setGravity(bt::ToBt(gravity));
+		m_impl->debugDrawer = std::make_unique<PhysicsDebugDrawer>();
+		m_impl->world->setDebugDrawer(m_impl->debugDrawer.get());
 		Log::Info("PhysicsWorld: Bullet %d.%02d ready, gravity (%.2f, %.2f, %.2f)",
 			btGetVersion() / 100, btGetVersion() % 100, gravity.x, gravity.y, gravity.z);
 		return true;
@@ -224,6 +226,23 @@ namespace eng
 		hit.normal		= bt::ToRaylib(callback.m_hitNormalWorld.normalized());
 		hit.distance	= callback.m_closestHitFraction * maxDistance;
 		return hit;
+	}
+
+	void PhysicsWorld::SetDebugDrawEnabled(bool enabled)
+	{
+		if (m_impl)
+			m_impl->isDebugDrawEnabled = enabled;
+	}
+
+	bool PhysicsWorld::IsDebugDrawEnabled() const
+	{
+		return m_impl && m_impl->isDebugDrawEnabled;
+	}
+
+	void PhysicsWorld::DebugDraw() const
+	{
+		if (m_impl && m_impl->isDebugDrawEnabled)
+			m_impl->world->debugDrawWorld();
 	}
 
 	btDiscreteDynamicsWorld* PhysicsWorld::GetNativeWorld() const

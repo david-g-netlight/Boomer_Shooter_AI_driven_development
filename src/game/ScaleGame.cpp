@@ -73,6 +73,7 @@ void ScaleGame::BindInput()
 	// Physics sandbox
 	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
 	map.BindAction("TogglePlayer", InputBinding::Key(KEY_V));
+	map.BindAction("TogglePhysicsDebug", InputBinding::Key(KEY_F3));
 }
 
 //////////////////////////////////////////
@@ -226,6 +227,12 @@ void ScaleGame::Update(float deltaTime)
 	{
 		eng::DebugDraw& debug = eng::Engine::GetInstance().GetDebugDraw();
 		debug.SetEnabled(!debug.IsEnabled());
+	}
+
+	if (map.IsActionPressed("TogglePhysicsDebug"))
+	{
+		eng::PhysicsWorld& physics = eng::Engine::GetInstance().GetPhysics();
+		physics.SetDebugDrawEnabled(!physics.IsDebugDrawEnabled());
 	}
 
 	if (map.IsActionPressed("TogglePlayer"))
@@ -411,7 +418,7 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("V: %s  |  C: %s  |  F2: debug", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
+	DrawText(TextFormat("V: %s  |  C: %s  |  F2 debug  F3 physics", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
 		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "lock cursor"), 20, 100, 10, DARKGRAY);
 
 	DrawPhysicsPanel();

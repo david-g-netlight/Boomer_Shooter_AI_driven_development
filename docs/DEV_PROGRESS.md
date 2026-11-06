@@ -94,7 +94,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `Raycast` (`ClosestRayResultCallback`, mask filter, user pointer → actor) (+ crosshair aim, LMB kick, X delete in the sandbox)
 - [x] `TriggerVolume` (ghost object, `btGhostPairCallback`, enter/exit diff) (+ exact `contactPairTest`, `Component::OnTriggerEnter/Exit`, sandbox trigger zone)
 - [x] `CharacterMotor` — dynamic capsule: no rotation, own gravity, walk velocity on the ground plane, sphere‑sweep grounding, 45° slope limit, jump + grace time, warp, ground‑body velocity (+ grounded gravity along the normal, steep‑slope input cut, playable V mode in the sandbox)
-- [ ] `PhysicsDebugDrawer` + F3 toggle
+- [x] `PhysicsDebugDrawer` + F3 toggle (wireframes + contact normals in the Engine 3D pass)
 - [ ] CCD for small dynamic bodies
 - [ ] **Done when:** sandbox (plane + 20 crates + ramp) at 60 FPS; crates stack and sleep; capsule climbs a 30° ramp without sliding, stops at 50°, jumps on a crate, pushes a light crate; center ray reports the hit crate; trigger Enter/Exit fire once each; F3 wireframes; deleting a crate mid‑sim is safe
 

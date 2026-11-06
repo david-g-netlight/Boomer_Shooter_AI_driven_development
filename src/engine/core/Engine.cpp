@@ -120,6 +120,7 @@ namespace eng
 				m_activeCamera.Begin3D();
 					m_renderQueue.Draw(*m_activeCamera.GetActiveCamera());
 					m_debugDraw.Draw3D();
+					m_physics.DebugDraw();
 				m_activeCamera.End3D();
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 

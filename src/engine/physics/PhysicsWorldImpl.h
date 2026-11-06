@@ -11,6 +11,7 @@
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include "PhysicsWorld.h"
 #include "TriggerVolume.h"
+#include "PhysicsDebugDrawer.h"
 
 namespace eng
 {
@@ -18,6 +19,7 @@ namespace eng
 	{
 		// Declaration order = creation order; members are destroyed in reverse (world first)
 		std::unique_ptr<btGhostPairCallback>					ghostPairCallback;	// outlives the broadphase
+		std::unique_ptr<PhysicsDebugDrawer>						debugDrawer;		// outlives the world
 		std::unique_ptr<btDefaultCollisionConfiguration>		configuration;
 		std::unique_ptr<btCollisionDispatcher>					dispatcher;
 		std::unique_ptr<btBroadphaseInterface>					broadphase;
@@ -25,6 +27,7 @@ namespace eng
 		std::unique_ptr<btDiscreteDynamicsWorld>				world;
 
 		std::vector<TriggerVolume*>								triggers;
+		bool													isDebugDrawEnabled	= false;
 	};
 
 	struct TriggerVolume::Impl

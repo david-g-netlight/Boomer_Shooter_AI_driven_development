@@ -48,6 +48,13 @@ namespace eng
 		int			GetObjectCount() const;		// collision objects in the world
 
 		/// <summary>
+		/// Bullet wireframes of every collision shape + contact normals. Drawn by the Engine in the 3D pass.
+		/// </summary>
+		void		SetDebugDrawEnabled(bool enabled);
+		bool		IsDebugDrawEnabled() const;
+		void		DebugDraw() const;			// inside BeginMode3D / EndMode3D; no-op when disabled
+
+		/// <summary>
 		/// Closest hit along the ray. `mask` = the layers the ray may hit (e.g. Layer::Ground | Layer::Prop);
 		/// the hit objects' own masks are not checked. Triggers are hit only if Layer::Trigger is in the mask.
 		/// </summary>
