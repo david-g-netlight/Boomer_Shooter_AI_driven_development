@@ -28,6 +28,7 @@
 #include "level/GameActor.h"
 #include "level/Level.h"
 #include "render/MeshRenderer.h"
+#include "render/LineRenderer.h"
 #include "physics/PhysicsLayers.h"
 #include "physics/RaycastHit.h"
 #include "physics/PhysicsWorld.h"
@@ -35,3 +36,5 @@
 #include "physics/RigidBody.h"
 #include "physics/TriggerVolume.h"
 #include "physics/CharacterMotor.h"
+#include "fx/ParticleSystem.h"
+#include "fx/ParticleEmitter.h"

@@ -102,6 +102,7 @@ namespace eng
 
 			if (level) level->Update(m_time.GetDeltaTime());
 			m_app->Update(m_time.GetDeltaTime());
+			m_particles.Update(m_time.GetDeltaTime());
 
 			// 3. Audio (unscaled: fades and ducking keep running while the game is paused)
 			if (const Camera* listener = m_activeCamera.GetActiveCamera())
@@ -119,6 +120,7 @@ namespace eng
 				m_renderQueue.SetLighting({ m_world.sunDirection, m_world.sunColor, m_world.ambientColor });
 				m_activeCamera.Begin3D();
 					m_renderQueue.Draw(*m_activeCamera.GetActiveCamera());
+					m_particles.Draw(*m_activeCamera.GetActiveCamera());	// transparent, after the opaque pass
 					m_debugDraw.Draw3D();
 					m_physics.DebugDraw();
 				m_activeCamera.End3D();
@@ -210,6 +212,11 @@ namespace eng
 	PhysicsWorld& Engine::GetPhysics()
 	{
 		return m_physics;
+	}
+
+	ParticleSystem& Engine::GetParticles()
+	{
+		return m_particles;
 	}
 
 	Time& Engine::GetTime()
