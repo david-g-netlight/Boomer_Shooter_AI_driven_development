@@ -17,6 +17,9 @@ public:
 	const char*	GetTitle() const				override;
 
 private:
+	void		BindInput();
+	void		DrawInputPanel() const;
+
 	// TODO(Phase 3): replaced by eng::Camera / eng::ActiveCamera
 	Camera3D	m_camera				= {};
 
@@ -24,4 +27,13 @@ private:
 	int			m_fixedStepsThisSecond	= 0;
 	int			m_fixedStepsPerSecond	= 0;
 	float		m_secondTimer			= 0.0f;
+
+	// Input debug: "pressed" must fire exactly once per press
+	static constexpr float	LOOK_SENSITIVITY	= 0.1f;	// degrees per screen point
+	static constexpr float	FLY_SPEED			= 5.0f;	// m/s, temporary fly camera
+
+	int			m_jumpPresses			= 0;
+	int			m_firePresses			= 0;
+	int			m_altFirePresses		= 0;
+	float		m_scrollTotal			= 0.0f;
 };

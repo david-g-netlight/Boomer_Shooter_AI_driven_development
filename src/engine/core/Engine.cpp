@@ -75,9 +75,10 @@ namespace eng
 		///////////////////////////////////////////////////////////////////////
 		while (!WindowShouldClose() && !m_app->NeedsToBeClosed())
 		{
-			// 1. Time and window state
+			// 1. Time, window state and input snapshot
 			m_time.BeginFrame(GetFrameTime());
 			m_window.Refresh();
+			m_inputManager.Poll(); // State polled by the previous EndDrawing()
 
 			// 2. Fixed step (physics rate), then variable step
 			m_time.AdvanceAccumulator();
@@ -128,6 +129,11 @@ namespace eng
 	float Engine::GetDeltaTime() const
 	{
 		return m_time.GetDeltaTime();
+	}
+
+	InputManager& Engine::GetInputManager()
+	{
+		return m_inputManager;
 	}
 
 	Time& Engine::GetTime()

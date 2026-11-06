@@ -8,13 +8,68 @@ bool ScaleGame::Init()
 	m_camera.fovy		= 60.0f;
 	m_camera.projection	= CAMERA_PERSPECTIVE;
 
+	BindInput();
+
 	eng::Log::Info("ScaleGame initialized");
 	return true;
 }
 
+void ScaleGame::BindInput()
+{
+	using eng::InputBinding;
+	using eng::AxisBinding;
+
+	eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
+
+	// Movement: WASD and arrows, clamped so diagonals are not faster
+	map.BindAxis("MoveX", AxisBinding::Keys(KEY_A, KEY_D));
+	map.BindAxis("MoveX", AxisBinding::Keys(KEY_LEFT, KEY_RIGHT));
+	map.BindAxis("MoveY", AxisBinding::Keys(KEY_S, KEY_W));
+	map.BindAxis("MoveY", AxisBinding::Keys(KEY_DOWN, KEY_UP));
+	map.BindAxis2D("Move", "MoveX", "MoveY", true);
+
+	// Look: mouse delta in screen points
+	map.BindAxis("LookX", AxisBinding::MouseX());
+	map.BindAxis("LookY", AxisBinding::MouseY());
+	map.BindAxis2D("Look", "LookX", "LookY", false);
+
+	// Scaling gun (Phase 11): stretch, shrink, change factor
+	map.BindAction("Jump",		InputBinding::Key(KEY_SPACE));
+	map.BindAction("Fire",		InputBinding::Mouse(MOUSE_BUTTON_LEFT));
+	map.BindAction("AltFire",	InputBinding::Mouse(MOUSE_BUTTON_RIGHT));
+	map.BindAxis("Scroll",		AxisBinding::Wheel());
+
+	// TODO(Phase 8): cursor is released by Pause (ESC); temporary toggle until then
+	map.BindAction("ToggleCursor", InputBinding::Key(KEY_C));
+}
+
 void ScaleGame::Update(float deltaTime)
 {
-	UpdateCamera(&m_camera, CAMERA_ORBITAL); // No input yet (Phase 2): the camera orbits by itself
+	eng::InputManager&		input	= eng::Engine::GetInstance().GetInputManager();
+	const eng::InputMap&	map		= input.GetMap();
+
+	if (map.IsActionPressed("ToggleCursor"))
+		input.SetCursorLocked(!input.IsCursorLocked());
+
+	if (input.IsCursorLocked())
+	{
+		// TODO(Phase 3/10): replaced by eng::Camera + FirstPersonLook / FirstPersonController
+		const Vector2 look = map.GetAxis2D("Look");
+		const Vector2 move = map.GetAxis2D("Move");
+		UpdateCameraPro(&m_camera,
+			{ move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f },	// forward, right, up
+			{ look.x * LOOK_SENSITIVITY, look.y * LOOK_SENSITIVITY, 0.0f },			// yaw, pitch, roll (degrees)
+			0.0f);
+	}
+	else
+	{
+		UpdateCamera(&m_camera, CAMERA_ORBITAL);
+	}
+
+	if (map.IsActionPressed("Jump"))	++m_jumpPresses;
+	if (map.IsActionPressed("Fire"))	++m_firePresses;
+	if (map.IsActionPressed("AltFire"))	++m_altFirePresses;
+	m_scrollTotal += map.GetAxis("Scroll");
 
 	m_secondTimer += deltaTime;
 	if (m_secondTimer >= 1.0f)
@@ -52,7 +107,33 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText("Close the window to quit (ESC is reserved for Pause)", 20, 100, 10, DARKGRAY);
+	DrawText(TextFormat("C: %s cursor  |  close the window to quit",
+		engine.GetInputManager().IsCursorLocked() ? "unlock" : "lock (mouse look + WASD fly)"), 20, 100, 10, DARKGRAY);
+
+	DrawInputPanel();
+}
+
+void ScaleGame::DrawInputPanel() const
+{
+	const eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
+	const Vector2 move = map.GetAxis2D("Move");
+	const Vector2 look = map.GetAxis2D("Look");
+
+	auto state = [&map](const char* action)
+	{
+		return map.IsActionDown(action) ? "DOWN" : "up";
+	};
+
+	const int x = 10, y = 140;
+	DrawRectangle(x, y, 330, 120, Fade(LIGHTGRAY, 0.6f));
+	DrawRectangleLines(x, y, 330, 120, GRAY);
+	DrawText("Input (InputMap actions / axes)", x + 10, y + 10, 10, BLACK);
+	DrawText(TextFormat("Move  (WASD / arrows)  x %+.2f  y %+.2f", move.x, move.y), x + 10, y + 30, 10, DARKGRAY);
+	DrawText(TextFormat("Look  (mouse delta)    x %+.1f  y %+.1f", look.x, look.y), x + 10, y + 45, 10, DARKGRAY);
+	DrawText(TextFormat("Jump    (Space) %-4s  presses %d", state("Jump"), m_jumpPresses), x + 10, y + 60, 10, DARKGRAY);
+	DrawText(TextFormat("Fire    (LMB)   %-4s  presses %d", state("Fire"), m_firePresses), x + 10, y + 75, 10, DARKGRAY);
+	DrawText(TextFormat("AltFire (RMB)   %-4s  presses %d", state("AltFire"), m_altFirePresses), x + 10, y + 90, 10, DARKGRAY);
+	DrawText(TextFormat("Scroll  (wheel) total %+.1f", m_scrollTotal), x + 10, y + 105, 10, DARKGRAY);
 }
 
 void ScaleGame::Destroy()
