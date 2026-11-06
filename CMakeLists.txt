@@ -24,6 +24,15 @@ target_link_libraries(engine PUBLIC
     "-framework OpenGL"
 )
 
+# Editor mode: always defined as 0 or 1, so code uses `#if ENG_EDITOR`.
+# ON in Debug builds; use -DENG_EDITOR_IN_RELEASE=ON to keep it in Release builds.
+option(ENG_EDITOR_IN_RELEASE "Compile the editor into non-Debug builds" OFF)
+if(ENG_EDITOR_IN_RELEASE)
+    target_compile_definitions(engine PUBLIC ENG_EDITOR=1)
+else()
+    target_compile_definitions(engine PUBLIC $<IF:$<CONFIG:Debug>,ENG_EDITOR=1,ENG_EDITOR=0>)
+endif()
+
 # Bullet Physics: engine-private, the game never includes Bullet headers
 target_include_directories(engine PRIVATE include/bullet)
 target_link_libraries(engine PRIVATE

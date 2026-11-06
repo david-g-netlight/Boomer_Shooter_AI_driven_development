@@ -11,4 +11,9 @@ namespace eng
 	{
 		return "0.0.1";
 	}
+
+	bool IsEditorBuild()
+	{
+		return ENG_EDITOR == 1;
+	}
 }

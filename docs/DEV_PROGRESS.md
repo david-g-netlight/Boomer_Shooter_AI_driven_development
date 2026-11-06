@@ -44,7 +44,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Commit `lib/libBulletDynamics.a`, `lib/libBulletCollision.a`, `lib/libLinearMath.a` + `include/bullet/` + Bullet `LICENSE.txt`
 - [x] Bullet include path PRIVATE to `engine` (+ static libs linked)
 - [x] `assets/` folder + post‑build copy
-- [ ] `ENG_EDITOR` compile definition (Debug)
+- [x] `ENG_EDITOR` compile definition (Debug = 1, Release = 0, `-DENG_EDITOR_IN_RELEASE=ON` to force 1) + `eng::IsEditorBuild()`
 - [ ] **Done when:** the old free‑camera `main.cpp` runs from CMake, and a throw‑away `btDiscreteDynamicsWorld` links
 
 ### Phase 1 — Core ⬜
@@ -174,7 +174,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | Dynamic capsule: slope sliding / bouncing / wall sticking | 5 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
 | Player launched by a crate scaling under them | 11 | open | Clamp player vertical velocity after the step |
 | Scaling causes deep penetration → velocity spikes | 11 | open | Clamp velocity, overlap check before stretch |
-| Bullet precision / arch mismatch | 0 | open | Verify `build_bullet.sh` flags |
+| Bullet precision / arch mismatch | 0 | mitigated | Libs verified arm64, macOS 11.0, single precision |
+| Xcode 26 linker can't read the Command Line Tools SDK 27.2 (`tapi error: malformed file`) | 0 | workaround | Local toolchain issue. Configure with Xcode's SDK as `CMAKE_OSX_SYSROOT` (see README) or update Xcode |
 
 ---
 
@@ -184,5 +185,6 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-06 | 0 | Branch `integration` + `project_setup_and_build_system`; all 8 Phase 0 tasks committed; Bullet link probe passed (box falls 10 → 5.19 m in 1 s); game target confirmed unable to include Bullet | Developer runs the Phase 0 **Done when** check | Waiting for green light to merge |
 | 2026-11-06 | — | Player motor switched to a dynamic capsule (D8) | Start Phase 0 | — |
 | 2026-11-06 | — | Architecture plan written; physics layer switched to Bullet 3.25; progress tracker created | Start Phase 0 | — |

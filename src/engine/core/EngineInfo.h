@@ -7,4 +7,9 @@ namespace eng
 	/// </summary>
 	const char* GetEngineName();
 	const char* GetEngineVersion();
+
+	/// <summary>
+	/// True when the editor is compiled in (ENG_EDITOR=1).
+	/// </summary>
+	bool IsEditorBuild();
 }
