@@ -41,7 +41,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Remove the `Makefile` for good; update `README.md` build instructions
 - [x] Vendor `raygui.h` into `include/raylib/` (raygui 5.1-dev, upstream `1abccb3a53`)
 - [x] `tools/build_bullet.sh` (bullet3 tag **3.25**, arm64, static, single precision, demos/extras off)
-- [ ] Commit `lib/libBulletDynamics.a`, `lib/libBulletCollision.a`, `lib/libLinearMath.a` + `include/bullet/` + Bullet `LICENSE.txt`
+- [x] Commit `lib/libBulletDynamics.a`, `lib/libBulletCollision.a`, `lib/libLinearMath.a` + `include/bullet/` + Bullet `LICENSE.txt`
 - [ ] Bullet include path PRIVATE to `engine`
 - [ ] `assets/` folder + post‑build copy
 - [ ] `ENG_EDITOR` compile definition (Debug)
