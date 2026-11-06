@@ -23,6 +23,8 @@ private:
 	void		DrawInputPanel() const;
 	void		SubmitDebugShapes() const;
 	void		DrawMinimap();
+	void		UpdateAudioDemo();
+	void		DrawAudioPanel() const;
 
 	eng::Camera	m_camera;
 	// Phase 3 "Done when" scene: a ring of cubes, one material each (created in Init: needs the window)
@@ -55,4 +57,20 @@ private:
 	int			m_firePresses			= 0;
 	int			m_altFirePresses		= 0;
 	float		m_scrollTotal			= 0.0f;
+
+	// Audio demo (Unity ScalingAudioFX): stretch / shrink pitched by the scale factor
+	static constexpr float	SCALE_FACTORS[3]	= { 0.25f, 0.5f, 0.75f };	// Unity PlayerState: rate 0.25 x 3
+	int			m_scaleFactorIndex		= 0;
+	const Sound*	m_sfxStretch		= nullptr;
+	const Sound*	m_sfxShrink			= nullptr;
+	float		m_lastPitch				= 0.0f;
+	std::vector<eng::AudioSource>	m_cubeSources;		// spatial "ping" per cube (K)
+	int			m_lastPingedCube		= -1;
+	bool		m_isAudioPaused			= false;
+
+	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
+	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds
+	static constexpr float	MUSIC_CROSSFADE		= 2.0f;
+	Music*		m_themeMenu				= nullptr;
+	Music*		m_themeGame				= nullptr;
 };

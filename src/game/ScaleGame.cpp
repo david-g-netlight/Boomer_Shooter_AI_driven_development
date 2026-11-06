@@ -11,7 +11,21 @@ bool ScaleGame::Init()
 
 	// Lit shader for even cubes and the ground; odd cubes keep raylib's unlit default shader.
 	// If the shader fails to load, every material falls back to the default shader.
-	const Shader* lit = eng::Engine::GetInstance().GetResources().LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+	const Shader* lit = resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
+
+	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
+	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
+	const Sound* ping = resources.LoadSound("assets/audio/sfx_ping.wav");
+
+	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
+	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
+	if (m_themeMenu)
+	{
+		eng::MusicPlayer& music = eng::Engine::GetInstance().GetAudio().GetMusic();
+		music.SetVolume(0.7f);
+		music.Play(*m_themeMenu, MUSIC_FADE_IN);
+	}
 
 	// Ring of cubes, each with its own material: hue around the circle, growing size
 	m_cubeMaterials.reserve(CUBE_COUNT + 1);
@@ -29,6 +43,13 @@ bool ScaleGame::Init()
 
 		const Vector3 position = { std::cos(angle) * 4.0f, size * 0.5f, std::sin(angle) * 4.0f };
 		m_cubePositions.push_back(position);
+
+		eng::AudioSource& source = m_cubeSources.emplace_back(ping);
+		source.SetSpatial(true);
+		source.SetPosition(position);
+		source.SetRange(2.0f, 25.0f);
+		source.SetPitch(0.8f + 0.5f * t);		// each cube has its own note
+		source.SetPitchVariation(0.02f);
 		m_cubeTransforms.push_back(MatrixMultiply(
 			MatrixMultiply(MatrixScale(size, size, size), MatrixRotateY(angle)),
 			MatrixTranslate(position.x, position.y, position.z)));
@@ -79,6 +100,10 @@ void ScaleGame::BindInput()
 	// TODO(Phase 8): cursor is released by Pause (ESC); temporary toggle until then
 	map.BindAction("ToggleCursor", InputBinding::Key(KEY_C));
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
+	// TODO(Phase 8): replaced by the real Pause (ESC); simulates its audio side
+	map.BindAction("TogglePauseAudio", InputBinding::Key(KEY_P));
+	map.BindAction("PingCube", InputBinding::Key(KEY_K));
+	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
 }
 
 void ScaleGame::Update(float deltaTime)
@@ -116,6 +141,8 @@ void ScaleGame::Update(float deltaTime)
 	if (map.IsActionPressed("AltFire"))	++m_altFirePresses;
 	m_scrollTotal += map.GetAxis("Scroll");
 
+	UpdateAudioDemo();
+
 	// Cube 0 pulses its "emissive" material parameter (0 = lit, 1 = flat albedo)
 	m_pulseTime += deltaTime;
 	m_cubeMaterials[0].SetParameter("emissive", 0.5f + 0.5f * std::sin(m_pulseTime * 2.0f));
@@ -126,6 +153,53 @@ void ScaleGame::Update(float deltaTime)
 		m_fixedStepsPerSecond	= m_fixedStepsThisSecond;
 		m_fixedStepsThisSecond	= 0;
 		m_secondTimer			-= 1.0f;
+	}
+}
+
+void ScaleGame::UpdateAudioDemo()
+{
+	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
+	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
+
+	// Wheel picks the scale factor (Unity PlayerState::ChangeFactor)
+	const float scroll = map.GetAxis("Scroll");
+	if (scroll > 0.0f && m_scaleFactorIndex < 2)	++m_scaleFactorIndex;
+	if (scroll < 0.0f && m_scaleFactorIndex > 0)	--m_scaleFactorIndex;
+	const float factor = SCALE_FACTORS[m_scaleFactorIndex];
+
+	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
+	if (map.IsActionPressed("Fire") && m_sfxStretch)
+	{
+		m_lastPitch = 1.0f + factor + 0.02f;
+		audio.Play(*m_sfxStretch, 0.8f, m_lastPitch);
+	}
+	if (map.IsActionPressed("AltFire") && m_sfxShrink)
+	{
+		m_lastPitch = 1.0f - factor - 0.02f;
+		audio.Play(*m_sfxShrink, 0.8f, m_lastPitch);
+	}
+
+	// Spatial ping from a random cube: listen to pan (left / right) and distance falloff
+	if (map.IsActionPressed("PingCube") && !m_cubeSources.empty())
+	{
+		m_lastPingedCube = GetRandomValue(0, static_cast<int>(m_cubeSources.size()) - 1);
+		m_cubeSources[m_lastPingedCube].Play();
+	}
+	for (eng::AudioSource& source : m_cubeSources)
+		source.Update();	// the listener (camera) moves
+
+	// Cross-fade between the menu and gameplay themes
+	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
+	{
+		eng::MusicPlayer& music = audio.GetMusic();
+		music.Play(music.GetCurrent() == m_themeMenu ? *m_themeGame : *m_themeMenu, MUSIC_CROSSFADE);
+	}
+
+	if (map.IsActionPressed("TogglePauseAudio"))
+	{
+		m_isAudioPaused = !m_isAudioPaused;
+		audio.Duck(m_isAudioPaused);
+		if (m_isAudioPaused) audio.PauseAll(); else audio.ResumeAll();
 	}
 }
 
@@ -201,6 +275,7 @@ void ScaleGame::DrawHUD()
 		engine.GetInputManager().IsCursorLocked() ? "unlock cursor" : "fly (mouse + WASD)"), 20, 100, 10, DARKGRAY);
 
 	DrawInputPanel();
+	DrawAudioPanel();
 	DrawMinimap();
 }
 
@@ -227,11 +302,49 @@ void ScaleGame::DrawInputPanel() const
 	DrawText(TextFormat("Scroll  (wheel) total %+.1f", m_scrollTotal), x + 10, y + 105, 10, DARKGRAY);
 }
 
+void ScaleGame::DrawAudioPanel() const
+{
+	const eng::AudioManager& audio = eng::Engine::GetInstance().GetAudio();
+
+	const int x = 10, y = 270;
+	DrawRectangle(x, y, 330, 115, Fade(BEIGE, 0.6f));
+	DrawRectangleLines(x, y, 330, 115, BROWN);
+	DrawText(TextFormat("Audio %s  |  voices %d active / %d", audio.IsReady() ? "ON" : "OFF (no device)",
+		audio.GetActiveVoiceCount(), audio.GetVoiceCount()), x + 10, y + 10, 10, BLACK);
+	DrawText(TextFormat("LMB stretch / RMB shrink  factor x%.2f (wheel)  pitch %.2f",
+		SCALE_FACTORS[m_scaleFactorIndex], m_lastPitch), x + 10, y + 28, 10, DARKGRAY);
+	DrawText(TextFormat("P: %s  |  duck %.2f", m_isAudioPaused ? "resume audio" : "pause audio (demo of Pause)",
+		audio.GetDuckFactor()), x + 10, y + 46, 10, DARKGRAY);
+
+	if (m_lastPingedCube >= 0)
+	{
+		const eng::AudioSource& source = m_cubeSources[m_lastPingedCube];
+		DrawText(TextFormat("K: ping  |  cube %d  dist %.1f  gain %.2f  pan %+.2f", m_lastPingedCube,
+			Vector3Distance(source.GetPosition(), audio.GetListenerPosition()), source.ComputeGain(), source.ComputePan()),
+			x + 10, y + 64, 10, DARKGRAY);
+	}
+	else
+	{
+		DrawText("K: ping a random cube (spatial)", x + 10, y + 64, 10, DARKGRAY);
+	}
+
+	const eng::MusicPlayer&	music	= audio.GetMusic();
+	const char*				track	= music.GetCurrent() == m_themeMenu ? "menu"
+									: music.GetCurrent() == m_themeGame ? "game" : "none";
+	DrawText(TextFormat("M: switch theme  |  %s  fade %.2f  %.1f s", track, music.GetFade(), music.GetTimePlayed()),
+		x + 10, y + 82, 10, DARKGRAY);
+}
+
 void ScaleGame::Destroy()
 {
+	m_sfxStretch	= nullptr;
+	m_sfxShrink		= nullptr;
+	m_themeMenu		= nullptr;
+	m_themeGame		= nullptr;
 	m_cubeMaterials.clear();
 	m_cubeTransforms.clear();
 	m_cubePositions.clear();
+	m_cubeSources.clear();
 	m_ground = nullptr;
 	m_minimap.Unload();
 	eng::Log::Info("ScaleGame destroyed");
