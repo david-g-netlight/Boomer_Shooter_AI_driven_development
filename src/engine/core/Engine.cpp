@@ -1,0 +1,147 @@
+#include "Engine.h"
+#include "Application.h"
+#include "EngineInfo.h"
+#include "Log.h"
+#include <raylib.h>
+
+namespace eng
+{
+	Engine& Engine::GetInstance()
+	{
+		static Engine instance;
+		return instance;
+	}
+
+	Engine::~Engine()
+	{
+		delete m_app;
+		m_app = nullptr;
+	}
+
+	bool Engine::Init(int width, int height)
+	{
+		if (!m_app)
+		{
+			Log::Error("No Application set, call SetApplication() before Init()");
+			return false;
+		}
+
+		if (width <= 0 || height <= 0)
+		{
+			Log::Error("The window size must be greater than 0, got %d x %d", width, height);
+			return false;
+		}
+
+		// Window hints must be set before the window exists
+		SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
+
+		InitWindow(width, height, m_app->GetTitle());
+		if (!IsWindowReady())
+		{
+			Log::Error("Window creation failed");
+			return false;
+		}
+		m_isWindowOpen = true;
+
+		// ESC is used for Pause (Phase 8), raylib closes the window on ESC by default
+		SetExitKey(KEY_NULL);
+
+		// Assets are copied next to the executable, so resolve paths from there,
+		// no matter which directory the app was launched from
+		ChangeDirectory(GetApplicationDirectory());
+
+		SetTargetFPS(60);
+
+		m_window.Refresh();
+		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s",
+			GetEngineName(), GetEngineVersion(),
+			m_window.screenWidth, m_window.screenHeight, m_window.renderWidth, m_window.renderHeight,
+			IsEditorBuild() ? "ON" : "OFF");
+
+		m_isAppInitialized = m_app->Init();
+		if (!m_isAppInitialized)
+			Log::Error("Application::Init() failed");
+
+		return m_isAppInitialized;
+	}
+
+	void Engine::Run()
+	{
+		if (!m_app || !m_isAppInitialized)
+			return;
+
+		///////////////////////////////////////////////////////////////////////
+		// THE GAME LOOP
+		///////////////////////////////////////////////////////////////////////
+		while (!WindowShouldClose() && !m_app->NeedsToBeClosed())
+		{
+			// 1. Time and window state
+			m_time.BeginFrame(GetFrameTime());
+			m_window.Refresh();
+
+			// 2. Fixed step (physics rate), then variable step
+			m_time.AdvanceAccumulator();
+			while (m_time.ConsumeFixedStep())
+				m_app->FixedUpdate(m_time.GetFixedDeltaTime());
+
+			m_app->Update(m_time.GetDeltaTime());
+
+			// 3. Render
+			BeginDrawing();
+				ClearBackground(m_world.skyColor);
+				m_app->DrawHUD();
+			EndDrawing(); // Swaps buffers and polls input events
+		}
+	}
+
+	void Engine::Shutdown()
+	{
+		if (m_app && m_isAppInitialized)
+		{
+			m_app->Destroy(); // logical clean up only
+			m_isAppInitialized = false;
+			Log::Info("Application destroyed");
+		}
+
+		if (m_isWindowOpen)
+		{
+			CloseWindow();
+			m_isWindowOpen = false;
+			Log::Info("Engine shut down");
+		}
+	}
+
+	void Engine::SetApplication(Application* app)
+	{
+		if (app == m_app)
+			return;
+
+		delete m_app;	// Delete previous
+		m_app = app;	// Takes ownership
+	}
+
+	Application* Engine::GetApplication() const
+	{
+		return m_app;
+	}
+
+	float Engine::GetDeltaTime() const
+	{
+		return m_time.GetDeltaTime();
+	}
+
+	Time& Engine::GetTime()
+	{
+		return m_time;
+	}
+
+	const WindowInfo& Engine::GetWindow() const
+	{
+		return m_window;
+	}
+
+	const World& Engine::GetWorld() const
+	{
+		return m_world;
+	}
+}
