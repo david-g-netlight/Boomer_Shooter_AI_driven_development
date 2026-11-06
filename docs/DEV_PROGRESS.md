@@ -14,7 +14,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 | Phase | Name | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|
-| 0 | Project setup, CMake, raygui, Bullet static libs | ⬜ | | | |
+| 0 | Project setup, CMake, raygui, Bullet static libs | ✅ | 2026-11-06 | 2026-11-06 | [devlog](project_setup_and_build_system_devlog.md) |
 | 1 | Core: Engine, Application, Time, Window | ⬜ | | | |
 | 2 | Input | ⬜ | | | |
 | 3 | Resources and rendering | ⬜ | | | |
@@ -29,23 +29,23 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 0
-**Branch:** `ai-generated-playanble-engine`
+**Current focus:** Phase 1
+**Branch:** `core` (from `integration`)
 
 ---
 
 ## Phase checklists
 
-### Phase 0 — Project setup and build system ⬜
-- [ ] Root `CMakeLists.txt`: `engine` static lib + `my_app` exe, C++20
-- [ ] Remove the `Makefile` for good; update `README.md` build instructions
-- [ ] Vendor `raygui.h` into `include/raylib/`
-- [ ] `tools/build_bullet.sh` (bullet3 tag **3.25**, arm64, static, single precision, demos/extras off)
-- [ ] Commit `lib/libBulletDynamics.a`, `lib/libBulletCollision.a`, `lib/libLinearMath.a` + `include/bullet/` + Bullet `LICENSE.txt`
-- [ ] Bullet include path PRIVATE to `engine`
-- [ ] `assets/` folder + post‑build copy
-- [ ] `ENG_EDITOR` compile definition (Debug)
-- [ ] **Done when:** the old free‑camera `main.cpp` runs from CMake, and a throw‑away `btDiscreteDynamicsWorld` links
+### Phase 0 — Project setup and build system ✅
+- [x] Root `CMakeLists.txt`: `engine` static lib + `my_app` exe, C++20
+- [x] Remove the `Makefile` for good; update `README.md` build instructions
+- [x] Vendor `raygui.h` into `include/raylib/` (raygui 5.1-dev, upstream `1abccb3a53`)
+- [x] `tools/build_bullet.sh` (bullet3 tag **3.25**, arm64, static, single precision, demos/extras off)
+- [x] Commit `lib/libBulletDynamics.a`, `lib/libBulletCollision.a`, `lib/libLinearMath.a` + `include/bullet/` + Bullet `LICENSE.txt`
+- [x] Bullet include path PRIVATE to `engine` (+ static libs linked)
+- [x] `assets/` folder + post‑build copy
+- [x] `ENG_EDITOR` compile definition (Debug = 1, Release = 0, `-DENG_EDITOR_IN_RELEASE=ON` to force 1) + `eng::IsEditorBuild()`
+- [x] **Done when:** the old free‑camera `main.cpp` runs from CMake, and a throw‑away `btDiscreteDynamicsWorld` links
 
 ### Phase 1 — Core ⬜
 - [ ] `eng::Application` (Init / Update / FixedUpdate / DrawHUD / Destroy + mode hooks)
@@ -174,7 +174,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | Dynamic capsule: slope sliding / bouncing / wall sticking | 5 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
 | Player launched by a crate scaling under them | 11 | open | Clamp player vertical velocity after the step |
 | Scaling causes deep penetration → velocity spikes | 11 | open | Clamp velocity, overlap check before stretch |
-| Bullet precision / arch mismatch | 0 | open | Verify `build_bullet.sh` flags |
+| Bullet precision / arch mismatch | 0 | mitigated | Libs verified arm64, macOS 11.0, single precision |
+| Xcode 26 linker can't read the Command Line Tools SDK 27.2 (`tapi error: malformed file`) | 0 | resolved | Switched to the Command Line Tools toolchain (`xcode-select -s /Library/Developer/CommandLineTools`, ld‑27106); plain `cmake` builds with no SDK override. README lists the fixes |
 
 ---
 
@@ -184,5 +185,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-06 | 0 | Toolchain switched to Command Line Tools (fixes `tapi` linker error); developer validated Phase 0; devlog written; merged into `integration` | Start Phase 1 on `core` | — |
+| 2026-11-06 | 0 | Branch `integration` + `project_setup_and_build_system`; all 8 Phase 0 tasks committed; Bullet link probe passed (box falls 10 → 5.19 m in 1 s); game target confirmed unable to include Bullet | Developer runs the Phase 0 **Done when** check | — |
 | 2026-11-06 | — | Player motor switched to a dynamic capsule (D8) | Start Phase 0 | — |
 | 2026-11-06 | — | Architecture plan written; physics layer switched to Bullet 3.25; progress tracker created | Start Phase 0 | — |
