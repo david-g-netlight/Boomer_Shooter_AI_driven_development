@@ -116,6 +116,16 @@ namespace eng
 		return m_isPaused;
 	}
 
+	MusicPlayer& AudioManager::GetMusic()
+	{
+		return m_music;
+	}
+
+	const MusicPlayer& AudioManager::GetMusic() const
+	{
+		return m_music;
+	}
+
 	//////////////////////////////////////////
 	/// Volumes
 	//////////////////////////////////////////
@@ -187,10 +197,15 @@ namespace eng
 		const float step	= (1.0f - DUCK_LEVEL) * unscaledDeltaTime / DUCK_FADE_SECONDS;
 		m_duckFactor = m_duckFactor < target ? std::min(m_duckFactor + step, target)
 											 : std::max(m_duckFactor - step, target);
+
+		if (m_isReady)
+			m_music.Update(unscaledDeltaTime, m_musicVolume * m_duckFactor);
 	}
 
 	void AudioManager::ReleaseVoices()
 	{
+		m_music.Release();
+
 		for (Voice& voice : m_voices)
 		{
 			StopSound(voice.alias);

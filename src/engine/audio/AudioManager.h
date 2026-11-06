@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include <raylib.h>
+#include "MusicPlayer.h"
 
 namespace eng
 {
@@ -63,6 +64,12 @@ namespace eng
 		bool		IsPaused() const;
 
 		//////////////////////////////////////////
+		/// Music (one streamed track at a time, cross-fades)
+		//////////////////////////////////////////
+		MusicPlayer&		GetMusic();
+		const MusicPlayer&	GetMusic() const;
+
+		//////////////////////////////////////////
 		/// Volumes
 		//////////////////////////////////////////
 		void		SetMasterVolume(float volume);
@@ -90,7 +97,8 @@ namespace eng
 		void		Update(float unscaledDeltaTime);
 
 		/// <summary>
-		/// Unloads every alias. Must run before the sounds they alias are unloaded.
+		/// Unloads every alias and releases the music tracks. Must run before the ResourceManager unloads
+		/// the sounds and music they refer to.
 		/// </summary>
 		void		ReleaseVoices();
 
@@ -127,6 +135,8 @@ namespace eng
 
 		bool				m_isDucked		= false;
 		float				m_duckFactor	= 1.0f;
+
+		MusicPlayer			m_music;
 
 		Vector3				m_listenerPosition	= { 0.0f, 0.0f, 0.0f };
 		Vector3				m_listenerRight		= { 1.0f, 0.0f, 0.0f };

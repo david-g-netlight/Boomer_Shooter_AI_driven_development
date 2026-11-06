@@ -92,6 +92,21 @@ namespace eng
 		return &m_sounds.emplace(path, sound).first->second;
 	}
 
+	Music* ResourceManager::LoadMusic(const std::string& path)
+	{
+		if (auto it = m_music.find(path); it != m_music.end())
+			return &it->second;
+
+		Music music = LoadMusicStream(path.c_str());
+		if (!IsMusicValid(music))
+		{
+			Log::Warning("ResourceManager: failed to load music '%s'", path.c_str());
+			return nullptr;
+		}
+
+		return &m_music.emplace(path, music).first->second;
+	}
+
 	const ::Mesh* ResourceManager::GetPrimitive(Primitive primitive)
 	{
 		const size_t index = static_cast<size_t>(primitive);
@@ -123,11 +138,13 @@ namespace eng
 		for (auto& [key, shader]   : m_shaders)		UnloadShader(shader);
 		for (auto& [key, font]     : m_fonts)		UnloadFont(font);
 		for (auto& [path, sound]   : m_sounds)		UnloadSound(sound);
+		for (auto& [path, music]   : m_music)		UnloadMusicStream(music);
 		m_models.clear();
 		m_textures.clear();
 		m_shaders.clear();
 		m_fonts.clear();
 		m_sounds.clear();
+		m_music.clear();
 
 		for (size_t i = 0; i < m_primitives.size(); ++i)
 		{
@@ -146,6 +163,6 @@ namespace eng
 		for (bool loaded : m_isPrimitiveLoaded)
 			primitives += loaded ? 1 : 0;
 
-		return m_models.size() + m_textures.size() + m_shaders.size() + m_fonts.size() + m_sounds.size() + primitives;
+		return m_models.size() + m_textures.size() + m_shaders.size() + m_fonts.size() + m_sounds.size() + m_music.size() + primitives;
 	}
 }

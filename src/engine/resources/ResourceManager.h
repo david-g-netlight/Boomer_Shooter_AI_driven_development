@@ -44,6 +44,7 @@ namespace eng
 		Shader*		LoadShader	(const std::string& vertexPath, const std::string& fragmentPath); // "" = raylib default stage
 		Font*		LoadFont	(const std::string& path, int baseSize = 32);
 		Sound*		LoadSound	(const std::string& path);	// whole file in memory, for short effects
+		Music*		LoadMusic	(const std::string& path);	// streamed from disk; play one Music in one place at a time
 
 		//////////////////////////////////////////
 		/// Primitives
@@ -60,6 +61,7 @@ namespace eng
 		std::unordered_map<std::string, Shader>		m_shaders;
 		std::unordered_map<std::string, Font>		m_fonts;
 		std::unordered_map<std::string, Sound>		m_sounds;
+		std::unordered_map<std::string, Music>		m_music;
 
 		std::array<::Mesh, static_cast<size_t>(Primitive::Count)>	m_primitives			= {};
 		std::array<bool,   static_cast<size_t>(Primitive::Count)>	m_isPrimitiveLoaded		= {};

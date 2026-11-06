@@ -73,7 +73,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 ### Phase 4 — Audio 🟡
 - [x] `AudioManager` (alias voice pool, volumes, duck) (+ placeholder SFX generator, pitched stretch/shrink demo)
 - [x] `AudioSource` (standalone class; becomes a `Component` in Phase 5, D10) (+ listener from the active camera, spatial ping demo on K)
-- [ ] `MusicPlayer` (stream, loop, fade)
+- [x] `MusicPlayer` (stream, loop, fade) (+ cross‑fade, `LoadMusic`, placeholder menu/game themes, M / P demo)
 - [ ] **Done when:** pitched SFX on key press, music fades in, pause ducks music (demo key until Phase 8)
 
 ### Phase 5 — Scene ⬜
@@ -188,6 +188,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-06 | 4 | All 3 Phase 4 tasks committed on `audio`; voice pool check (3 overlapping plays → own voices), AudioSource gain/pan headless check, timed fade/cross‑fade/duck check all passed; clean shutdown order verified | Developer runs the Phase 4 **Done when** check | Waiting for green light to merge |
 | 2026-11-06 | 3 | Developer validated Phase 3 and moved Audio to Phase 4; plan, tracker and code comments renumbered (D9, D10); devlog written; merged into `integration` | Start Phase 4 on `audio` | — |
 | 2026-11-06 | 3 | All 6 Phase 3 tasks committed on `resources_and_rendering`; camera math check passed; screenshot check found and fixed a material‑parameter leak between materials sharing a shader; self‑closing run confirmed clean shutdown (3 resources unloaded) | Developer runs the Phase 3 **Done when** check | — |
 | 2026-11-06 | 2 | Developer validated Phase 2; devlog written; merged into `integration` | Start Phase 3 on `resources_and_rendering` | — |

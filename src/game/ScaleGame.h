@@ -67,4 +67,10 @@ private:
 	std::vector<eng::AudioSource>	m_cubeSources;		// spatial "ping" per cube (K)
 	int			m_lastPingedCube		= -1;
 	bool		m_isAudioPaused			= false;
+
+	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
+	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds
+	static constexpr float	MUSIC_CROSSFADE		= 2.0f;
+	Music*		m_themeMenu				= nullptr;
+	Music*		m_themeGame				= nullptr;
 };
