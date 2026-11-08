@@ -11,6 +11,19 @@ void ScalingGun::Bind(PlayerInput* input, PlayerState* state, eng::Camera* camer
 	m_camera	= camera;
 }
 
+void ScalingGun::Update(float /*deltaTime*/)
+{
+	m_isAimingAtScalable = false;
+	if (!m_camera)
+		return;
+
+	if (const auto hit = eng::Engine::GetInstance().GetPhysics().Raycast(m_camera->GetPosition(), m_camera->Forward(),
+			PlayerState::RAY_REACH, eng::Layer::Ground | eng::Layer::Prop))
+		m_isAimingAtScalable = hit->actor && hit->actor->GetComponent<Scalable>();
+}
+
+bool ScalingGun::IsAimingAtScalable() const	{ return m_isAimingAtScalable; }
+
 void ScalingGun::FixedUpdate(float fixedDeltaTime)
 {
 	if (!m_input || !m_state)

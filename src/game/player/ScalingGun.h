@@ -43,9 +43,16 @@ public:
 	/// </summary>
 	bool			Fire(float sign);
 
+	/// <summary>
+	/// The same ray as a shot, cast every frame: is the center of the screen on a Scalable prop within reach?
+	/// (crosshair color)
+	/// </summary>
+	bool			IsAimingAtScalable() const;
+
 	const ScalingShotEvent&	GetLastShot() const;
 	int				GetShotCount() const;
 
+	void			Update(float deltaTime) override;
 	void			FixedUpdate(float fixedDeltaTime) override;
 	const char*		TypeName() const override { return "ScalingGun"; }
 
@@ -55,4 +62,5 @@ private:
 	eng::Camera*		m_camera		= nullptr;
 	ScalingShotEvent	m_lastShot		= {};
 	int					m_shotCount		= 0;
+	bool				m_isAimingAtScalable = false;
 };
