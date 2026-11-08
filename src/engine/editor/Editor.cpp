@@ -32,6 +32,11 @@ namespace eng
 			m_camera.CopyPoseFrom(*m_previousCamera);
 		active.SetActiveCamera(m_camera.GetCamera());
 
+		// Bullet wireframes are part of the editor overlay
+		PhysicsWorld& physics = Engine::GetInstance().GetPhysics();
+		m_physicsDebugWasOn = physics.IsDebugDrawEnabled();
+		physics.SetDebugDrawEnabled(true);
+
 		if (!m_level)
 		{
 			m_snapshot.Clear();
@@ -49,6 +54,7 @@ namespace eng
 		m_isActive = false;
 		m_selected = nullptr;
 		m_gizmo.CancelDrag();
+		Engine::GetInstance().GetPhysics().SetDebugDrawEnabled(m_physicsDebugWasOn);
 		if (m_previousCamera)
 			Engine::GetInstance().GetMainCamera().SetActiveCamera(*m_previousCamera);
 		m_previousCamera = nullptr;
@@ -257,7 +263,30 @@ namespace eng
 
 	void Editor::Draw3D() const
 	{
-		if (!m_isActive || !m_selected || m_selected->IsMarkedForDestroy())
+		if (!m_isActive)
+			return;
+
+		// Grid at y = 0 (the game's debug view draws its own when it is on)
+		if (!Engine::GetInstance().GetDebugDraw().IsEnabled())
+			DrawGrid(80, 1.0f);
+
+		// Trigger volumes: translucent box from the collider, so they show even without a mesh
+		if (m_level)
+			for (const auto& owned : m_level->GetActors())
+			{
+				const GameActor& actor = *owned;
+				const Collider* collider = actor.GetComponent<Collider>();
+				if (actor.IsMarkedForDestroy() || !collider || !actor.GetComponent<TriggerVolume>() || actor.GetComponent<MeshRenderer>())
+					continue;
+
+				const BoundingBox box = collider->GetWorldBounds();
+				const Vector3 size = { box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z };
+				const Vector3 center = { (box.min.x + box.max.x) * 0.5f, (box.min.y + box.max.y) * 0.5f, (box.min.z + box.max.z) * 0.5f };
+				DrawCubeV(center, size, Fade(SKYBLUE, 0.25f));
+				DrawCubeWiresV(center, size, Fade(BLUE, 0.8f));
+			}
+
+		if (!m_selected || m_selected->IsMarkedForDestroy())
 			return;
 
 		DrawBoundingBox(Picker::GetActorBounds(*m_selected), ORANGE);

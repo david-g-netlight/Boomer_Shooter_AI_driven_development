@@ -121,7 +121,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `InspectorPanel` (incl. `RigidBody` / `Collider` fields) (+ `InspectorLayout` widgets, `Component::DrawInspector`, `ActorEdit` shared by gizmo and inspector; collider edits re‑create the body)
 - [x] `EditorToolbar` (Play / Reset / Move / Scale; Save / Load / Ctrl+S disabled until the serializer task)
 - [x] `LevelSerializer` + `ComponentRegistry` (`.lvl` format) (+ `PropertyBag`, `Component::Serialize / Deserialize` for MeshRenderer, Collider, RigidBody, TriggerVolume, CharacterMotor; toolbar Save / Load / Ctrl+S, Duplicate (Ctrl+D) enabled; `Application::GetLevelPath / OnLevelLoaded`; saves are mirrored into the source `assets/`)
-- [ ] Bullet debug wireframes in the editor overlay
+- [x] Bullet debug wireframes in the editor overlay (+ forced on while editing and restored on exit, toolbar Physics toggle, editor grid, translucent trigger boxes from the collider)
 - [ ] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
 
 ### Phase 10 — Game: state and player ⬜
@@ -195,6 +195,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 9 | All 10 Phase 9 tasks committed on `editor_mode` (Editor + LevelSnapshot, EditorCamera, Picker, TransformGizmo, Hierarchy / Inspector panels, toolbar, LevelSerializer, wireframe overlay); headless tests for snapshot, camera, picker, gizmo drag, serializer round trip (identical text on a second pass); real sandbox saved, edited, reloaded and played | Developer runs the Phase 9 **Done when** check | — |
 | 2026-11-08 | 8 | Developer validated Phase 8; devlog written; merged into `integration` | Start Phase 9 on `editor_mode` | — |
 | 2026-11-08 | 8 | All 6 Phase 8 tasks committed on `events_modes_menus`: focus‑loss auto‑pause and simulation freeze outside Play (closes the known gap); app smoke run starts clean in MainMenu | Developer runs the Phase 8 **Done when** check | — |
 | 2026-11-08 | 8 | 4 of 6 Phase 8 tasks committed on `events_modes_menus` (EventBus, ModeMachine, UI stack, menu screens); screenshots confirm main menu, pause menu and dialog. **Known gap:** the simulation still runs behind the pause menu until the last task | Auto‑pause on focus loss; freeze simulation outside Play | — |

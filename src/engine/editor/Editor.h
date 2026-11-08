@@ -101,6 +101,7 @@ namespace eng
 		Camera*			m_previousCamera = nullptr;	// the game's camera, active again after Exit()
 		EditorCamera	m_camera;
 		TransformGizmo	m_gizmo;
+		bool			m_physicsDebugWasOn = false;	// restored on Exit()
 		HierarchyPanel	m_hierarchy;
 		InspectorPanel	m_inspector;
 		EditorToolbar	m_toolbar;
