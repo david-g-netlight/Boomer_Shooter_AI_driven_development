@@ -119,7 +119,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `TransformGizmo` (move / scale) → `RigidBody::Teleport`, `Collider::SetScale` (W move / R scale, constant screen size, drag projects the mouse ray onto the axis, works with parented actors)
 - [x] `HierarchyPanel` (tree, select, rename, Add Cube / Add Trigger / Delete; Duplicate waits for the serializer) (+ panel layout helpers, hotkeys quiet while typing, clicks over panels never pick, banner shows the controls)
 - [x] `InspectorPanel` (incl. `RigidBody` / `Collider` fields) (+ `InspectorLayout` widgets, `Component::DrawInspector`, `ActorEdit` shared by gizmo and inspector; collider edits re‑create the body)
-- [ ] `EditorToolbar`
+- [x] `EditorToolbar` (Play / Reset / Move / Scale; Save / Load / Ctrl+S disabled until the serializer task)
 - [ ] `LevelSerializer` + `ComponentRegistry` (`.lvl` format)
 - [ ] Bullet debug wireframes in the editor overlay
 - [ ] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
