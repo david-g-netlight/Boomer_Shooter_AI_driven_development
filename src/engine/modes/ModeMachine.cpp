@@ -67,7 +67,10 @@ namespace eng
 
 	void ModeMachine::HandleInput(const InputManager& input)
 	{
-		if (input.IsKeyPressed(KEY_ESCAPE))
+		// ESC belongs to a dialog that is on top of the mode's own screen (settings, win / lose)
+		const UIScreen* top = Engine::GetInstance().GetUI().Top();
+		const bool isDialogOnTop = top != nullptr && top != m_modeScreen;
+		if (input.IsKeyPressed(KEY_ESCAPE) && !isDialogOnTop)
 		{
 			if (m_mode == EngineMode::Play)		Request(EngineMode::Paused);
 			else if (m_mode == EngineMode::Paused)	Request(EngineMode::Play);

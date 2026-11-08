@@ -151,7 +151,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Cleanup (allowed by the developer for this phase): vendored raylib sources, `external/` and build files removed from `include/raylib/` (only `raylib.h`, `raymath.h`, `rlgl.h`, `raygui.h` are used; the prebuilt `lib/libraylib.a` stays; the duplicate `include/raylib/libraylib.a` is gone), stale `build/` and root `my_app` deleted, unused `assets/fonts`, `assets/models` and the `.gitkeep` files removed (include 19 MB → 2.7 MB)
 - [x] `GunHUD` (factor text, crosshair, cooldown) (+ crosshair green on a Scalable in reach via `ScalingGun::IsAimingAtScalable`, dimmed cooldown ring; the Phase 3–6 sandbox is gone from `ScaleGame`: code‑built crates, pellets, minimap, debug panels, `TriggerCounter`, `Rotator`, `SelfDestructTimer`; `ScaleGame` is the clean Application layer now; screenshots of the HUD)
 - [x] `GunView` (separate pass) (+ new `Application::DrawViewModel()` hook after the world and before the HUD; the gun has its own camera and depth off, kicks back on a shot, bobs, its top light shows the factor and dims during the cooldown; muzzle wave particles made smaller; screenshot)
-- [ ] Settings (sensitivity, volumes, fullscreen)
+- [x] Settings (sensitivity, volumes, fullscreen) (+ `Settings` saved to `~/Library/Application Support/BuildToScale/settings.cfg`, `SettingsScreen` from the main and pause menus through new `Application::HasSettings / OnSettingsRequested`, ESC belongs to a dialog on top of the mode screen; headless round trip, clamping, apply to audio; screenshot)
 - [ ] Release build `ENG_EDITOR=0`, test on a clean Mac
 - [ ] README: controls, build, editor shortcuts
 - [ ] **Done when:** release binary + `assets/` runs on a machine with no dev tools

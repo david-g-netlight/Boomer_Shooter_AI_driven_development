@@ -17,6 +17,9 @@ bool ScaleGame::Init()
 	SoundFXBank::Instance().Load(resources);
 	m_music.Init(resources);		// menu / gameplay themes follow the engine mode
 
+	Settings::Instance().Load();
+	Settings::Instance().Apply();
+
 	RegisterComponents();
 	BindInput();
 	GameContext::SetGameState(&m_gameState);
@@ -99,6 +102,11 @@ void ScaleGame::SpawnPlayer()
 	const eng::SpawnPoint& spawn = m_level.GetSpawn();
 	const Vector3 feet = spawn.isSet ? spawn.position : Vector3{ 0.0f, 1.0f, 0.0f };
 	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera }, feet, spawn.isSet ? spawn.yawDegrees : 0.0f, false);
+}
+
+void ScaleGame::OnSettingsRequested()
+{
+	eng::Engine::GetInstance().GetUI().Push<SettingsScreen>();
 }
 
 void ScaleGame::OnStartRequested()

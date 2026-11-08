@@ -13,6 +13,8 @@
 #include "flow/TriggerZone.h"
 #include "ui/GameUI.h"
 #include "ui/GunHUD.h"
+#include "ui/SettingsScreen.h"
+#include "state/Settings.h"
 #include "player/GunView.h"
 #include "audio/MusicManager.h"
 
@@ -39,6 +41,8 @@ public:
 	void		OnReturnToMainMenu()			override;
 	void		OnRestartRequested()			override;
 	void		OnLevelLoaded()					override;
+	bool		HasSettings() const				override { return true; }
+	void		OnSettingsRequested()			override;
 	std::string	GetLevelPath() const			override;
 
 private:

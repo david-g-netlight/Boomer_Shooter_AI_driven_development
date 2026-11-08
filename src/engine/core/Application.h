@@ -71,6 +71,13 @@ namespace eng
 		virtual void OnLevelLoaded()		{}
 
 		/// <summary>
+		/// Menus show a Settings button when HasSettings() is true; pressing it calls OnSettingsRequested(), where the
+		/// game pushes its own settings screen on the UIStack.
+		/// </summary>
+		virtual bool HasSettings() const	{ return false; }
+		virtual void OnSettingsRequested()	{}
+
+		/// <summary>
 		/// Where the editor saves and loads the active level, relative to the executable ("assets/levels/x.lvl").
 		/// Empty = no Save / Load.
 		/// </summary>

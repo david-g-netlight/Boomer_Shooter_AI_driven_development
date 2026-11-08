@@ -3,6 +3,7 @@
 #include <cmath>
 #include <raymath.h>
 #include "player/PlayerInput.h"
+#include "state/Settings.h"
 
 void FirstPersonLook::Bind(PlayerInput* input, eng::Camera* camera)
 {
@@ -42,8 +43,9 @@ void FirstPersonLook::Update(float /*deltaTime*/)
 	if (m_input)
 	{
 		const Vector2 look = m_input->GetLook();	// zero while the player has no control
-		m_yaw	+= look.x * SENSITIVITY;
-		m_pitch	= std::clamp(m_pitch - look.y * SENSITIVITY, -MAX_PITCH, MAX_PITCH);	// screen y grows downwards
+		const float sensitivity = SENSITIVITY * Settings::Instance().mouseSensitivity;
+		m_yaw	+= look.x * sensitivity;
+		m_pitch	= std::clamp(m_pitch - look.y * sensitivity, -MAX_PITCH, MAX_PITCH);	// screen y grows downwards
 	}
 	Apply();
 }
