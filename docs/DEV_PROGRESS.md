@@ -22,15 +22,15 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 5 | Scene: GameActor, Component, Level | ✅ | 2026-11-06 | 2026-11-07 | [devlog](scene_devlog.md) |
 | 6 | Physics (Bullet 3.25) | ✅ | 2026-11-07 | 2026-11-07 | [devlog](physics_devlog.md) |
 | 7 | FX: particles and lines | ✅ | 2026-11-07 | 2026-11-07 | [devlog](fx_devlog.md) |
-| 8 | Events, modes, menus | 🟡 | 2026-11-07 | | |
-| 9 | Editor mode | ⬜ | | | |
+| 8 | Events, modes, menus | ✅ | 2026-11-07 | 2026-11-08 | [devlog](devlogs/events_modes_menus_devlog.md) |
+| 9 | Editor mode | 🟡 | 2026-11-08 | | |
 | 10 | Game: state and player | ⬜ | | | |
 | 11 | Game: scaling mechanic | ⬜ | | | |
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 8
-**Branch:** `events_modes_menus` (from `integration`)
+**Current focus:** Phase 9
+**Branch:** `editor_mode` (from `integration`)
 
 ---
 
@@ -103,16 +103,16 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `LineRenderer` (thick gradient line) (+ RenderQueue transparent line pass: open tube, per‑vertex gradient; LMB / RMB beams that fade in 0.35 s)
 - [x] **Done when:** click spawns a colored burst and a fading beam *(validated by the developer)*
 
-### Phase 8 — Events, modes, menus 🟡
+### Phase 8 — Events, modes, menus ✅
 - [x] `EventBus` (queued dispatch)
 - [x] `ModeMachine` (MainMenu / Play / Paused / Editor; cursor, audio duck, hooks) (+ ESC / TAB, `ModeChangedEvent`, `Application::GetStartMode`; removed the C / P demo keys)
 - [x] `UIStack`, `UIScreen`, `UIStyle`, `RayGuiImpl.cpp`
 - [x] `MainMenuScreen`, `PauseMenuScreen`, `MessageScreen` (+ ModeMachine shows the mode's screen, editor placeholder banner, Restart rebuilds the sandbox, EventBus → dialog demo)
 - [x] Auto‑pause on focus loss (`ModeMachine::HandleFocus`, focus‑lost edge only; never auto‑resumes)
 - [x] Physics not stepped while Paused / Menu / Editor (+ fixed accumulator, `Level::Update` and particles gated on Play; sandbox clicks ignored outside Play)
-- [ ] **Done when:** Menu → Start → Play → ESC pause (frozen, crates stay mid‑air) → Resume exactly where it was → Menu → Quit
+- [x] **Done when:** Menu → Start → Play → ESC pause (frozen, crates stay mid‑air) → Resume exactly where it was → Menu → Quit
 
-### Phase 9 — Editor mode ⬜
+### Phase 9 — Editor mode 🟡
 - [ ] TAB enter/exit, `LevelSnapshot` capture
 - [ ] `EditorCamera`
 - [ ] `Picker` (physics raycast first, render bounds fallback)
@@ -191,6 +191,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 8 | Developer validated Phase 8; devlog written; merged into `integration` | Start Phase 9 on `editor_mode` | — |
 | 2026-11-08 | 8 | All 6 Phase 8 tasks committed on `events_modes_menus`: focus‑loss auto‑pause and simulation freeze outside Play (closes the known gap); app smoke run starts clean in MainMenu | Developer runs the Phase 8 **Done when** check | — |
 | 2026-11-08 | 8 | 4 of 6 Phase 8 tasks committed on `events_modes_menus` (EventBus, ModeMachine, UI stack, menu screens); screenshots confirm main menu, pause menu and dialog. **Known gap:** the simulation still runs behind the pause menu until the last task | Auto‑pause on focus loss; freeze simulation outside Play | — |
 | 2026-11-07 | 7 | Developer validated Phase 7 (and deleted the accidental `list` branch); devlog written; merged into `integration` | Start Phase 8 on `events_modes_menus` | — |
