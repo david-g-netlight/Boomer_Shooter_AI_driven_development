@@ -29,13 +29,7 @@ bool ScaleGame::Init()
 
 	LoadCurrentLevel();
 
-	// The scaling gun reports every shot: beam, impact burst and sound (replaced by RayBeamSpawner and Scalable)
-	m_shotToken = eng::Engine::GetInstance().GetEvents().Subscribe<ScalingShotEvent>([this](const ScalingShotEvent& shot)
-	{
-		FireBeam(shot.sign, shot.muzzle, shot.point);
-		if (shot.hasHit)
-			EmitImpact(shot.sign, shot.point, shot.normal);
-	});
+	m_beams.Init(&m_level);	// every gun shot: muzzle burst, beam, impact, sound
 
 	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
 	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
@@ -207,36 +201,6 @@ void ScaleGame::SpawnPlayer()
 	const eng::SpawnPoint& spawn = m_level.GetSpawn();
 	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera },
 		spawn.isSet ? spawn.position : SANDBOX_SPAWN, spawn.isSet ? spawn.yawDegrees : SANDBOX_SPAWN_YAW, true);
-}
-
-void ScaleGame::EmitImpact(float sign, const Vector3& point, const Vector3& normal)
-{
-
-	// Unity BeamImpactParticle / RayBeamController gradients: stretch blue, shrink yellow, alpha 1 -> 0
-	eng::ParticleEmitterSettings impact;
-	impact.burstCount		= 40;
-	impact.speed			= 3.5f;
-	impact.spreadDegrees	= 70.0f;
-	impact.gravity			= { 0.0f, -3.0f, 0.0f };
-	impact.additive			= true;
-	impact.startColor		= sign > 0.0f ? Color{ 40, 120, 255, 255 } : Color{ 255, 220, 40, 255 };
-	impact.endColor			= sign > 0.0f ? Color{ 40, 255, 120, 0 }   : Color{ 255, 60, 20, 0 };
-	eng::Engine::GetInstance().GetParticles().Emit(impact, point, normal);
-}
-
-void ScaleGame::FireBeam(float sign, const Vector3& muzzle, const Vector3& target)
-{
-
-	constexpr float FADE_SECONDS = 0.35f;
-	eng::GameActor* beam = m_level.CreateGameActor("Beam");
-	eng::LineRenderer* line = beam->AddComponent<eng::LineRenderer>();
-	line->SetPoints(muzzle, target);
-	// Unity RayBeamController: stretch blue -> green, shrink yellow -> red
-	line->SetColors(sign > 0.0f ? Color{ 40, 120, 255, 230 } : Color{ 255, 220, 40, 230 },
-					sign > 0.0f ? Color{ 40, 255, 120, 200 } : Color{ 255, 60, 20, 200 });
-	line->SetWidth(0.06f, 0.02f);
-	line->FadeOut(FADE_SECONDS);
-	beam->AddComponent<SelfDestructTimer>(FADE_SECONDS);
 }
 
 bool ScaleGame::IsCrate(const eng::GameActor* actor) const
@@ -566,7 +530,7 @@ void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
-	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_shotToken);
+	m_beams.Shutdown();
 	ClearSandbox();
 	SoundFXBank::Instance().Clear();
 	m_themeMenu		= nullptr;

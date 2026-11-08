@@ -8,6 +8,7 @@
 #include "player/PlayerActor.h"
 #include "player/ScalingGun.h"
 #include "props/Scalable.h"
+#include "fx/RayBeamSpawner.h"
 #include <optional>
 #include <vector>
 
@@ -60,8 +61,6 @@ private:
 	void		SpawnPlayer();
 	void		ThrowPellet();
 	void		UpdatePellets();
-	void		EmitImpact(float sign, const Vector3& point, const Vector3& normal);
-	void		FireBeam(float sign, const Vector3& muzzle, const Vector3& target);
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();
@@ -85,7 +84,7 @@ private:
 	int						m_deletedCrates	= 0;
 	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
 	eng::EventBus::Token	m_triggerToken	= 0;
-	eng::EventBus::Token	m_shotToken		= 0;
+	RayBeamSpawner			m_beams;
 
 	// The player (PlayerActor): spawn point of the sandbox, feet position
 	static constexpr Vector3	SANDBOX_SPAWN		= { 0.0f, 0.0f, 10.0f };

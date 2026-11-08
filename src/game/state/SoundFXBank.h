@@ -7,6 +7,7 @@ enum class Sfx
 {
 	Stretch,
 	Shrink,
+	Beam,
 	Count,
 };
 
