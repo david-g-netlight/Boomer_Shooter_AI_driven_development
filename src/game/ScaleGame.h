@@ -23,6 +23,8 @@ public:
 	const char*	GetTitle() const				override;
 	eng::Level*	GetActiveLevel()				override;
 	void		OnRestartRequested()			override;
+	void		OnLevelLoaded()					override;
+	std::string	GetLevelPath() const			override;
 
 private:
 	struct BoxDesc

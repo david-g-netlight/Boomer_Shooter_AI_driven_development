@@ -104,6 +104,9 @@ namespace eng
 		//////////////////////////////////////////
 		void				OnEnable() override;
 		void				OnDisable() override;
+		void			DrawInspector(InspectorLayout& ui) override;
+		void			Serialize(PropertyBag& out) const override;
+		void			Deserialize(const PropertyBag& in) override;
 		const char*			TypeName() const override { return "RigidBody"; }
 
 	private:

@@ -7,6 +7,8 @@
 #include "core/Log.h"
 #include "level/GameActor.h"
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include "editor/InspectorLayout.h"
+#include <cstdio>
 
 namespace eng
 {
@@ -72,5 +74,12 @@ namespace eng
 		Engine::GetInstance().GetPhysics().UnregisterTrigger(*this);
 		m_impl->ghost.reset();
 		m_inside.clear();
+	}
+
+	void TriggerVolume::DrawInspector(InspectorLayout& ui)
+	{
+		char text[16];
+		std::snprintf(text, sizeof(text), "%zu", GetOverlapCount());
+		ui.Info("Overlapping", text);
 	}
 }

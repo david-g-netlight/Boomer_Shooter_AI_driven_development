@@ -129,9 +129,13 @@ namespace eng
 		return &m_primitives[index];
 	}
 
+	void ResourceManager::SetDefaultLitShader(const Shader* shader)	{ m_defaultLitShader = shader; }
+	const Shader* ResourceManager::GetDefaultLitShader() const		{ return m_defaultLitShader; }
+
 	void ResourceManager::UnloadAll()
 	{
 		const size_t count = GetLoadedCount();
+		m_defaultLitShader = nullptr;
 
 		for (auto& [path, model]   : m_models)		UnloadModel(model);
 		for (auto& [path, texture] : m_textures)	UnloadTexture(texture);

@@ -4,6 +4,8 @@ namespace eng
 {
 	class GameActor;
 	class RenderQueue;
+	class InspectorLayout;
+	class PropertyBag;
 
 	/// <summary>
 	/// A piece of behaviour or data attached to a GameActor (like a Unity MonoBehaviour).
@@ -35,6 +37,18 @@ namespace eng
 		/// </summary>
 		virtual void		OnTriggerEnter(GameActor& /*other*/) {}
 		virtual void		OnTriggerExit(GameActor& /*other*/) {}
+
+		/// <summary>
+		/// Editor only: draws this component's fields in the inspector (see InspectorLayout).
+		/// </summary>
+		virtual void		DrawInspector(InspectorLayout& /*ui*/) {}
+
+		/// <summary>
+		/// Level files: write the fields worth saving / read them back (see PropertyBag). Deserialize() runs
+		/// right after the component was created and enabled, so use setters that apply immediately.
+		/// </summary>
+		virtual void		Serialize(PropertyBag& /*out*/) const {}
+		virtual void		Deserialize(const PropertyBag& /*in*/) {}
 
 		virtual const char*	TypeName() const = 0;
 

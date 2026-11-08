@@ -110,6 +110,7 @@ namespace eng
 		}
 
 		size_t				GetComponentCount() const;
+		const std::vector<std::unique_ptr<Component>>& GetComponents() const;	// editor: the inspector lists them
 
 		//////////////////////////////////////////
 		/// Per-frame hooks for derived actors, called after the components

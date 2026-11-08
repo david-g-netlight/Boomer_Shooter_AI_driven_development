@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "modes/EngineMode.h"
 
 namespace eng
@@ -57,6 +58,17 @@ namespace eng
 		virtual void OnExitEditor()			{}
 		virtual void OnReturnToMainMenu()	{}
 		virtual void OnRestartRequested()	{}
+
+		/// <summary>
+		/// The editor cleared the active level and loaded a file into it: every pointer to an old actor is gone.
+		/// </summary>
+		virtual void OnLevelLoaded()		{}
+
+		/// <summary>
+		/// Where the editor saves and loads the active level, relative to the executable ("assets/levels/x.lvl").
+		/// Empty = no Save / Load.
+		/// </summary>
+		virtual std::string GetLevelPath() const { return {}; }
 
 		/// <summary>
 		/// Mode the engine enters after Init(). Defaults to the main menu.

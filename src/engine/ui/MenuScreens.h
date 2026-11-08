@@ -56,7 +56,7 @@ namespace eng
 	};
 
 	/// <summary>
-	/// TODO(Phase 9): placeholder banner while the editor UI doesn't exist yet.
+	/// Top bar of the editor: the controls at a glance (the panels are drawn by the Editor itself).
 	/// </summary>
 	class EditorBannerScreen : public UIScreen
 	{

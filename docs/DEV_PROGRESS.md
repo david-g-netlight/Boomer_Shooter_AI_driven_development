@@ -23,14 +23,14 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 6 | Physics (Bullet 3.25) | ✅ | 2026-11-07 | 2026-11-07 | [devlog](physics_devlog.md) |
 | 7 | FX: particles and lines | ✅ | 2026-11-07 | 2026-11-07 | [devlog](fx_devlog.md) |
 | 8 | Events, modes, menus | ✅ | 2026-11-07 | 2026-11-08 | [devlog](devlogs/events_modes_menus_devlog.md) |
-| 9 | Editor mode | 🟡 | 2026-11-08 | | |
-| 10 | Game: state and player | ⬜ | | | |
+| 9 | Editor mode | ✅ | 2026-11-08 | 2026-11-08 | [devlog](devlogs/editor_mode_devlog.md) |
+| 10 | Game: state and player | 🟡 | 2026-11-08 | | |
 | 11 | Game: scaling mechanic | ⬜ | | | |
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 9
-**Branch:** `editor_mode` (from `integration`)
+**Current focus:** Phase 10
+**Branch:** `game_state_and_player` (from `integration`)
 
 ---
 
@@ -112,17 +112,19 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Physics not stepped while Paused / Menu / Editor (+ fixed accumulator, `Level::Update` and particles gated on Play; sandbox clicks ignored outside Play)
 - [x] **Done when:** Menu → Start → Play → ESC pause (frozen, crates stay mid‑air) → Resume exactly where it was → Menu → Quit
 
-### Phase 9 — Editor mode 🟡
-- [ ] TAB enter/exit, `LevelSnapshot` capture
-- [ ] `EditorCamera`
-- [ ] `Picker` (physics raycast first, render bounds fallback)
-- [ ] `TransformGizmo` (move / scale) → `RigidBody::Teleport`, `Collider::SetScale`
-- [ ] `HierarchyPanel`, `InspectorPanel` (incl. `RigidBody` / `Collider` fields), `EditorToolbar`
-- [ ] `LevelSerializer` + `ComponentRegistry` (`.lvl` format)
-- [ ] Bullet debug wireframes in the editor overlay
-- [ ] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
+### Phase 9 — Editor mode ✅
+- [x] TAB enter/exit, `LevelSnapshot` capture (+ `Editor` coordinator owned by the Engine; snapshot = actor state, deleted actors can't be restored until the serializer)
+- [x] `EditorCamera` (RMB look + WASD/QE fly, Shift fast, wheel speed, `FocusOn` for F; swaps the active camera on enter/exit)
+- [x] `Picker` (physics raycast first, render bounds fallback) (+ Editor selection: LMB picks, orange bounds highlight, F focuses the camera, selection dropped when the actor goes)
+- [x] `TransformGizmo` (move / scale) → `RigidBody::Teleport`, `Collider::SetScale` (W move / R scale, constant screen size, drag projects the mouse ray onto the axis, works with parented actors)
+- [x] `HierarchyPanel` (tree, select, rename, Add Cube / Add Trigger / Delete; Duplicate waits for the serializer) (+ panel layout helpers, hotkeys quiet while typing, clicks over panels never pick, banner shows the controls)
+- [x] `InspectorPanel` (incl. `RigidBody` / `Collider` fields) (+ `InspectorLayout` widgets, `Component::DrawInspector`, `ActorEdit` shared by gizmo and inspector; collider edits re‑create the body)
+- [x] `EditorToolbar` (Play / Reset / Move / Scale; Save / Load / Ctrl+S disabled until the serializer task)
+- [x] `LevelSerializer` + `ComponentRegistry` (`.lvl` format) (+ `PropertyBag`, `Component::Serialize / Deserialize` for MeshRenderer, Collider, RigidBody, TriggerVolume, CharacterMotor; toolbar Save / Load / Ctrl+S, Duplicate (Ctrl+D) enabled; `Application::GetLevelPath / OnLevelLoaded`; saves are mirrored into the source `assets/`)
+- [x] Bullet debug wireframes in the editor overlay (+ forced on while editing and restored on exit, toolbar Physics toggle, editor grid, translucent trigger boxes from the collider)
+- [x] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
 
-### Phase 10 — Game: state and player ⬜
+### Phase 10 — Game: state and player 🟡
 - [ ] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11)
 - [ ] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList`
 - [ ] `PlayerInput`
@@ -169,6 +171,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | D9 | 2026-11-06 | **Phase order changed by the developer:** 4 Audio, 5 Scene, 6 Physics (was 4 Scene, 5 Physics, 6 Audio) | Audio is simpler and has fewer dependencies. Devlogs written before this keep the old numbers | §5, tracker |
 | D10 | 2026-11-06 | `AudioSource` is a standalone class in Phase 4 and becomes a `Component` in Phase 5; "pause ducks music" is shown with a demo key until Phase 8 | `Component` and Pause don't exist yet when Audio is built | Phase 4, 5, 8 |
 | D11 | 2026-11-07 | `ActorHandle` (id‑based weak actor reference) added as the first Phase 10 task | Developer decision after the Phase 6 ASan finding: gameplay code (player, triggers, beams) must not hold raw `GameActor*` that can dangle | Phase 10, known issues |
+| D12 | 2026-11-08 | Level files use one `PropertyBag` (key=value) for both `Serialize` and `Deserialize` instead of separate `LevelWriter` / `LevelReader`; actors with an unregistered component are not saved (transient beams, timers); mesh colliders and model meshes are not serializable yet | Simpler API, same format as plan §8; avoids saving runtime-only actors | Phase 9 |
+| D13 | 2026-11-08 | `ResourceManager::SetDefaultLitShader` carries the game's lit shader (`lit=1` in level files, editor cubes) | Level loading must work in release builds, so it can't live in the editor class | Phase 9 |
 
 ---
 
@@ -191,6 +195,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 9 | Developer validated Phase 9; devlog written; merged into `integration` | Start Phase 10 on `game_state_and_player` | — |
+| 2026-11-08 | 9 | All 10 Phase 9 tasks committed on `editor_mode` (Editor + LevelSnapshot, EditorCamera, Picker, TransformGizmo, Hierarchy / Inspector panels, toolbar, LevelSerializer, wireframe overlay); headless tests for snapshot, camera, picker, gizmo drag, serializer round trip (identical text on a second pass); real sandbox saved, edited, reloaded and played | Developer runs the Phase 9 **Done when** check | — |
 | 2026-11-08 | 8 | Developer validated Phase 8; devlog written; merged into `integration` | Start Phase 9 on `editor_mode` | — |
 | 2026-11-08 | 8 | All 6 Phase 8 tasks committed on `events_modes_menus`: focus‑loss auto‑pause and simulation freeze outside Play (closes the known gap); app smoke run starts clean in MainMenu | Developer runs the Phase 8 **Done when** check | — |
 | 2026-11-08 | 8 | 4 of 6 Phase 8 tasks committed on `events_modes_menus` (EventBus, ModeMachine, UI stack, menu screens); screenshots confirm main menu, pause menu and dialog. **Known gap:** the simulation still runs behind the pause menu until the last task | Auto‑pause on focus loss; freeze simulation outside Play | — |

@@ -47,6 +47,7 @@ namespace eng
 		void			SetCenter(const Vector3& center);		// local offset, scaled with the shape
 		void			SetBottomPivot(bool bottomPivot);		// center = (0, half height, 0)
 		const Vector3&	GetCenter() const;
+		bool			IsBottomPivot() const;
 
 		ColliderShape	GetShapeType() const;
 		const Vector3&	GetHalfExtents() const;				// box
@@ -78,6 +79,9 @@ namespace eng
 		/// </summary>
 		btCollisionShape*	GetNativeShape();
 
+		void			DrawInspector(InspectorLayout& ui) override;
+		void			Serialize(PropertyBag& out) const override;
+		void			Deserialize(const PropertyBag& in) override;
 		const char*		TypeName() const override { return "Collider"; }
 
 	private:

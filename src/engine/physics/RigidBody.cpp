@@ -8,6 +8,9 @@
 #include "core/Log.h"
 #include "level/GameActor.h"
 #include <algorithm>
+#include "editor/InspectorLayout.h"
+#include "level/PropertyBag.h"
+#include <cstdio>
 
 namespace eng
 {
@@ -314,5 +317,73 @@ namespace eng
 	btRigidBody* RigidBody::GetNativeBody() const
 	{
 		return m_impl->body.get();
+	}
+
+	void RigidBody::DrawInspector(InspectorLayout& ui)
+	{
+		static constexpr const char* TYPE_NAMES[]	= { "Static", "Dynamic", "Kinematic" };
+		static constexpr const char* CCD_NAMES[]	= { "Auto", "On", "Off" };
+
+		int type = static_cast<int>(m_settings.type);
+		if (ui.Choice("Type", TYPE_NAMES, 3, type))
+			SetType(static_cast<BodyType>(type));
+
+		float mass = m_settings.mass;
+		if (ui.Float("Mass", mass))
+			SetMass(mass > 0.01f ? mass : 0.01f);
+
+		float friction = m_settings.friction, restitution = m_settings.restitution;
+		if (ui.Float("Friction", friction))			SetFriction(friction);
+		if (ui.Float("Restitution", restitution))	SetRestitution(restitution);
+
+		float linear = m_settings.linearDamping, angular = m_settings.angularDamping;
+		const bool l = ui.Float("Linear damping", linear);
+		const bool a = ui.Float("Angular damping", angular);
+		if (l || a)
+			SetDamping(linear, angular);
+
+		bool lockRotation = m_settings.lockRotation;
+		if (ui.Bool("Lock rotation", lockRotation))
+			SetLockRotation(lockRotation);
+
+		int ccd = static_cast<int>(m_settings.ccd);
+		if (ui.Choice("CCD", CCD_NAMES, 3, ccd))
+			SetCcdMode(static_cast<CcdMode>(ccd));
+
+		char text[64];
+		const Vector3 v = GetLinearVelocity();
+		std::snprintf(text, sizeof(text), "%.2f %.2f %.2f", static_cast<double>(v.x), static_cast<double>(v.y), static_cast<double>(v.z));
+		ui.Info("Velocity", text);
+		ui.Info("Sleeping", IsSleeping() ? "yes" : "no");
+	}
+
+	void RigidBody::Serialize(PropertyBag& out) const
+	{
+		static constexpr const char* TYPES[]	= { "static", "dynamic", "kinematic" };
+		static constexpr const char* CCD[]		= { "auto", "on", "off" };
+
+		out.SetString("type", TYPES[static_cast<int>(m_settings.type)]);
+		out.SetFloat("mass", m_settings.mass);
+		out.SetFloat("friction", m_settings.friction);
+		out.SetFloat("restitution", m_settings.restitution);
+		out.SetFloat("linearDamping", m_settings.linearDamping);
+		out.SetFloat("angularDamping", m_settings.angularDamping);
+		if (m_settings.lockRotation)
+			out.SetBool("lockRotation", true);
+		out.SetString("ccd", CCD[static_cast<int>(m_settings.ccd)]);
+	}
+
+	void RigidBody::Deserialize(const PropertyBag& in)
+	{
+		const std::string type = in.GetString("type", "dynamic");
+		SetType(type == "static" ? BodyType::Static : (type == "kinematic" ? BodyType::Kinematic : BodyType::Dynamic));
+		SetMass(in.GetFloat("mass", m_settings.mass));
+		SetFriction(in.GetFloat("friction", m_settings.friction));
+		SetRestitution(in.GetFloat("restitution", m_settings.restitution));
+		SetDamping(in.GetFloat("linearDamping", m_settings.linearDamping), in.GetFloat("angularDamping", m_settings.angularDamping));
+		SetLockRotation(in.GetBool("lockRotation", false));
+
+		const std::string ccd = in.GetString("ccd", "auto");
+		SetCcdMode(ccd == "on" ? CcdMode::On : (ccd == "off" ? CcdMode::Off : CcdMode::Auto));
 	}
 }

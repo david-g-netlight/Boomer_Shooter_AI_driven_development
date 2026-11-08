@@ -12,6 +12,8 @@ bool ScaleGame::Init()
 
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
 	m_litShader		= resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
+	resources.SetDefaultLitShader(m_litShader);	// level files (lit=1) and editor-made cubes use it
+	eng::Engine::GetInstance().GetComponentRegistry().Register<TriggerCounter>("TriggerCounter");
 	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
 	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
 
@@ -310,6 +312,38 @@ void ScaleGame::OnRestartRequested()
 	BuildSandbox();
 	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
 	eng::Log::Info("ScaleGame: sandbox rebuilt");
+}
+
+void ScaleGame::OnLevelLoaded()
+{
+	// The editor replaced every actor: find the ones the sandbox logic works with again
+	m_aimHit.reset();
+	m_triggerCounter	= nullptr;
+	m_player			= nullptr;
+	m_isPlayerMode		= false;
+	m_pellets.clear();
+	m_crates.clear();
+
+	for (const auto& owned : m_level.GetActors())
+	{
+		eng::GameActor* actor = owned.get();
+		if (actor->GetComponent<eng::CharacterMotor>())
+			m_player = actor;
+		else if (TriggerCounter* counter = actor->GetComponent<TriggerCounter>())
+			m_triggerCounter = counter;
+		else if (const eng::RigidBody* body = actor->GetComponent<eng::RigidBody>();
+				 body && body->GetType() == eng::BodyType::Dynamic && actor->GetName() != "Pellet")
+			m_crates.push_back(actor);
+	}
+
+	if (!m_player)
+		SpawnPlayer();	// a level file without a player still has to be playable in the sandbox
+	eng::Log::Info("ScaleGame: level loaded, %zu crates", m_crates.size());
+}
+
+std::string ScaleGame::GetLevelPath() const
+{
+	return "assets/levels/sandbox.lvl";
 }
 
 void ScaleGame::PruneDestroyedCrates()

@@ -3,6 +3,11 @@
 #include "EngineInfo.h"
 #include "Log.h"
 #include "level/Level.h"
+#include "physics/Collider.h"
+#include "physics/RigidBody.h"
+#include "physics/TriggerVolume.h"
+#include "physics/CharacterMotor.h"
+#include "render/MeshRenderer.h"
 #include "ui/UIStyle.h"
 #include <raylib.h>
 
@@ -58,6 +63,13 @@ namespace eng
 
 		// A missing audio device is not fatal: the game runs silently
 		m_audio.Init();
+
+		m_componentRegistry.Register<MeshRenderer>("MeshRenderer");
+		m_componentRegistry.Register<Collider>("Collider");
+		m_componentRegistry.Register<RigidBody>("RigidBody");
+		m_componentRegistry.Register<TriggerVolume>("TriggerVolume");
+		m_componentRegistry.Register<CharacterMotor>("CharacterMotor");
+
 		m_physics.Init(m_world.gravity);
 
 		m_defaultCamera.SetPosition({ 0.0f, 2.0f, 5.0f });
@@ -118,6 +130,8 @@ namespace eng
 				if (level) level->Update(m_time.GetDeltaTime());
 				m_particles.Update(m_time.GetDeltaTime());
 			}
+			if (m_modes.GetMode() == EngineMode::Editor)
+				m_editor.Update(m_inputManager, m_time.GetUnscaledDeltaTime());
 			m_app->Update(m_time.GetDeltaTime());	// always runs: menu backdrop, editor camera, input
 
 			// UI (unscaled: menus work while the game is frozen)
@@ -142,10 +156,13 @@ namespace eng
 					m_particles.Draw(*m_activeCamera.GetActiveCamera());	// transparent, after the opaque pass
 					m_debugDraw.Draw3D();
 					m_physics.DebugDraw();
+					m_editor.Draw3D();
 				m_activeCamera.End3D();
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 
 				m_app->DrawHUD();
+				if (m_modes.GetMode() == EngineMode::Editor)
+					m_editor.DrawPanels();
 				m_ui.Draw();	// menus and dialogs on top of everything
 			EndDrawing(); // Swaps buffers and polls input events
 
@@ -246,6 +263,16 @@ namespace eng
 	EventBus& Engine::GetEvents()
 	{
 		return m_events;
+	}
+
+	ComponentRegistry& Engine::GetComponentRegistry()
+	{
+		return m_componentRegistry;
+	}
+
+	Editor& Engine::GetEditor()
+	{
+		return m_editor;
 	}
 
 	ModeMachine& Engine::GetModes()

@@ -3,6 +3,10 @@
 #include "level/GameActor.h"
 #include <algorithm>
 #include <raymath.h>
+#include "editor/InspectorLayout.h"
+#include "core/Engine.h"
+#include "core/Log.h"
+#include "level/PropertyBag.h"
 
 namespace eng
 {
@@ -107,5 +111,73 @@ namespace eng
 			m_localBounds = GetMeshBoundingBox(*m_mesh);
 		else
 			m_localBounds = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	}
+
+	void MeshRenderer::DrawInspector(InspectorLayout& ui)
+	{
+		ui.Bool("Visible", m_isVisible);
+		if (m_ownMaterial)
+		{
+			Color tint = m_ownMaterial->GetTint();
+			if (ui.Tint("Tint", tint))
+				m_ownMaterial->SetTint(tint);
+		}
+		else
+		{
+			ui.Info("Material", "shared");
+		}
+	}
+
+	namespace
+	{
+		constexpr const char* PRIMITIVE_NAMES[] = { "cube", "plane", "sphere", "cylinder" };
+	}
+
+	void MeshRenderer::Serialize(PropertyBag& out) const
+	{
+		ResourceManager& resources = Engine::GetInstance().GetResources();
+		bool isPrimitive = false;
+		for (int i = 0; i < static_cast<int>(Primitive::Count) && m_mesh; ++i)
+			if (m_mesh == resources.GetPrimitive(static_cast<Primitive>(i)))
+			{
+				out.SetString("mesh", PRIMITIVE_NAMES[i]);
+				isPrimitive = true;
+			}
+
+		if (!isPrimitive)
+			Log::Warning("MeshRenderer: only primitive meshes are saved in level files ('%s')",
+				GetOwner() ? GetOwner()->GetName().c_str() : "?");
+
+		if (!m_isVisible)
+			out.SetBool("visible", false);
+
+		if (m_ownMaterial)
+		{
+			out.SetColor("tint", m_ownMaterial->GetTint());
+			const Shader* lit = resources.GetDefaultLitShader();
+			if (lit && m_ownMaterial->GetShader().id == lit->id)
+				out.SetBool("lit", true);
+			if (m_ownMaterial->HasParameter("specularStrength"))
+				out.SetFloat("specular", m_ownMaterial->GetParameter("specularStrength"));
+		}
+	}
+
+	void MeshRenderer::Deserialize(const PropertyBag& in)
+	{
+		ResourceManager& resources = Engine::GetInstance().GetResources();
+		const std::string mesh = in.GetString("mesh", "cube");
+		for (int i = 0; i < static_cast<int>(Primitive::Count); ++i)
+			if (mesh == PRIMITIVE_NAMES[i])
+				SetMesh(resources.GetPrimitive(static_cast<Primitive>(i)));
+
+		SetVisible(in.GetBool("visible", true));
+
+		if (in.Has("tint") || in.GetBool("lit"))
+		{
+			Material& material = CreateOwnMaterial(in.GetBool("lit") ? resources.GetDefaultLitShader() : nullptr);
+			material.SetTint(in.GetColor("tint", WHITE));
+			if (in.Has("specular"))
+				material.SetParameter("specularStrength", in.GetFloat("specular"));
+		}
 	}
 }
