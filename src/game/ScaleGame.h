@@ -9,6 +9,11 @@
 #include "player/ScalingGun.h"
 #include "props/Scalable.h"
 #include "fx/RayBeamSpawner.h"
+#include "flow/GameContext.h"
+#include "flow/GameplayManager.h"
+#include "ui/GameUI.h"
+#include "audio/MusicManager.h"
+#include "flow/TriggerZone.h"
 #include <optional>
 #include <vector>
 
@@ -53,7 +58,7 @@ private:
 
 	void		BindInput();
 	void		ClearSandbox();
-	void		LoadCurrentLevel();			// the LevelList's file, or the code sandbox when it is missing
+	bool		LoadLevelFile(const std::string& path);	// the GameplayManager's loader: file, or the code sandbox when it is missing
 	void		RebindActors();				// crates, trigger counter after a level was loaded
 	void		BuildSandbox();
 	eng::GameActor*	SpawnBox(const BoxDesc& desc);
@@ -61,7 +66,6 @@ private:
 	void		SpawnPlayer();
 	void		ThrowPellet();
 	void		UpdatePellets();
-	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();
 	bool		IsCrate(const eng::GameActor* actor) const;
@@ -83,7 +87,6 @@ private:
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
 	int						m_deletedCrates	= 0;
 	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
-	eng::EventBus::Token	m_triggerToken	= 0;
 	RayBeamSpawner			m_beams;
 
 	// The player (PlayerActor): spawn point of the sandbox, feet position
@@ -128,11 +131,9 @@ private:
 	PlayerState		m_playerState;		// scale factor (wheel), cooldown
 	PlayerInput		m_input{ m_playerState };
 	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
-	LevelList		m_levels			= LevelList::Default();
+	GameplayManager	m_gameplay;
+	GameUI			m_gameUI;
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
-	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds
-	static constexpr float	MUSIC_CROSSFADE		= 2.0f;
-	Music*		m_themeMenu				= nullptr;
-	Music*		m_themeGame				= nullptr;
+	MusicManager	m_music;
 };

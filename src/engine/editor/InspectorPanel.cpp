@@ -1,6 +1,10 @@
 #include "InspectorPanel.h"
 #include <algorithm>
 #include <raymath.h>
+#include <string>
+#include <vector>
+#include "core/Engine.h"
+#include "core/Log.h"
 #include "editor/ActorEdit.h"
 #include "editor/Editor.h"
 #include "editor/EditorUI.h"
@@ -71,6 +75,24 @@ namespace eng
 			if (m_layout.Bool("Enabled", isEnabled))
 				component->SetEnabled(isEnabled);
 			component->DrawInspector(m_layout);
+		}
+
+		// Add Component: any registered type (the game registers its own). Order matters: a Collider goes
+		// before the RigidBody / TriggerVolume that use it
+		m_layout.Header("Add Component");
+		const std::vector<std::string> names = Engine::GetInstance().GetComponentRegistry().GetTypeNames();
+		if (!names.empty())
+		{
+			std::vector<const char*> labels;
+			for (const std::string& name : names)
+				labels.push_back(name.c_str());
+			m_addIndex = std::min(m_addIndex, static_cast<int>(names.size()) - 1);
+			m_layout.Choice("Type", labels.data(), static_cast<int>(labels.size()), m_addIndex);
+			if (m_layout.Button("Add"))
+			{
+				Engine::GetInstance().GetComponentRegistry().Create(names[static_cast<size_t>(m_addIndex)], *actor);
+				Log::Info("Editor: added %s to '%s'", names[static_cast<size_t>(m_addIndex)].c_str(), actor->GetName().c_str());
+			}
 		}
 
 		m_contentHeight = m_layout.End() + 8.0f;

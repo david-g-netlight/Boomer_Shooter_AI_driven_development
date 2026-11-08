@@ -27,5 +27,6 @@ namespace eng
 		Vector2				m_scroll			= { 0.0f, 0.0f };
 		float				m_contentHeight		= 0.0f;		// measured last frame
 		const GameActor*	m_shown				= nullptr;
+		int					m_addIndex			= 0;		// the type the Add Component button will add
 	};
 }

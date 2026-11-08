@@ -15,32 +15,21 @@ bool ScaleGame::Init()
 	resources.SetDefaultLitShader(m_litShader);	// level files (lit=1) and editor-made cubes use it
 	eng::Engine::GetInstance().GetComponentRegistry().Register<TriggerCounter>("TriggerCounter");
 	eng::Engine::GetInstance().GetComponentRegistry().Register<Scalable>("Scalable");
+	eng::Engine::GetInstance().GetComponentRegistry().Register<WinTrigger>("WinTrigger");
+	eng::Engine::GetInstance().GetComponentRegistry().Register<LoseTrigger>("LoseTrigger");
+	eng::Engine::GetInstance().GetComponentRegistry().Register<NextLevelTrigger>("NextLevelTrigger");
+	GameContext::SetGameState(&m_gameState);
 	eng::Engine::GetInstance().GetEditor().SetPropDecorator([](eng::GameActor& prop) { prop.AddComponent<Scalable>(); });
 	SoundFXBank::Instance().Load(resources);
 
-	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
-	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
-	if (m_themeMenu)
-	{
-		eng::MusicPlayer& music = eng::Engine::GetInstance().GetAudio().GetMusic();
-		music.SetVolume(0.7f);
-		music.Play(*m_themeMenu, MUSIC_FADE_IN);
-	}
+	m_music.Init(resources);		// menu / gameplay themes follow the engine mode
 
-	LoadCurrentLevel();
+	m_gameplay.Init(m_gameState, m_playerState, LevelList::Default(), [this](const std::string& path) { return LoadLevelFile(path); });
+	m_gameplay.LoadNow(0);
 
 	m_beams.Init(&m_level);	// every gun shot: muzzle burst, beam, impact, sound
 
-	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
-	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
-	{
-		if (e.other != "Player")
-			return;
-		eng::Engine::GetInstance().GetUI().Push<eng::MessageScreen>("Zone reached", "The player entered the " + e.zone + ".",
-			std::vector<eng::MessageScreen::Button>{
-				{ "Continue", {} },
-				{ "Main Menu", [] { eng::Engine::GetInstance().GetModes().Request(eng::EngineMode::MainMenu); } } });
-	});
+	m_gameUI.Init(m_input, m_gameplay);	// win / lose dialogs
 
 	// Minimap: high above the sandbox looking down (pitch is clamped to -89), pixel size follows the DPI
 	m_minimapCamera.SetPosition({ 0.0f, 32.0f, 0.01f });
@@ -66,7 +55,6 @@ void ScaleGame::BindInput()
 	PlayerInput::BindDefaults(map);
 
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
-	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
 
 	// Physics sandbox
 	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
@@ -239,9 +227,7 @@ void ScaleGame::ClearSandbox()
 
 void ScaleGame::OnStartRequested()
 {
-	m_playerState.Reset();
-	m_gameState.Reset();
-	m_gameState.StartGame();
+	m_gameplay.LoadNow(0);		// between frames: safe to clear the level; the mode is Play, so the game starts
 }
 
 void ScaleGame::OnReturnToMainMenu()
@@ -251,22 +237,15 @@ void ScaleGame::OnReturnToMainMenu()
 
 void ScaleGame::OnRestartRequested()
 {
-	m_playerState.Reset();
-	m_gameState.Reset();
-	m_gameState.StartGame();
-
-	// Called by the ModeMachine between frames (not inside a level update): safe to clear the level
-	LoadCurrentLevel();
-	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
-	eng::Log::Info("ScaleGame: sandbox rebuilt");
+	m_gameplay.LoadNow(m_gameplay.GetLevelIndex());
 }
 
-void ScaleGame::LoadCurrentLevel()
+bool ScaleGame::LoadLevelFile(const std::string& path)
 {
 	ClearSandbox();
 
-	const std::string path = GetLevelPath();
-	if (!eng::LevelSerializer::Load(m_level, path).ok)
+	bool isFile = eng::LevelSerializer::Load(m_level, path).ok;
+	if (!isFile)
 	{
 		eng::Log::Warning("ScaleGame: '%s' not found, building the code sandbox", path.c_str());
 		BuildSandbox();
@@ -274,6 +253,8 @@ void ScaleGame::LoadCurrentLevel()
 
 	RebindActors();
 	SpawnPlayer();
+	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
+	return isFile;
 }
 
 void ScaleGame::OnLevelLoaded()
@@ -309,7 +290,7 @@ void ScaleGame::RebindActors()
 
 std::string ScaleGame::GetLevelPath() const
 {
-	return m_levels.GetPath(m_gameState.GetLevelIndex());
+	return m_gameplay.GetCurrentPath();
 }
 
 void ScaleGame::PruneDestroyedCrates()
@@ -323,6 +304,8 @@ void ScaleGame::PruneDestroyedCrates()
 //////////////////////////////////////////
 void ScaleGame::Update(float deltaTime)
 {
+	m_gameplay.Update();	// a requested level load (next level trigger, retry) happens here, between frames
+
 	eng::InputManager&		input	= eng::Engine::GetInstance().GetInputManager();
 	const eng::InputMap&	map		= input.GetMap();
 
@@ -348,7 +331,6 @@ void ScaleGame::Update(float deltaTime)
 	if (isPlaying)
 	{
 		UpdateAim();
-		UpdateAudioDemo();
 	}
 	UpdatePellets();
 	PruneDestroyedCrates();
@@ -372,20 +354,6 @@ void ScaleGame::UpdateCamera(float deltaTime)
 		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
 		m_camera.LookAt({ 0.0f, 1.0f, -1.0f });
 	}
-}
-
-void ScaleGame::UpdateAudioDemo()
-{
-	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
-	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
-
-	// Cross-fade between the menu and gameplay themes
-	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
-	{
-		eng::MusicPlayer& music = audio.GetMusic();
-		music.Play(music.GetCurrent() == m_themeMenu ? *m_themeGame : *m_themeMenu, MUSIC_CROSSFADE);
-	}
-
 }
 
 void ScaleGame::FixedUpdate(float /*fixedDeltaTime*/)
@@ -512,29 +480,28 @@ void ScaleGame::DrawPhysicsPanel() const
 void ScaleGame::DrawAudioPanel() const
 {
 	const eng::AudioManager&	audio	= eng::Engine::GetInstance().GetAudio();
-	const eng::MusicPlayer&		music	= audio.GetMusic();
-	const char*					track	= music.GetCurrent() == m_themeMenu ? "menu"
-										: music.GetCurrent() == m_themeGame ? "game" : "none";
+	const char*					track	= m_music.GetCurrentName();
 
 	const int x = 10, y = 276;
 	DrawRectangle(x, y, 330, 59, Fade(BEIGE, 0.6f));
 	DrawRectangleLines(x, y, 330, 59, BROWN);
-	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", m_playerState.GetFactor(), track),
+	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  music: %s theme", m_playerState.GetFactor(), track),
 		x + 10, y + 10, 10, DARKGRAY);
 	DrawText(TextFormat("ESC pause ducks the music  |  duck %.2f", audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
 	DrawText(TextFormat("Game: %s  |  level %d of %zu", GameState::StatusName(m_gameState.GetStatus()),
-		m_gameState.GetLevelIndex() + 1, m_levels.GetCount()), x + 10, y + 42, 10, DARKGRAY);
+		m_gameState.GetLevelIndex() + 1, m_gameplay.GetLevels().GetCount()), x + 10, y + 42, 10, DARKGRAY);
 }
 
 void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
-	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
+	m_gameUI.Shutdown();
 	m_beams.Shutdown();
+	m_gameplay.Shutdown();
+	GameContext::SetGameState(nullptr);
 	ClearSandbox();
 	SoundFXBank::Instance().Clear();
-	m_themeMenu		= nullptr;
-	m_themeGame		= nullptr;
+	m_music.Shutdown();
 	m_litShader		= nullptr;
 	m_minimap.Unload();
 	eng::Log::Info("ScaleGame destroyed");

@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include "level/GameActor.h"
 
 namespace eng
@@ -26,6 +27,11 @@ namespace eng
 		}
 
 		bool		IsRegistered(const std::string& typeName) const;
+
+		/// <summary>
+		/// Every registered type name, sorted (the editor's Add Component list).
+		/// </summary>
+		std::vector<std::string>	GetTypeNames() const;
 
 		/// <summary>
 		/// Adds a component of that type to `actor`; nullptr if the type is unknown.
