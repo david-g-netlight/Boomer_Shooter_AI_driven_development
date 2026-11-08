@@ -5,8 +5,6 @@ Runtime data for the game. The whole folder is copied next to the executable aft
 
 | Folder | Content |
 |---|---|
-| `levels/` | `.lvl` level files saved by the editor |
-| `models/` | `.glb` / `.gltf` / `.obj` models |
+| `levels/` | `.lvl` level files (`level_01` .. `level_03`), saved by the editor |
 | `shaders/` | `.vs` / `.fs` GLSL shaders |
-| `audio/` | Sound effects (`.wav`) and music (`.ogg`), plus `CREDITS.txt` |
-| `fonts/` | `.ttf` fonts and raygui styles |
+| `audio/` | Sound effects and music (`.wav`), plus `CREDITS.txt` |
