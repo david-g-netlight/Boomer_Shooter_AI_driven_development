@@ -148,6 +148,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] **Done when:** Menu → L1 win → L2 fall → retry → win → Menu
 
 ### Phase 13 — Polish and release 🟡
+- [x] Cleanup (allowed by the developer for this phase): vendored raylib sources, `external/` and build files removed from `include/raylib/` (only `raylib.h`, `raymath.h`, `rlgl.h`, `raygui.h` are used; the prebuilt `lib/libraylib.a` stays; the duplicate `include/raylib/libraylib.a` is gone), stale `build/` and root `my_app` deleted, unused `assets/fonts`, `assets/models` and the `.gitkeep` files removed (include 19 MB → 2.7 MB)
 - [ ] `GunView` (separate pass), `GunHUD` (factor text, crosshair, cooldown)
 - [ ] Settings (sensitivity, volumes, fullscreen)
 - [ ] Release build `ENG_EDITOR=0`, test on a clean Mac
