@@ -1,5 +1,16 @@
 cmake_minimum_required(VERSION 3.20)
+
+# Run on any Apple-silicon Mac from macOS 11 (the bundled raylib and Bullet libraries target 11.0).
+# Must be set before project(). Without it the binary requires the macOS version of the build machine.
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version")
+set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "Target architecture")
+
 project(my_app CXX)
+
+# A plain `cmake -B build` makes an optimized game build (editor off)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
 
 set(CMAKE_CXX_STANDARD 20) # C++20 for <concepts> and `requires` in templates
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

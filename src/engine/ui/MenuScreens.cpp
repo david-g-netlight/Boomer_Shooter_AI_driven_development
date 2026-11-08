@@ -40,6 +40,9 @@ namespace eng
 			modes.Request(EngineMode::Play);
 		if (IsEditorBuild() && GuiButton(UIStyle::ButtonRect(index++, buttons), "Editor"))
 			modes.Request(EngineMode::Editor);
+		Application* app = engine.GetApplication();
+		if (app && app->HasSettings() && GuiButton(UIStyle::ButtonRect(index++, buttons), "Settings"))
+			app->OnSettingsRequested();
 		if (GuiButton(UIStyle::ButtonRect(index++, buttons), "Quit"))
 			Quit();
 
@@ -60,8 +63,12 @@ namespace eng
 		const float buttons = top + 100.0f;
 		if (GuiButton(UIStyle::ButtonRect(0, buttons), "Resume"))		modes.Request(EngineMode::Play);
 		if (GuiButton(UIStyle::ButtonRect(1, buttons), "Restart"))		modes.RequestRestart();
-		if (GuiButton(UIStyle::ButtonRect(2, buttons), "Main Menu"))	modes.Request(EngineMode::MainMenu);
-		if (GuiButton(UIStyle::ButtonRect(3, buttons), "Quit"))			Quit();
+		int index = 2;
+		Application* app = Engine::GetInstance().GetApplication();
+		if (app && app->HasSettings() && GuiButton(UIStyle::ButtonRect(index++, buttons), "Settings"))
+			app->OnSettingsRequested();
+		if (GuiButton(UIStyle::ButtonRect(index++, buttons), "Main Menu"))	modes.Request(EngineMode::MainMenu);
+		if (GuiButton(UIStyle::ButtonRect(index++, buttons), "Quit"))		Quit();
 
 		CenteredText("ESC to resume", static_cast<float>(GetScreenHeight()) - 40.0f, 16, Fade(RAYWHITE, 0.7f));
 	}

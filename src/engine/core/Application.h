@@ -44,6 +44,12 @@ namespace eng
 		virtual void DrawHUD() {}
 
 		/// <summary>
+		/// 3D drawn after the world and its debug overlays, before the HUD, with the world's depth ignored by the
+		/// game's own camera: held items such as a gun (called every frame, in any mode).
+		/// </summary>
+		virtual void DrawViewModel() {}
+
+		/// <summary>
 		/// Logical clean-up, called by Engine::Shutdown() while the window still exists.
 		/// </summary>
 		virtual void Destroy() = 0;
@@ -63,6 +69,13 @@ namespace eng
 		/// The editor cleared the active level and loaded a file into it: every pointer to an old actor is gone.
 		/// </summary>
 		virtual void OnLevelLoaded()		{}
+
+		/// <summary>
+		/// Menus show a Settings button when HasSettings() is true; pressing it calls OnSettingsRequested(), where the
+		/// game pushes its own settings screen on the UIStack.
+		/// </summary>
+		virtual bool HasSettings() const	{ return false; }
+		virtual void OnSettingsRequested()	{}
 
 		/// <summary>
 		/// Where the editor saves and loads the active level, relative to the executable ("assets/levels/x.lvl").

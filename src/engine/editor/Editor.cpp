@@ -156,7 +156,7 @@ namespace eng
 
 		const std::string path = GetLevelPath();
 		LevelSerializer::Save(*m_level, path);
-#if defined(ENG_SOURCE_DIR)
+#if ENG_EDITOR && defined(ENG_SOURCE_DIR)
 		// The build copies assets/ over the executable's copy: keep a copy where the developer commits it
 		LevelSerializer::Save(*m_level, std::string(ENG_SOURCE_DIR) + "/" + path);
 #endif

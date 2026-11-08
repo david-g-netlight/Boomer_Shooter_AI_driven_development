@@ -28,8 +28,8 @@ void MuzzleFX::Burst(float sign, const Vector3& position, const Vector3& directi
 	wave.lifetime			= 0.25f;
 	wave.speed				= 0.8f;
 	wave.spreadDegrees		= 180.0f;
-	wave.startSize			= 0.2f;
-	wave.endSize			= 0.5f;
+	wave.startSize			= 0.06f;
+	wave.endSize			= 0.16f;
 	wave.gravity			= { 0.0f, 0.0f, 0.0f };
 	wave.additive			= true;
 	wave.startColor			= { start.r, start.g, start.b, 140 };

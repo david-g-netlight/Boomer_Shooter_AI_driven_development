@@ -3,7 +3,6 @@
 #include "state/PlayerState.h"
 #include "state/GameState.h"
 #include "state/SoundFXBank.h"
-#include "state/LevelList.h"
 #include "player/PlayerInput.h"
 #include "player/PlayerActor.h"
 #include "player/ScalingGun.h"
@@ -11,26 +10,28 @@
 #include "fx/RayBeamSpawner.h"
 #include "flow/GameContext.h"
 #include "flow/GameplayManager.h"
-#include "ui/GameUI.h"
-#include "audio/MusicManager.h"
 #include "flow/TriggerZone.h"
-#include <optional>
-#include <vector>
+#include "ui/GameUI.h"
+#include "ui/GunHUD.h"
+#include "ui/SettingsScreen.h"
+#include "state/Settings.h"
+#include "player/GunView.h"
+#include "audio/MusicManager.h"
 
 /// <summary>
-/// "Build to Scale" game. Until the gameplay phases, a test scene that exercises the engine.
-/// Phase 6: a physics sandbox (static ground and ramps, 20 dynamic crates), plus the camera, audio and
-/// minimap from earlier phases.
+/// "Build to Scale": an FPS puzzle game where the gun scales props up and down.
+/// The Application layer: wires the engine to the game systems and owns them.
+///   PlayerState / PlayerInput   the player's numbers and what the player asks for
+///   GameState / GameplayManager the rules of a run and the level sequence
+///   RayBeamSpawner / GameUI / GunHUD / MusicManager   what the player sees and hears
+/// Levels are .lvl files (assets/levels); the player is spawned by the game at the level's spawn point.
 /// </summary>
-class TriggerCounter;
-
 class ScaleGame : public eng::Application
 {
 public:
 	bool		Init()							override;
 	void		Update(float deltaTime)			override;
-	void		FixedUpdate(float fixedDeltaTime) override;
-	void		SubmitRenderables(eng::RenderQueue& queue) override;
+	void		DrawViewModel()					override;
 	void		DrawHUD()						override;
 	void		Destroy()						override;
 
@@ -40,100 +41,33 @@ public:
 	void		OnReturnToMainMenu()			override;
 	void		OnRestartRequested()			override;
 	void		OnLevelLoaded()					override;
+	bool		HasSettings() const				override { return true; }
+	void		OnSettingsRequested()			override;
 	std::string	GetLevelPath() const			override;
 
 private:
-	struct BoxDesc
-	{
-		const char*		name;
-		Vector3			position;
-		Vector3			size;					// full size in meters
-		Vector3			rotationDegrees	= { 0.0f, 0.0f, 0.0f };
-		eng::BodyType	type			= eng::BodyType::Dynamic;
-		float			mass			= 1.0f;
-		Color			color			= WHITE;
-		uint32_t		layer			= eng::Layer::Prop;
-		bool			isScalable		= false;	// the scaling gun can resize it
-	};
-
+	void		RegisterComponents();
 	void		BindInput();
-	void		ClearSandbox();
-	bool		LoadLevelFile(const std::string& path);	// the GameplayManager's loader: file, or the code sandbox when it is missing
-	void		RebindActors();				// crates, trigger counter after a level was loaded
-	void		BuildSandbox();
-	eng::GameActor*	SpawnBox(const BoxDesc& desc);
-	void		UpdateCamera(float deltaTime);
+	bool		LoadLevelFile(const std::string& path);		// the GameplayManager's loader
 	void		SpawnPlayer();
-	void		ThrowPellet();
-	void		UpdatePellets();
-	void		PruneDestroyedCrates();
-	void		UpdateAim();
-	bool		IsCrate(const eng::GameActor* actor) const;
-	void		SubmitDebugShapes() const;
-	void		DrawMinimap();
-	void		DrawPhysicsPanel() const;
-	void		DrawAudioPanel() const;
+	void		UpdateMenuCamera(float deltaTime);
 
-	eng::Level	m_level;
-	eng::Camera	m_camera;
+	eng::Level		m_level;
+	eng::Camera		m_camera;
+	eng::ActorHandle m_player;
 
-	//////////////////////////////////////////
-	/// Physics sandbox (Phase 6)
-	//////////////////////////////////////////
-	static constexpr float	HEAVY_MASS		= 20.0f;	// kg, the pyramid
-	static constexpr float	LIGHT_MASS		= 2.0f;		// kg, the tower: light enough to push
-	std::vector<eng::ActorHandle>	m_crates;			// dynamic crates (handles: deleted ones stop resolving)
-	static constexpr float	AIM_REACH		= 30.0f;	// m, Unity PlayerState ray reach
-	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
-	int						m_deletedCrates	= 0;
-	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
-	RayBeamSpawner			m_beams;
-
-	// The player (PlayerActor): spawn point of the sandbox, feet position
-	static constexpr Vector3	SANDBOX_SPAWN		= { 0.0f, 0.0f, 10.0f };
-	static constexpr float		SANDBOX_SPAWN_YAW	= 0.0f;
-	eng::ActorHandle			m_player;
-
-	// CCD check: T throws small fast pellets at a 5 cm wall; none should end up behind it
-	static constexpr float		WALL_Z			= -9.0f;
-	static constexpr float		PELLET_SIZE		= 0.12f;	// m, below CCD_AUTO_SIZE
-	static constexpr float		PELLET_SPEED	= 40.0f;	// m/s = 0.8 m per fixed tick
-	static constexpr size_t		MAX_PELLETS		= 30;
-	std::vector<eng::ActorHandle>	m_pellets;
-	int							m_pelletsThrown	= 0;
-	int							m_tunnelled		= 0;
-	const Shader*			m_litShader		= nullptr;
-
-	//////////////////////////////////////////
-	/// Minimap (Phase 3): the same RenderQueue drawn a second time with another camera
-	//////////////////////////////////////////
-	static constexpr int		MINIMAP_WIDTH	= 240;	// screen points
-	static constexpr int		MINIMAP_HEIGHT	= 160;
-	eng::Camera					m_minimapCamera;
-	eng::RenderTarget			m_minimap;
-
-	//////////////////////////////////////////
-	/// Fly / orbit camera (Phase 2-3)
-	//////////////////////////////////////////
-	static constexpr float	ORBIT_SPEED			= 10.0f;	// degrees/s
-	static constexpr float	ORBIT_RADIUS		= 20.0f;
-	float		m_orbitAngle			= 40.0f;	// degrees, used while the cursor is unlocked
-
-	// Fixed steps counted over the last second, to show the fixed rate on screen
-	int			m_fixedStepsThisSecond	= 0;
-	int			m_fixedStepsPerSecond	= 0;
-	float		m_secondTimer			= 0.0f;
-
-	//////////////////////////////////////////
-	/// Audio (Phase 4)
-	//////////////////////////////////////////
-	// Unity ScalingAudioFX: stretch / shrink pitched by the scale factor
-	PlayerState		m_playerState;		// scale factor (wheel), cooldown
+	PlayerState		m_playerState;
 	PlayerInput		m_input{ m_playerState };
-	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
+	GameState		m_gameState;
 	GameplayManager	m_gameplay;
+	RayBeamSpawner	m_beams;
 	GameUI			m_gameUI;
-
-	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
+	GunHUD			m_gunHUD;
+	GunView			m_gunView;
 	MusicManager	m_music;
+
+	// Main menu backdrop: a slow orbit around the level
+	static constexpr float	ORBIT_SPEED		= 10.0f;	// degrees/s
+	static constexpr float	ORBIT_RADIUS	= 20.0f;
+	float			m_orbitAngle	= 40.0f;
 };
