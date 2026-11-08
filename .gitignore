@@ -53,3 +53,7 @@ __pycache__/
 # /lib
 # /include
 
+
+# === Release packages (tools/package_release.sh) ===
+dist/
+build-release/

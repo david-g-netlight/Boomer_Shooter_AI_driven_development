@@ -152,8 +152,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `GunHUD` (factor text, crosshair, cooldown) (+ crosshair green on a Scalable in reach via `ScalingGun::IsAimingAtScalable`, dimmed cooldown ring; the Phase 3–6 sandbox is gone from `ScaleGame`: code‑built crates, pellets, minimap, debug panels, `TriggerCounter`, `Rotator`, `SelfDestructTimer`; `ScaleGame` is the clean Application layer now; screenshots of the HUD)
 - [x] `GunView` (separate pass) (+ new `Application::DrawViewModel()` hook after the world and before the HUD; the gun has its own camera and depth off, kicks back on a shot, bobs, its top light shows the factor and dims during the cooldown; muzzle wave particles made smaller; screenshot)
 - [x] Settings (sensitivity, volumes, fullscreen) (+ `Settings` saved to `~/Library/Application Support/BuildToScale/settings.cfg`, `SettingsScreen` from the main and pause menus through new `Application::HasSettings / OnSettingsRequested`, ESC belongs to a dialog on top of the mode screen; headless round trip, clamping, apply to audio; screenshot)
-- [ ] Release build `ENG_EDITOR=0`, test on a clean Mac
-- [ ] README: controls, build, editor shortcuts
+- [x] Release build `ENG_EDITOR=0`, test on a clean Mac (+ `tools/package_release.sh` → `dist/BuildToScale/` and a zip (2.5 MB); deployment target 11.0 / arm64 set in CMake (the first package required the build machine's macOS 27.2); a plain `cmake -B build` is Release; the editor's source‑tree save is compiled only with the editor; checks: links system frameworks only, no source path in the binary, starts from another folder with an empty environment and a fake HOME, editor off and TAB refused, scripted playthroughs win levels 1–3 with the optimized build. **Not done here: a run on a second, clean Mac**, left to the developer)
+- [x] README: controls, build, editor shortcuts (+ rewritten for the game: layout, release packaging and the Gatekeeper note, third‑party table; `assets/README.md` updated; plan's as‑built notes extended)
 - [ ] **Done when:** release binary + `assets/` runs on a machine with no dev tools
 
 ---
