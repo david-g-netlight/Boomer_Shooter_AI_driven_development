@@ -144,6 +144,7 @@ namespace eng
 					m_particles.Draw(*m_activeCamera.GetActiveCamera());	// transparent, after the opaque pass
 					m_debugDraw.Draw3D();
 					m_physics.DebugDraw();
+					m_editor.Draw3D();
 				m_activeCamera.End3D();
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 

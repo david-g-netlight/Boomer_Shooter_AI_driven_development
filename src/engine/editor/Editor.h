@@ -4,6 +4,7 @@
 
 namespace eng
 {
+	class GameActor;
 	class Level;
 	class InputManager;
 
@@ -35,13 +36,27 @@ namespace eng
 		/// </summary>
 		void				Update(InputManager& input, float unscaledDeltaTime);
 
+		/// <summary>
+		/// Selection highlight. Call inside the 3D pass (BeginMode3D / EndMode3D) while the editor is active.
+		/// </summary>
+		void				Draw3D() const;
+
+		//////////////////////////////////////////
+		/// Selection (one actor; never dangles: dropped as soon as the actor is marked or gone)
+		//////////////////////////////////////////
+		void				Select(GameActor* actor);
+		GameActor*			GetSelected() const;
+
 		bool				IsActive() const;
 		EditorCamera&		GetCamera();
 		Level*				GetLevel() const;
 		const LevelSnapshot& GetSnapshot() const;
 
 	private:
+		void				ValidateSelection();
+
 		Level*			m_level		= nullptr;
+		GameActor*		m_selected	= nullptr;
 		Camera*			m_previousCamera = nullptr;	// the game's camera, active again after Exit()
 		EditorCamera	m_camera;
 		bool			m_isActive	= false;

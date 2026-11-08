@@ -15,6 +15,7 @@
 #include "core/EventBus.h"
 #include "modes/EngineMode.h"
 #include "modes/ModeMachine.h"
+#include "editor/Picker.h"
 #include "editor/EditorCamera.h"
 #include "editor/LevelSnapshot.h"
 #include "editor/Editor.h"
