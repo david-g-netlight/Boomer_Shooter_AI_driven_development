@@ -67,7 +67,7 @@ private:
 	//////////////////////////////////////////
 	static constexpr float	HEAVY_MASS		= 20.0f;	// kg, the pyramid
 	static constexpr float	LIGHT_MASS		= 2.0f;		// kg, the tower: light enough to push
-	std::vector<eng::GameActor*>	m_crates;			// dynamic crates still alive
+	std::vector<eng::ActorHandle>	m_crates;			// dynamic crates (handles: deleted ones stop resolving)
 	static constexpr float	AIM_REACH		= 30.0f;	// m, Unity PlayerState ray reach
 	static constexpr float	KICK_SPEED		= 6.0f;		// m/s given to the aimed crate by LMB
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
@@ -80,7 +80,7 @@ private:
 	static constexpr float		WALK_SPEED		= 6.0f;		// m/s (Unity PlayerState uses 10; tuned in Phase 10)
 	static constexpr float		JUMP_SPEED		= 8.0f;		// m/s: with gravity 32 the apex is ~1 m (Unity jump arc)
 	static constexpr float		EYE_HEIGHT		= 0.7f;		// above the capsule center (1.7 m above the feet)
-	eng::GameActor*				m_player		= nullptr;
+	eng::ActorHandle			m_player;
 	bool						m_isPlayerMode	= false;
 
 	// CCD check: T throws small fast pellets at a 5 cm wall; none should end up behind it
@@ -88,7 +88,7 @@ private:
 	static constexpr float		PELLET_SIZE		= 0.12f;	// m, below CCD_AUTO_SIZE
 	static constexpr float		PELLET_SPEED	= 40.0f;	// m/s = 0.8 m per fixed tick
 	static constexpr size_t		MAX_PELLETS		= 30;
-	std::vector<eng::GameActor*>	m_pellets;
+	std::vector<eng::ActorHandle>	m_pellets;
 	int							m_pelletsThrown	= 0;
 	int							m_tunnelled		= 0;
 	const Shader*			m_litShader		= nullptr;

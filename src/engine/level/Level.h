@@ -58,6 +58,11 @@ namespace eng
 		/// Queries
 		//////////////////////////////////////////
 		GameActor*	FindByName(const std::string& name) const;
+
+		/// <summary>
+		/// The live actor with this id in any Level, nullptr if it was deleted (what ActorHandle uses).
+		/// </summary>
+		static GameActor*	FindActor(ActorId id);
 		size_t		GetActorCount() const;
 		const std::vector<std::unique_ptr<GameActor>>& GetActors() const;
 

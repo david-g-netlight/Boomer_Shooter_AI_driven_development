@@ -1,9 +1,23 @@
 #include "Level.h"
 #include "core/Log.h"
 #include <algorithm>
+#include <unordered_map>
 
 namespace eng
 {
+	namespace
+	{
+		// Every live actor of every Level. Ids start at 1 and are never reused.
+		// Never destroyed on purpose: Levels owned by the Engine singleton are deleted during static destruction
+		std::unordered_map<ActorId, GameActor*>&	Registry()
+		{
+			static auto* registry = new std::unordered_map<ActorId, GameActor*>();
+			return *registry;
+		}
+
+		ActorId s_nextId = 1;
+	}
+
 	struct Level::PlainActor : GameActor
 	{
 		PlainActor() = default;
@@ -28,7 +42,9 @@ namespace eng
 	void Level::Register(std::unique_ptr<GameActor> actor, const std::string& name, GameActor* parent)
 	{
 		actor->SetName(name);
-		actor->m_level = this;
+		actor->m_level	= this;
+		actor->m_id		= s_nextId++;
+		Registry()[actor->m_id] = actor.get();
 		if (parent)
 			SetParent(actor.get(), parent);
 		m_actors.push_back(std::move(actor));
@@ -97,7 +113,11 @@ namespace eng
 			actor->m_children.clear();
 		}
 
-		// 2. Delete (components get OnDisable / OnDestroy)
+		// 2. Handles stop resolving, then delete (components get OnDisable / OnDestroy)
+		for (const auto& actor : m_actors)
+			if (actor->IsMarkedForDestroy())
+				Registry().erase(actor->m_id);
+
 		m_actors.erase(std::remove_if(m_actors.begin(), m_actors.end(),
 			[](const auto& actor) { return actor->IsMarkedForDestroy(); }), m_actors.end());
 	}
@@ -111,6 +131,12 @@ namespace eng
 			if (!actor->IsMarkedForDestroy() && actor->GetName() == name)
 				return actor.get();
 		return nullptr;
+	}
+
+	GameActor* Level::FindActor(ActorId id)
+	{
+		const auto it = Registry().find(id);
+		return it == Registry().end() ? nullptr : it->second;
 	}
 
 	size_t Level::GetActorCount() const

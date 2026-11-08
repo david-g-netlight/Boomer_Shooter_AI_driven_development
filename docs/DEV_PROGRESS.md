@@ -125,7 +125,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
 
 ### Phase 10 — Game: state and player 🟡
-- [ ] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11)
+- [x] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11) (+ `GameActor::GetId`, `Level::FindActor`; the sandbox's player, crates and pellets are handles now)
 - [ ] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList`
 - [ ] `PlayerInput`
 - [ ] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook`
@@ -182,7 +182,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 |---|---|---|---|
 | Dynamic capsule: slope sliding / bouncing / wall sticking | 6 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
 | Player launched by a crate scaling under them | 11 | open | Clamp player vertical velocity after the step |
-| Game code holding raw `GameActor*` dangles if the actor is destroyed after the game pruned its list that frame (ASan use‑after‑free in a Phase 6 test that deleted after the prune) | 6 → 10 | planned | Engine side is safe. `ActorHandle` scheduled as the first Phase 10 task (D11) |
+| Game code holding raw `GameActor*` dangles if the actor is destroyed after the game pruned its list that frame (ASan use‑after‑free in a Phase 6 test that deleted after the prune) | 6 → 10 | mitigated (`ActorHandle`; raw pointers from `Get()` must not outlive the frame) | Engine side is safe. `ActorHandle` scheduled as the first Phase 10 task (D11) |
 | Scaling causes deep penetration → velocity spikes | 11 | open | Clamp velocity, overlap check before stretch |
 | Bullet precision / arch mismatch | 0 | mitigated | Libs verified arm64, macOS 11.0, single precision |
 | Xcode 26 linker can't read the Command Line Tools SDK 27.2 (`tapi error: malformed file`) | 0 | resolved | Switched to the Command Line Tools toolchain (`xcode-select -s /Library/Developer/CommandLineTools`, ld‑27106); plain `cmake` builds with no SDK override. README lists the fixes |

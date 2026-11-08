@@ -175,7 +175,8 @@ void ScaleGame::ThrowPellet()
 	// Oldest out when the cap is reached
 	if (m_pellets.size() >= MAX_PELLETS)
 	{
-		m_pellets.front()->MarkForDestroy();
+		if (eng::GameActor* oldest = m_pellets.front().Get())
+			oldest->MarkForDestroy();
 		m_pellets.erase(m_pellets.begin());
 	}
 
@@ -189,8 +190,12 @@ void ScaleGame::ThrowPellet()
 void ScaleGame::UpdatePellets()
 {
 	// A pellet "tunnelled" if it ends up behind the wall's footprint (counted once, then removed)
-	for (eng::GameActor*& pellet : m_pellets)
+	for (const eng::ActorHandle& handle : m_pellets)
 	{
+		eng::GameActor* pellet = handle.Get();
+		if (!pellet)
+			continue;
+
 		const Vector3 p = pellet->GetWorldPosition();
 		if (p.z < WALL_Z - 0.3f && std::fabs(p.x) < 3.0f && p.y > 0.0f && p.y < 3.0f)
 		{
@@ -199,7 +204,7 @@ void ScaleGame::UpdatePellets()
 		}
 	}
 	m_pellets.erase(std::remove_if(m_pellets.begin(), m_pellets.end(),
-		[](const eng::GameActor* pellet) { return pellet->IsMarkedForDestroy(); }), m_pellets.end());
+		[](const eng::ActorHandle& pellet) { return !pellet.IsAlive(); }), m_pellets.end());
 }
 
 void ScaleGame::SpawnPlayer()
@@ -215,7 +220,7 @@ void ScaleGame::SpawnPlayer()
 	m_player->AddComponent<eng::CharacterMotor>();
 
 	// Visual: the unit cylinder sits on y = 0, so offset it down to cover the capsule (-1 .. +1)
-	eng::GameActor* body = m_level.CreateGameActor("Player Mesh", m_player);
+	eng::GameActor* body = m_level.CreateGameActor("Player Mesh", m_player.Get());
 	body->SetPosition({ 0.0f, -1.0f, 0.0f });
 	body->SetScale({ 1.0f, 2.0f, 1.0f });
 	body->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cylinder))
@@ -260,7 +265,7 @@ void ScaleGame::FireBeam(float sign)
 
 bool ScaleGame::IsCrate(const eng::GameActor* actor) const
 {
-	return std::find(m_crates.begin(), m_crates.end(), actor) != m_crates.end();
+	return actor && std::find(m_crates.begin(), m_crates.end(), eng::ActorHandle(actor)) != m_crates.end();
 }
 
 void ScaleGame::UpdateAim()
@@ -349,7 +354,7 @@ std::string ScaleGame::GetLevelPath() const
 void ScaleGame::PruneDestroyedCrates()
 {
 	m_crates.erase(std::remove_if(m_crates.begin(), m_crates.end(),
-		[](const eng::GameActor* crate) { return crate->IsMarkedForDestroy(); }), m_crates.end());
+		[](const eng::ActorHandle& crate) { return !crate.IsAlive(); }), m_crates.end());
 }
 
 //////////////////////////////////////////
@@ -372,7 +377,7 @@ void ScaleGame::Update(float deltaTime)
 		physics.SetDebugDrawEnabled(!physics.IsDebugDrawEnabled());
 	}
 
-	if (map.IsActionPressed("TogglePlayer"))
+	if (map.IsActionPressed("TogglePlayer") && m_player)
 	{
 		m_isPlayerMode = !m_isPlayerMode;
 		if (m_isPlayerMode)
@@ -407,7 +412,9 @@ void ScaleGame::UpdatePlayer(float /*deltaTime*/)
 {
 	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
 	const eng::InputMap&		map		= input.GetMap();
-	eng::CharacterMotor*		motor	= m_player->GetComponent<eng::CharacterMotor>();
+	eng::CharacterMotor*		motor	= m_player ? m_player->GetComponent<eng::CharacterMotor>() : nullptr;
+	if (!motor)
+		return;
 
 	if (!m_isPlayerMode)
 	{
@@ -439,7 +446,7 @@ void ScaleGame::UpdateCamera(float deltaTime)
 	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
 	const eng::InputMap&		map		= input.GetMap();
 
-	if (m_isPlayerMode)
+	if (m_isPlayerMode && m_player)
 	{
 		// Eyes on the capsule (the actor holds the physics position after the last fixed step)
 		m_camera.SetPosition(Vector3Add(m_player->GetWorldPosition(), { 0.0f, EYE_HEIGHT, 0.0f }));
@@ -575,9 +582,10 @@ void ScaleGame::DrawHUD()
 void ScaleGame::DrawPhysicsPanel() const
 {
 	int sleeping = 0;
-	for (const eng::GameActor* crate : m_crates)
-		if (const eng::RigidBody* body = crate->GetComponent<eng::RigidBody>(); body && body->IsSleeping())
-			++sleeping;
+	for (const eng::ActorHandle& handle : m_crates)
+		if (const eng::GameActor* crate = handle.Get())
+			if (const eng::RigidBody* body = crate->GetComponent<eng::RigidBody>(); body && body->IsSleeping())
+				++sleeping;
 
 	const int x = 10, y = 140;
 	DrawRectangle(x, y, 330, 126, Fade(LIME, 0.35f));
