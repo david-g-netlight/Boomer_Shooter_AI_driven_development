@@ -1,10 +1,17 @@
 #include "SoundFXBank.h"
 #include <eng.h>
 
+SoundFXBank& SoundFXBank::Instance()
+{
+	static SoundFXBank bank;
+	return bank;
+}
+
 void SoundFXBank::Load(eng::ResourceManager& resources)
 {
 	m_sounds[static_cast<int>(Sfx::Stretch)]	= resources.LoadSound("assets/audio/sfx_stretch.wav");
 	m_sounds[static_cast<int>(Sfx::Shrink)]		= resources.LoadSound("assets/audio/sfx_shrink.wav");
+	m_sounds[static_cast<int>(Sfx::Beam)]		= resources.LoadSound("assets/audio/sfx_ping.wav");	// placeholder
 }
 
 void SoundFXBank::Clear()

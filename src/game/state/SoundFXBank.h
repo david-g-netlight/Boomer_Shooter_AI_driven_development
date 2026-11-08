@@ -7,6 +7,7 @@ enum class Sfx
 {
 	Stretch,
 	Shrink,
+	Beam,
 	Count,
 };
 
@@ -17,6 +18,11 @@ enum class Sfx
 class SoundFXBank
 {
 public:
+	/// <summary>
+	/// The game's one bank (ScaleGame loads and clears it); props play through it without holding a pointer.
+	/// </summary>
+	static SoundFXBank&	Instance();
+
 	void	Load(eng::ResourceManager& resources);
 	void	Clear();								// before the ResourceManager unloads
 

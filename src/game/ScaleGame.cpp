@@ -14,7 +14,9 @@ bool ScaleGame::Init()
 	m_litShader		= resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
 	resources.SetDefaultLitShader(m_litShader);	// level files (lit=1) and editor-made cubes use it
 	eng::Engine::GetInstance().GetComponentRegistry().Register<TriggerCounter>("TriggerCounter");
-	m_sfx.Load(resources);
+	eng::Engine::GetInstance().GetComponentRegistry().Register<Scalable>("Scalable");
+	eng::Engine::GetInstance().GetEditor().SetPropDecorator([](eng::GameActor& prop) { prop.AddComponent<Scalable>(); });
+	SoundFXBank::Instance().Load(resources);
 
 	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
 	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
@@ -26,6 +28,8 @@ bool ScaleGame::Init()
 	}
 
 	LoadCurrentLevel();
+
+	m_beams.Init(&m_level);	// every gun shot: muzzle burst, beam, impact, sound
 
 	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
 	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
@@ -92,6 +96,8 @@ eng::GameActor* ScaleGame::SpawnBox(const BoxDesc& desc)
 	settings.type = desc.type;
 	settings.mass = desc.mass;
 	actor->AddComponent<eng::RigidBody>(settings);
+	if (desc.type == eng::BodyType::Dynamic && desc.isScalable)
+		actor->AddComponent<Scalable>();
 	return actor;
 }
 
@@ -122,18 +128,18 @@ void ScaleGame::BuildSandbox()
 		for (int i = 0; i < count; ++i)
 			m_crates.push_back(SpawnBox({ TextFormat("Heavy %d.%d", row, i),
 				{ -1.53f + 1.02f * (i + 0.5f * row), 0.5f + 1.0f * row, -4.0f }, { 1.0f, 1.0f, 1.0f }, {},
-				BodyType::Dynamic, HEAVY_MASS, HEAVY }));
+				BodyType::Dynamic, HEAVY_MASS, HEAVY, eng::Layer::Prop, true }));
 
 	for (int i = 0; i < 5; ++i)
 		m_crates.push_back(SpawnBox({ TextFormat("Light %d", i), { 5.0f, 0.45f + 0.9f * i, 2.0f }, { 0.9f, 0.9f, 0.9f }, {},
-			BodyType::Dynamic, LIGHT_MASS, LIGHT }));
+			BodyType::Dynamic, LIGHT_MASS, LIGHT, eng::Layer::Prop, true }));
 
 	for (int i = 0; i < 4; ++i)
 		m_crates.push_back(SpawnBox({ TextFormat("Dropped %d", i), { -4.0f + 0.4f * i, 6.0f + 2.0f * i, 2.0f + 0.3f * i },
-			{ 0.8f, 0.8f, 0.8f }, { 15.0f * i, 30.0f * i, 10.0f }, BodyType::Dynamic, 5.0f, DROPPED }));
+			{ 0.8f, 0.8f, 0.8f }, { 15.0f * i, 30.0f * i, 10.0f }, BodyType::Dynamic, 5.0f, DROPPED, eng::Layer::Prop, true }));
 
 	m_crates.push_back(SpawnBox({ "Jump crate", { -3.0f, 0.4f, 7.0f }, { 1.6f, 0.8f, 1.6f }, {},
-		BodyType::Dynamic, 60.0f, RED }));
+		BodyType::Dynamic, 60.0f, RED, eng::Layer::Prop, true }));
 
 	// Trigger zone: translucent, objects pass through; turns green while something is inside
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
@@ -197,42 +203,6 @@ void ScaleGame::SpawnPlayer()
 		spawn.isSet ? spawn.position : SANDBOX_SPAWN, spawn.isSet ? spawn.yawDegrees : SANDBOX_SPAWN_YAW, true);
 }
 
-void ScaleGame::EmitImpact(float sign)
-{
-	if (!m_aimHit)
-		return;
-
-	// Unity BeamImpactParticle / RayBeamController gradients: stretch blue, shrink yellow, alpha 1 -> 0
-	eng::ParticleEmitterSettings impact;
-	impact.burstCount		= 40;
-	impact.speed			= 3.5f;
-	impact.spreadDegrees	= 70.0f;
-	impact.gravity			= { 0.0f, -3.0f, 0.0f };
-	impact.additive			= true;
-	impact.startColor		= sign > 0.0f ? Color{ 40, 120, 255, 255 } : Color{ 255, 220, 40, 255 };
-	impact.endColor			= sign > 0.0f ? Color{ 40, 255, 120, 0 }   : Color{ 255, 60, 20, 0 };
-	eng::Engine::GetInstance().GetParticles().Emit(impact, m_aimHit->point, m_aimHit->normal);
-}
-
-void ScaleGame::FireBeam(float sign)
-{
-	// Muzzle offset from Unity RayBeamProvider: a gun held low and to the right
-	const Vector3 muzzle = Vector3Add(m_camera.GetPosition(),
-		Vector3Add(Vector3Scale(m_camera.Right(), 0.3f), Vector3Add(Vector3Scale(m_camera.Up(), -0.25f), Vector3Scale(m_camera.Forward(), 0.6f))));
-	const Vector3 target = m_aimHit ? m_aimHit->point : Vector3Add(m_camera.GetPosition(), Vector3Scale(m_camera.Forward(), AIM_REACH));
-
-	constexpr float FADE_SECONDS = 0.35f;
-	eng::GameActor* beam = m_level.CreateGameActor("Beam");
-	eng::LineRenderer* line = beam->AddComponent<eng::LineRenderer>();
-	line->SetPoints(muzzle, target);
-	// Unity RayBeamController: stretch blue -> green, shrink yellow -> red
-	line->SetColors(sign > 0.0f ? Color{ 40, 120, 255, 230 } : Color{ 255, 220, 40, 230 },
-					sign > 0.0f ? Color{ 40, 255, 120, 200 } : Color{ 255, 60, 20, 200 });
-	line->SetWidth(0.06f, 0.02f);
-	line->FadeOut(FADE_SECONDS);
-	beam->AddComponent<SelfDestructTimer>(FADE_SECONDS);
-}
-
 bool ScaleGame::IsCrate(const eng::GameActor* actor) const
 {
 	return actor && std::find(m_crates.begin(), m_crates.end(), eng::ActorHandle(actor)) != m_crates.end();
@@ -246,20 +216,8 @@ void ScaleGame::UpdateAim()
 	m_aimHit = eng::Engine::GetInstance().GetPhysics().Raycast(m_camera.GetPosition(), m_camera.Forward(), AIM_REACH,
 		eng::Layer::Ground | eng::Layer::Prop);
 
-	// Beam + impact burst wherever the ray hits (Phase 7)
-	if (map.IsActionPressed("Fire"))	{ FireBeam(+1.0f); EmitImpact(+1.0f); }
-	if (map.IsActionPressed("AltFire"))	{ FireBeam(-1.0f); EmitImpact(-1.0f); }
-
 	if (!m_aimHit || !IsCrate(m_aimHit->actor))
 		return;
-
-	// LMB: kick the crate at the hit point (off-center hits also spin it)
-	if (map.IsActionPressed("Fire"))
-	{
-		eng::RigidBody* body = m_aimHit->actor->GetComponent<eng::RigidBody>();
-		const Vector3 offset = Vector3Subtract(m_aimHit->point, m_aimHit->actor->GetWorldPosition());
-		body->AddImpulse(Vector3Scale(m_camera.Forward(), body->GetMass() * KICK_SPEED), offset);
-	}
 
 	// X: delete it mid-simulation (the body leaves the world at the end of the frame)
 	if (map.IsActionPressed("DeleteAimed"))
@@ -421,15 +379,6 @@ void ScaleGame::UpdateAudioDemo()
 	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
 	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
 
-	// The wheel picks the factor in PlayerInput
-	const float factor = m_playerState.GetFactor();
-
-	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
-	if (map.IsActionPressed("Fire"))
-		m_sfx.PlayScaling(+1.0f, factor);
-	if (map.IsActionPressed("AltFire"))
-		m_sfx.PlayScaling(-1.0f, factor);
-
 	// Cross-fade between the menu and gameplay themes
 	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
 	{
@@ -538,7 +487,7 @@ void ScaleGame::DrawPhysicsPanel() const
 	DrawText("heavy 20 kg (brown)  light 2 kg (yellow)  jump crate (red)", x + 10, y + 44, 10, DARKGRAY);
 	if (m_aimHit)
 		DrawText(TextFormat("Aim: %s  %.1f m%s", m_aimHit->actor->GetName().c_str(), m_aimHit->distance,
-			IsCrate(m_aimHit->actor) ? "  (LMB kick, X delete)" : ""), x + 10, y + 60, 10, BLACK);
+			IsCrate(m_aimHit->actor) ? "  (X delete)" : ""), x + 10, y + 60, 10, BLACK);
 	else
 		DrawText("Aim: nothing within 30 m", x + 10, y + 60, 10, DARKGRAY);
 
@@ -581,8 +530,9 @@ void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
+	m_beams.Shutdown();
 	ClearSandbox();
-	m_sfx.Clear();
+	SoundFXBank::Instance().Clear();
 	m_themeMenu		= nullptr;
 	m_themeGame		= nullptr;
 	m_litShader		= nullptr;

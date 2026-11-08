@@ -199,6 +199,8 @@ namespace eng
 		return copy;
 	}
 
+	void Editor::SetPropDecorator(std::function<void(GameActor&)> decorator) { m_propDecorator = std::move(decorator); }
+
 	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText() || m_inspector.IsEditingText(); }
 
 	GameActor* Editor::AddCube()
@@ -217,6 +219,8 @@ namespace eng
 		RigidBodySettings settings;
 		settings.mass = 2.0f;
 		actor->AddComponent<RigidBody>(settings);
+		if (m_propDecorator)
+			m_propDecorator(*actor);
 
 		Select(actor);
 		return actor;

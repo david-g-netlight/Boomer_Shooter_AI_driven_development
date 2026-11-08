@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <vector>
 #include <raylib.h>
 #include "physics/PhysicsLayers.h"
 #include "physics/RaycastHit.h"
@@ -60,6 +61,14 @@ namespace eng
 		/// </summary>
 		std::optional<RaycastHit>	Raycast(const Vector3& origin, const Vector3& direction, float maxDistance,
 											uint32_t mask = Layer::All) const;
+
+		/// <summary>
+		/// Actors whose colliders touch the box (center, half extents, world axes), limited to the layers in `mask`.
+		/// `ignore` (e.g. the prop being tested) is skipped. Triggers are found only if Layer::Trigger is in the mask.
+		/// Boxes that only touch a surface count as touching: shrink the box a little to test "inside".
+		/// </summary>
+		void		OverlapBox(const Vector3& center, const Vector3& halfExtents, uint32_t mask, const GameActor* ignore,
+							   std::vector<GameActor*>& out) const;
 
 	private:
 		struct Impl;

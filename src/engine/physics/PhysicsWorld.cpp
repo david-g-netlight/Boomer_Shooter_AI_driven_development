@@ -228,6 +228,46 @@ namespace eng
 		return hit;
 	}
 
+	void PhysicsWorld::OverlapBox(const Vector3& center, const Vector3& halfExtents, uint32_t mask, const GameActor* ignore,
+								  std::vector<GameActor*>& out) const
+	{
+		out.clear();
+		if (!m_impl)
+			return;
+
+		btBoxShape box(bt::ToBt(halfExtents));
+		btCollisionObject probe;
+		probe.setCollisionShape(&box);
+		btTransform pose = btTransform::getIdentity();
+		pose.setOrigin(bt::ToBt(center));
+		probe.setWorldTransform(pose);
+
+		struct Callback : btCollisionWorld::ContactResultCallback
+		{
+			std::vector<GameActor*>*	result;
+			const GameActor*			ignored;
+
+			btScalar addSingleResult(btManifoldPoint&, const btCollisionObjectWrapper* a, int, int,
+									 const btCollisionObjectWrapper* b, int, int) override
+			{
+				// The probe is one side of the pair; the other side is the touched object
+				const btCollisionObject* other = a->getCollisionObject()->getUserPointer() ? a->getCollisionObject() : b->getCollisionObject();
+				if (const Collider* collider = static_cast<const Collider*>(other->getUserPointer()))
+				{
+					GameActor* actor = collider->GetOwner();
+					if (actor && actor != ignored && std::find(result->begin(), result->end(), actor) == result->end())
+						result->push_back(actor);
+				}
+				return 0;
+			}
+		} callback;
+		callback.result						= &out;
+		callback.ignored					= ignore;
+		callback.m_collisionFilterGroup		= btBroadphaseProxy::AllFilter;
+		callback.m_collisionFilterMask		= static_cast<int>(mask);
+		m_impl->world->contactTest(&probe, callback);
+	}
+
 	void PhysicsWorld::SetDebugDrawEnabled(bool enabled)
 	{
 		if (m_impl)

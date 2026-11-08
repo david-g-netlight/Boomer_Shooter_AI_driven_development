@@ -6,6 +6,9 @@
 #include "state/LevelList.h"
 #include "player/PlayerInput.h"
 #include "player/PlayerActor.h"
+#include "player/ScalingGun.h"
+#include "props/Scalable.h"
+#include "fx/RayBeamSpawner.h"
 #include <optional>
 #include <vector>
 
@@ -45,6 +48,7 @@ private:
 		float			mass			= 1.0f;
 		Color			color			= WHITE;
 		uint32_t		layer			= eng::Layer::Prop;
+		bool			isScalable		= false;	// the scaling gun can resize it
 	};
 
 	void		BindInput();
@@ -57,8 +61,6 @@ private:
 	void		SpawnPlayer();
 	void		ThrowPellet();
 	void		UpdatePellets();
-	void		EmitImpact(float sign);
-	void		FireBeam(float sign);
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();
@@ -78,11 +80,11 @@ private:
 	static constexpr float	LIGHT_MASS		= 2.0f;		// kg, the tower: light enough to push
 	std::vector<eng::ActorHandle>	m_crates;			// dynamic crates (handles: deleted ones stop resolving)
 	static constexpr float	AIM_REACH		= 30.0f;	// m, Unity PlayerState ray reach
-	static constexpr float	KICK_SPEED		= 6.0f;		// m/s given to the aimed crate by LMB
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
 	int						m_deletedCrates	= 0;
 	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
 	eng::EventBus::Token	m_triggerToken	= 0;
+	RayBeamSpawner			m_beams;
 
 	// The player (PlayerActor): spawn point of the sandbox, feet position
 	static constexpr Vector3	SANDBOX_SPAWN		= { 0.0f, 0.0f, 10.0f };
@@ -126,7 +128,6 @@ private:
 	PlayerState		m_playerState;		// scale factor (wheel), cooldown
 	PlayerInput		m_input{ m_playerState };
 	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
-	SoundFXBank		m_sfx;
 	LevelList		m_levels			= LevelList::Default();
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
