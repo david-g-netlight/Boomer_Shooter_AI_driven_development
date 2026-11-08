@@ -141,7 +141,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 ### Phase 12 — Game: level flow, UI, music 🟡
 - [x] `TriggerZone`, `WinTrigger`, `LoseTrigger`, `NextLevelTrigger` (+ `src/game/flow/`, `GameContext` for loader‑made components, `NextLevelRequestedEvent`; registered for level files; headless: a crate through the Win zone does nothing, the player wins / loses / asks for the next level once)
-- [ ] `GameplayManager` (load / next / reload)
+- [x] `GameplayManager` (load / next / reload) (+ requests applied in `Update()` between frames, every load resets `GameState` / `PlayerState`, auto‑start while in Play, `LevelProgressedEvent` after a win; Start loads level 1, Restart reloads the current one; headless: next, retry, win → next, last level, menu → Start)
 - [ ] `GameUI` (win / lose screens)
 - [ ] `MusicManager` + `assets/audio/CREDITS.txt`
 - [ ] Levels 1–3 authored in the editor

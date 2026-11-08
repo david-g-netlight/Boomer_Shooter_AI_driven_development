@@ -31,7 +31,8 @@ bool ScaleGame::Init()
 		music.Play(*m_themeMenu, MUSIC_FADE_IN);
 	}
 
-	LoadCurrentLevel();
+	m_gameplay.Init(m_gameState, m_playerState, LevelList::Default(), [this](const std::string& path) { return LoadLevelFile(path); });
+	m_gameplay.LoadNow(0);
 
 	m_beams.Init(&m_level);	// every gun shot: muzzle burst, beam, impact, sound
 
@@ -243,9 +244,7 @@ void ScaleGame::ClearSandbox()
 
 void ScaleGame::OnStartRequested()
 {
-	m_playerState.Reset();
-	m_gameState.Reset();
-	m_gameState.StartGame();
+	m_gameplay.LoadNow(0);		// between frames: safe to clear the level; the mode is Play, so the game starts
 }
 
 void ScaleGame::OnReturnToMainMenu()
@@ -255,22 +254,15 @@ void ScaleGame::OnReturnToMainMenu()
 
 void ScaleGame::OnRestartRequested()
 {
-	m_playerState.Reset();
-	m_gameState.Reset();
-	m_gameState.StartGame();
-
-	// Called by the ModeMachine between frames (not inside a level update): safe to clear the level
-	LoadCurrentLevel();
-	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
-	eng::Log::Info("ScaleGame: sandbox rebuilt");
+	m_gameplay.LoadNow(m_gameplay.GetLevelIndex());
 }
 
-void ScaleGame::LoadCurrentLevel()
+bool ScaleGame::LoadLevelFile(const std::string& path)
 {
 	ClearSandbox();
 
-	const std::string path = GetLevelPath();
-	if (!eng::LevelSerializer::Load(m_level, path).ok)
+	bool isFile = eng::LevelSerializer::Load(m_level, path).ok;
+	if (!isFile)
 	{
 		eng::Log::Warning("ScaleGame: '%s' not found, building the code sandbox", path.c_str());
 		BuildSandbox();
@@ -278,6 +270,8 @@ void ScaleGame::LoadCurrentLevel()
 
 	RebindActors();
 	SpawnPlayer();
+	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
+	return isFile;
 }
 
 void ScaleGame::OnLevelLoaded()
@@ -313,7 +307,7 @@ void ScaleGame::RebindActors()
 
 std::string ScaleGame::GetLevelPath() const
 {
-	return m_levels.GetPath(m_gameState.GetLevelIndex());
+	return m_gameplay.GetCurrentPath();
 }
 
 void ScaleGame::PruneDestroyedCrates()
@@ -327,6 +321,8 @@ void ScaleGame::PruneDestroyedCrates()
 //////////////////////////////////////////
 void ScaleGame::Update(float deltaTime)
 {
+	m_gameplay.Update();	// a requested level load (next level trigger, retry) happens here, between frames
+
 	eng::InputManager&		input	= eng::Engine::GetInstance().GetInputManager();
 	const eng::InputMap&	map		= input.GetMap();
 
@@ -527,7 +523,7 @@ void ScaleGame::DrawAudioPanel() const
 		x + 10, y + 10, 10, DARKGRAY);
 	DrawText(TextFormat("ESC pause ducks the music  |  duck %.2f", audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
 	DrawText(TextFormat("Game: %s  |  level %d of %zu", GameState::StatusName(m_gameState.GetStatus()),
-		m_gameState.GetLevelIndex() + 1, m_levels.GetCount()), x + 10, y + 42, 10, DARKGRAY);
+		m_gameState.GetLevelIndex() + 1, m_gameplay.GetLevels().GetCount()), x + 10, y + 42, 10, DARKGRAY);
 }
 
 void ScaleGame::Destroy()
@@ -535,6 +531,7 @@ void ScaleGame::Destroy()
 	// Actors first: their bodies leave the physics world before it shuts down
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
 	m_beams.Shutdown();
+	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
 	ClearSandbox();
 	SoundFXBank::Instance().Clear();

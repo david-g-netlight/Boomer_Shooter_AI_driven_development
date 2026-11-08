@@ -10,6 +10,7 @@
 #include "props/Scalable.h"
 #include "fx/RayBeamSpawner.h"
 #include "flow/GameContext.h"
+#include "flow/GameplayManager.h"
 #include "flow/TriggerZone.h"
 #include <optional>
 #include <vector>
@@ -55,7 +56,7 @@ private:
 
 	void		BindInput();
 	void		ClearSandbox();
-	void		LoadCurrentLevel();			// the LevelList's file, or the code sandbox when it is missing
+	bool		LoadLevelFile(const std::string& path);	// the GameplayManager's loader: file, or the code sandbox when it is missing
 	void		RebindActors();				// crates, trigger counter after a level was loaded
 	void		BuildSandbox();
 	eng::GameActor*	SpawnBox(const BoxDesc& desc);
@@ -130,7 +131,7 @@ private:
 	PlayerState		m_playerState;		// scale factor (wheel), cooldown
 	PlayerInput		m_input{ m_playerState };
 	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
-	LevelList		m_levels			= LevelList::Default();
+	GameplayManager	m_gameplay;
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
 	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds
