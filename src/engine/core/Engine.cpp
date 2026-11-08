@@ -248,6 +248,11 @@ namespace eng
 		return m_events;
 	}
 
+	Editor& Engine::GetEditor()
+	{
+		return m_editor;
+	}
+
 	ModeMachine& Engine::GetModes()
 	{
 		return m_modes;

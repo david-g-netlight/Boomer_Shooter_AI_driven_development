@@ -113,7 +113,11 @@ namespace eng
 		// 1. Application hooks
 		if (app)
 		{
-			if (from == EngineMode::Editor)		app->OnExitEditor();
+			if (from == EngineMode::Editor)
+			{
+				Engine::GetInstance().GetEditor().Exit();
+				app->OnExitEditor();
+			}
 
 			if (isRestart)										app->OnRestartRequested();
 			else if (to == EngineMode::Play && from == EngineMode::MainMenu)	app->OnStartRequested();
@@ -121,7 +125,11 @@ namespace eng
 			else if (to == EngineMode::Paused)					app->OnPause();
 			else if (to == EngineMode::MainMenu)				app->OnReturnToMainMenu();
 
-			if (to == EngineMode::Editor)		app->OnEnterEditor();
+			if (to == EngineMode::Editor)
+			{
+				Engine::GetInstance().GetEditor().Enter(app->GetActiveLevel());
+				app->OnEnterEditor();
+			}
 		}
 
 		// 2 + 3 + 4. Cursor, audio, mode screen

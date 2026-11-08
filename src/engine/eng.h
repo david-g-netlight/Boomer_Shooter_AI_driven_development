@@ -15,6 +15,8 @@
 #include "core/EventBus.h"
 #include "modes/EngineMode.h"
 #include "modes/ModeMachine.h"
+#include "editor/LevelSnapshot.h"
+#include "editor/Editor.h"
 #include "ui/UIScreen.h"
 #include "ui/UIStack.h"
 #include "ui/UIStyle.h"

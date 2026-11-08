@@ -113,7 +113,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] **Done when:** Menu → Start → Play → ESC pause (frozen, crates stay mid‑air) → Resume exactly where it was → Menu → Quit
 
 ### Phase 9 — Editor mode 🟡
-- [ ] TAB enter/exit, `LevelSnapshot` capture
+- [x] TAB enter/exit, `LevelSnapshot` capture (+ `Editor` coordinator owned by the Engine; snapshot = actor state, deleted actors can't be restored until the serializer)
 - [ ] `EditorCamera`
 - [ ] `Picker` (physics raycast first, render bounds fallback)
 - [ ] `TransformGizmo` (move / scale) → `RigidBody::Teleport`, `Collider::SetScale`
