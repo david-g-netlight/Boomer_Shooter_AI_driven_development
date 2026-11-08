@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <string>
 #include "editor/EditorCamera.h"
 #include "editor/EditorToolbar.h"
@@ -87,6 +88,11 @@ namespace eng
 		void				RequestLoad();
 
 		/// <summary>
+		/// Called on every prop the editor creates (Add Cube): the game adds its own components, e.g. Scalable.
+		/// </summary>
+		void				SetPropDecorator(std::function<void(GameActor&)> decorator);
+
+		/// <summary>
 		/// True while a text box has the keyboard: hotkeys stay quiet.
 		/// </summary>
 		bool				IsTyping() const;
@@ -112,6 +118,7 @@ namespace eng
 		InspectorPanel	m_inspector;
 		EditorToolbar	m_toolbar;
 		bool			m_isLoadPending	= false;
+		std::function<void(GameActor&)>	m_propDecorator;
 		int				m_spawnCounter	= 0;
 		bool			m_isActive	= false;
 		LevelSnapshot	m_snapshot;

@@ -7,6 +7,7 @@
 #include "player/PlayerInput.h"
 #include "player/PlayerActor.h"
 #include "player/ScalingGun.h"
+#include "props/Scalable.h"
 #include <optional>
 #include <vector>
 
@@ -46,6 +47,7 @@ private:
 		float			mass			= 1.0f;
 		Color			color			= WHITE;
 		uint32_t		layer			= eng::Layer::Prop;
+		bool			isScalable		= false;	// the scaling gun can resize it
 	};
 
 	void		BindInput();
@@ -127,7 +129,6 @@ private:
 	PlayerState		m_playerState;		// scale factor (wheel), cooldown
 	PlayerInput		m_input{ m_playerState };
 	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
-	SoundFXBank		m_sfx;
 	LevelList		m_levels			= LevelList::Default();
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)

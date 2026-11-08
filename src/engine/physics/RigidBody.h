@@ -82,8 +82,9 @@ namespace eng
 
 		/// <summary>
 		/// Moves actor and body together and clears velocities (spawning, editor moves, respawn).
+		/// keepVelocity: leave the velocities alone (a prop that is being scaled and shifted while it moves).
 		/// </summary>
-		void				Teleport(const ::Transform& transform);
+		void				Teleport(const ::Transform& transform, bool keepVelocity = false);
 
 		/// <summary>
 		/// Call after the actor's scale changed: rescales the collider, recomputes mass properties and the AABB.

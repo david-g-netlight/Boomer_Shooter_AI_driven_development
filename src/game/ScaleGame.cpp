@@ -14,7 +14,9 @@ bool ScaleGame::Init()
 	m_litShader		= resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
 	resources.SetDefaultLitShader(m_litShader);	// level files (lit=1) and editor-made cubes use it
 	eng::Engine::GetInstance().GetComponentRegistry().Register<TriggerCounter>("TriggerCounter");
-	m_sfx.Load(resources);
+	eng::Engine::GetInstance().GetComponentRegistry().Register<Scalable>("Scalable");
+	eng::Engine::GetInstance().GetEditor().SetPropDecorator([](eng::GameActor& prop) { prop.AddComponent<Scalable>(); });
+	SoundFXBank::Instance().Load(resources);
 
 	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
 	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
@@ -33,7 +35,6 @@ bool ScaleGame::Init()
 		FireBeam(shot.sign, shot.muzzle, shot.point);
 		if (shot.hasHit)
 			EmitImpact(shot.sign, shot.point, shot.normal);
-		m_sfx.PlayScaling(shot.sign, shot.factor);
 	});
 
 	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
@@ -101,6 +102,8 @@ eng::GameActor* ScaleGame::SpawnBox(const BoxDesc& desc)
 	settings.type = desc.type;
 	settings.mass = desc.mass;
 	actor->AddComponent<eng::RigidBody>(settings);
+	if (desc.type == eng::BodyType::Dynamic && desc.isScalable)
+		actor->AddComponent<Scalable>();
 	return actor;
 }
 
@@ -131,18 +134,18 @@ void ScaleGame::BuildSandbox()
 		for (int i = 0; i < count; ++i)
 			m_crates.push_back(SpawnBox({ TextFormat("Heavy %d.%d", row, i),
 				{ -1.53f + 1.02f * (i + 0.5f * row), 0.5f + 1.0f * row, -4.0f }, { 1.0f, 1.0f, 1.0f }, {},
-				BodyType::Dynamic, HEAVY_MASS, HEAVY }));
+				BodyType::Dynamic, HEAVY_MASS, HEAVY, eng::Layer::Prop, true }));
 
 	for (int i = 0; i < 5; ++i)
 		m_crates.push_back(SpawnBox({ TextFormat("Light %d", i), { 5.0f, 0.45f + 0.9f * i, 2.0f }, { 0.9f, 0.9f, 0.9f }, {},
-			BodyType::Dynamic, LIGHT_MASS, LIGHT }));
+			BodyType::Dynamic, LIGHT_MASS, LIGHT, eng::Layer::Prop, true }));
 
 	for (int i = 0; i < 4; ++i)
 		m_crates.push_back(SpawnBox({ TextFormat("Dropped %d", i), { -4.0f + 0.4f * i, 6.0f + 2.0f * i, 2.0f + 0.3f * i },
-			{ 0.8f, 0.8f, 0.8f }, { 15.0f * i, 30.0f * i, 10.0f }, BodyType::Dynamic, 5.0f, DROPPED }));
+			{ 0.8f, 0.8f, 0.8f }, { 15.0f * i, 30.0f * i, 10.0f }, BodyType::Dynamic, 5.0f, DROPPED, eng::Layer::Prop, true }));
 
 	m_crates.push_back(SpawnBox({ "Jump crate", { -3.0f, 0.4f, 7.0f }, { 1.6f, 0.8f, 1.6f }, {},
-		BodyType::Dynamic, 60.0f, RED }));
+		BodyType::Dynamic, 60.0f, RED, eng::Layer::Prop, true }));
 
 	// Trigger zone: translucent, objects pass through; turns green while something is inside
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
@@ -565,7 +568,7 @@ void ScaleGame::Destroy()
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_shotToken);
 	ClearSandbox();
-	m_sfx.Clear();
+	SoundFXBank::Instance().Clear();
 	m_themeMenu		= nullptr;
 	m_themeGame		= nullptr;
 	m_litShader		= nullptr;

@@ -1,6 +1,7 @@
 #include "ScalingGun.h"
 #include <raymath.h>
 #include "player/PlayerInput.h"
+#include "props/Scalable.h"
 #include "state/PlayerState.h"
 
 void ScalingGun::Bind(PlayerInput* input, PlayerState* state, eng::Camera* camera)
@@ -46,6 +47,10 @@ bool ScalingGun::Fire(float sign)
 		shot.point	= hit->point;
 		shot.normal	= hit->normal;
 		shot.target	= hit->actor;
+
+		// Unity: 1 + factor * sign (x1.25 .. x1.75 stretch, x0.75 .. x0.25 shrink)
+		if (Scalable* scalable = hit->actor ? hit->actor->GetComponent<Scalable>() : nullptr)
+			scalable->TriggerScaling(1.0f + shot.factor * shot.sign);
 	}
 
 	m_lastShot = shot;

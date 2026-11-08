@@ -257,7 +257,7 @@ namespace eng
 		return m_impl->body ? bt::ToRaylib(m_impl->body->getAngularVelocity()) : Vector3{ 0.0f, 0.0f, 0.0f };
 	}
 
-	void RigidBody::Teleport(const ::Transform& transform)
+	void RigidBody::Teleport(const ::Transform& transform, bool keepVelocity)
 	{
 		GameActor* owner = GetOwner();
 		if (!owner)
@@ -273,9 +273,12 @@ namespace eng
 		m_impl->motionState->getWorldTransform(pose);	// world pose of the actor we just moved
 		body->setWorldTransform(pose);
 		body->setInterpolationWorldTransform(pose);
-		body->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
-		body->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
-		body->clearForces();
+		if (!keepVelocity)
+		{
+			body->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+			body->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
+			body->clearForces();
+		}
 		body->activate(true);
 
 		if (btDiscreteDynamicsWorld* world = Engine::GetInstance().GetPhysics().GetNativeWorld())
