@@ -57,3 +57,6 @@ __pycache__/
 # === Release packages (tools/package_release.sh) ===
 dist/
 build-release/
+
+# === CLion / CMake build directories ===
+cmake-build-*/
