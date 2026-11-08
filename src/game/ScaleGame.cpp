@@ -14,8 +14,7 @@ bool ScaleGame::Init()
 	m_litShader		= resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
 	resources.SetDefaultLitShader(m_litShader);	// level files (lit=1) and editor-made cubes use it
 	eng::Engine::GetInstance().GetComponentRegistry().Register<TriggerCounter>("TriggerCounter");
-	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
-	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
+	m_sfx.Load(resources);
 
 	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
 	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
@@ -310,8 +309,24 @@ void ScaleGame::ClearSandbox()
 	m_level.Clear();
 }
 
+void ScaleGame::OnStartRequested()
+{
+	m_playerState.Reset();
+	m_gameState.Reset();
+	m_gameState.StartGame();
+}
+
+void ScaleGame::OnReturnToMainMenu()
+{
+	m_gameState.Reset();
+}
+
 void ScaleGame::OnRestartRequested()
 {
+	m_playerState.Reset();
+	m_gameState.Reset();
+	m_gameState.StartGame();
+
 	// Called by the ModeMachine between frames (not inside a level update): safe to clear the level
 	ClearSandbox();
 	BuildSandbox();
@@ -479,15 +494,15 @@ void ScaleGame::UpdateAudioDemo()
 
 	// Wheel picks the scale factor (Unity PlayerState::ChangeFactor)
 	const float scroll = map.GetAxis("Scroll");
-	if (scroll > 0.0f && m_scaleFactorIndex < 2)	++m_scaleFactorIndex;
-	if (scroll < 0.0f && m_scaleFactorIndex > 0)	--m_scaleFactorIndex;
-	const float factor = SCALE_FACTORS[m_scaleFactorIndex];
+	if (scroll != 0.0f)
+		m_playerState.ChangeFactor(scroll > 0.0f ? 1 : -1);
+	const float factor = m_playerState.GetFactor();
 
 	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
-	if (map.IsActionPressed("Fire") && m_sfxStretch)
-		audio.Play(*m_sfxStretch, 0.8f, 1.0f + factor + 0.02f);
-	if (map.IsActionPressed("AltFire") && m_sfxShrink)
-		audio.Play(*m_sfxShrink, 0.8f, 1.0f - factor - 0.02f);
+	if (map.IsActionPressed("Fire"))
+		m_sfx.PlayScaling(+1.0f, factor);
+	if (map.IsActionPressed("AltFire"))
+		m_sfx.PlayScaling(-1.0f, factor);
 
 	// Cross-fade between the menu and gameplay themes
 	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
@@ -627,11 +642,13 @@ void ScaleGame::DrawAudioPanel() const
 										: music.GetCurrent() == m_themeGame ? "game" : "none";
 
 	const int x = 10, y = 276;
-	DrawRectangle(x, y, 330, 45, Fade(BEIGE, 0.6f));
-	DrawRectangleLines(x, y, 330, 45, BROWN);
-	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
+	DrawRectangle(x, y, 330, 59, Fade(BEIGE, 0.6f));
+	DrawRectangleLines(x, y, 330, 59, BROWN);
+	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", m_playerState.GetFactor(), track),
 		x + 10, y + 10, 10, DARKGRAY);
 	DrawText(TextFormat("ESC pause ducks the music  |  duck %.2f", audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
+	DrawText(TextFormat("Game: %s  |  level %d of %zu", GameState::StatusName(m_gameState.GetStatus()),
+		m_gameState.GetLevelIndex() + 1, m_levels.GetCount()), x + 10, y + 42, 10, DARKGRAY);
 }
 
 void ScaleGame::Destroy()
@@ -639,8 +656,7 @@ void ScaleGame::Destroy()
 	// Actors first: their bodies leave the physics world before it shuts down
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
 	ClearSandbox();
-	m_sfxStretch	= nullptr;
-	m_sfxShrink		= nullptr;
+	m_sfx.Clear();
 	m_themeMenu		= nullptr;
 	m_themeGame		= nullptr;
 	m_litShader		= nullptr;

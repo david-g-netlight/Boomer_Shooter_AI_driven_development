@@ -1,5 +1,9 @@
 #pragma once
 #include <eng.h>
+#include "state/PlayerState.h"
+#include "state/GameState.h"
+#include "state/SoundFXBank.h"
+#include "state/LevelList.h"
 #include <optional>
 #include <vector>
 
@@ -22,6 +26,8 @@ public:
 
 	const char*	GetTitle() const				override;
 	eng::Level*	GetActiveLevel()				override;
+	void		OnStartRequested()				override;
+	void		OnReturnToMainMenu()			override;
 	void		OnRestartRequested()			override;
 	void		OnLevelLoaded()					override;
 	std::string	GetLevelPath() const			override;
@@ -119,10 +125,10 @@ private:
 	/// Audio (Phase 4)
 	//////////////////////////////////////////
 	// Unity ScalingAudioFX: stretch / shrink pitched by the scale factor
-	static constexpr float	SCALE_FACTORS[3]	= { 0.25f, 0.5f, 0.75f };	// Unity PlayerState: rate 0.25 x 3
-	int			m_scaleFactorIndex		= 0;
-	const Sound*	m_sfxStretch		= nullptr;
-	const Sound*	m_sfxShrink			= nullptr;
+	PlayerState		m_playerState;		// scale factor (wheel), cooldown
+	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
+	SoundFXBank		m_sfx;
+	LevelList		m_levels			= LevelList::Default();
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
 	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds
