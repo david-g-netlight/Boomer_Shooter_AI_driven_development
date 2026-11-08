@@ -20,6 +20,7 @@
 #include "editor/InspectorLayout.h"
 #include "editor/InspectorPanel.h"
 #include "editor/ActorEdit.h"
+#include "editor/EditorToolbar.h"
 #include "editor/TransformGizmo.h"
 #include "editor/EditorCamera.h"
 #include "editor/LevelSnapshot.h"

@@ -1,5 +1,7 @@
 #pragma once
+#include <functional>
 #include "editor/EditorCamera.h"
+#include "editor/EditorToolbar.h"
 #include "editor/HierarchyPanel.h"
 #include "editor/InspectorPanel.h"
 #include "editor/LevelSnapshot.h"
@@ -64,6 +66,15 @@ namespace eng
 		void				DeleteSelected();
 
 		/// <summary>
+		/// Save / Load go through the game's level file code (LevelSerializer, a later Phase 9 task).
+		/// The toolbar buttons stay disabled until both are set.
+		/// </summary>
+		void				SetSaveLoad(std::function<void()> save, std::function<void()> load);
+		bool				CanSaveLoad() const;
+		void				Save();
+		void				Load();
+
+		/// <summary>
 		/// Shader given to new cubes (the game's lit shader). nullptr = raylib's default.
 		/// </summary>
 		void				SetDefaultShader(const Shader* shader);
@@ -89,6 +100,9 @@ namespace eng
 		TransformGizmo	m_gizmo;
 		HierarchyPanel	m_hierarchy;
 		InspectorPanel	m_inspector;
+		EditorToolbar	m_toolbar;
+		std::function<void()>	m_onSave;
+		std::function<void()>	m_onLoad;
 		const Shader*	m_defaultShader	= nullptr;
 		int				m_spawnCounter	= 0;
 		bool			m_isActive	= false;

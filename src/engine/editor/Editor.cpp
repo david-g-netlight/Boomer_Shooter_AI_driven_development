@@ -84,6 +84,8 @@ namespace eng
 			if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
 			if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
 			if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
+			if (input.IsKeyPressed(KEY_S) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
+				Save();
 		}
 
 		const bool gizmoHasMouse = !overPanels && m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
@@ -120,9 +122,20 @@ namespace eng
 			return;
 
 		// A drag started over a panel must not keep the gizmo alive: panels only react to the free cursor
+		m_toolbar.Draw(*this);
 		m_hierarchy.Draw(*this, *m_level);
 		m_inspector.Draw(*this);
 	}
+
+	void Editor::SetSaveLoad(std::function<void()> save, std::function<void()> load)
+	{
+		m_onSave = std::move(save);
+		m_onLoad = std::move(load);
+	}
+
+	bool Editor::CanSaveLoad() const	{ return m_onSave && m_onLoad; }
+	void Editor::Save()					{ if (m_onSave) m_onSave(); }
+	void Editor::Load()					{ if (m_onLoad) m_onLoad(); }
 
 	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText() || m_inspector.IsEditingText(); }
 
