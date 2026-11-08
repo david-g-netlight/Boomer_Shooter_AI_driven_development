@@ -133,7 +133,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] **Done when:** walk, jump, look in `level_01`; wheel cycles x0.25 / x0.5 / x0.75
 
 ### Phase 11 — Game: scaling mechanic 🟡
-- [ ] `ScalingGun` (cooldown, center raycast with `Ground | Prop` mask)
+- [x] `ScalingGun` (cooldown, center raycast with `Ground | Prop` mask) (+ `ScalingShotEvent` on the EventBus; the sandbox's beam, impact burst and SFX now listen to it, its LMB kick is gone; headless: hit at 13.5 m, second click blocked for 1 s, miss ends at the 30 m reach)
 - [ ] `Scalable` (SmoothStep, 1.9 cap, min‑size destroy, `setLocalScaling`, inertia update, pitched SFX)
 - [ ] `RayBeamSpawner`, `RayBeam`, `MuzzleFX`
 - [ ] Stretch blocked when the target size overlaps a static wall

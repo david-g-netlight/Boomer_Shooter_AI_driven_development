@@ -27,6 +27,15 @@ bool ScaleGame::Init()
 
 	LoadCurrentLevel();
 
+	// The scaling gun reports every shot: beam, impact burst and sound (replaced by RayBeamSpawner and Scalable)
+	m_shotToken = eng::Engine::GetInstance().GetEvents().Subscribe<ScalingShotEvent>([this](const ScalingShotEvent& shot)
+	{
+		FireBeam(shot.sign, shot.muzzle, shot.point);
+		if (shot.hasHit)
+			EmitImpact(shot.sign, shot.point, shot.normal);
+		m_sfx.PlayScaling(shot.sign, shot.factor);
+	});
+
 	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
 	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
 	{
@@ -197,10 +206,8 @@ void ScaleGame::SpawnPlayer()
 		spawn.isSet ? spawn.position : SANDBOX_SPAWN, spawn.isSet ? spawn.yawDegrees : SANDBOX_SPAWN_YAW, true);
 }
 
-void ScaleGame::EmitImpact(float sign)
+void ScaleGame::EmitImpact(float sign, const Vector3& point, const Vector3& normal)
 {
-	if (!m_aimHit)
-		return;
 
 	// Unity BeamImpactParticle / RayBeamController gradients: stretch blue, shrink yellow, alpha 1 -> 0
 	eng::ParticleEmitterSettings impact;
@@ -211,15 +218,11 @@ void ScaleGame::EmitImpact(float sign)
 	impact.additive			= true;
 	impact.startColor		= sign > 0.0f ? Color{ 40, 120, 255, 255 } : Color{ 255, 220, 40, 255 };
 	impact.endColor			= sign > 0.0f ? Color{ 40, 255, 120, 0 }   : Color{ 255, 60, 20, 0 };
-	eng::Engine::GetInstance().GetParticles().Emit(impact, m_aimHit->point, m_aimHit->normal);
+	eng::Engine::GetInstance().GetParticles().Emit(impact, point, normal);
 }
 
-void ScaleGame::FireBeam(float sign)
+void ScaleGame::FireBeam(float sign, const Vector3& muzzle, const Vector3& target)
 {
-	// Muzzle offset from Unity RayBeamProvider: a gun held low and to the right
-	const Vector3 muzzle = Vector3Add(m_camera.GetPosition(),
-		Vector3Add(Vector3Scale(m_camera.Right(), 0.3f), Vector3Add(Vector3Scale(m_camera.Up(), -0.25f), Vector3Scale(m_camera.Forward(), 0.6f))));
-	const Vector3 target = m_aimHit ? m_aimHit->point : Vector3Add(m_camera.GetPosition(), Vector3Scale(m_camera.Forward(), AIM_REACH));
 
 	constexpr float FADE_SECONDS = 0.35f;
 	eng::GameActor* beam = m_level.CreateGameActor("Beam");
@@ -246,20 +249,8 @@ void ScaleGame::UpdateAim()
 	m_aimHit = eng::Engine::GetInstance().GetPhysics().Raycast(m_camera.GetPosition(), m_camera.Forward(), AIM_REACH,
 		eng::Layer::Ground | eng::Layer::Prop);
 
-	// Beam + impact burst wherever the ray hits (Phase 7)
-	if (map.IsActionPressed("Fire"))	{ FireBeam(+1.0f); EmitImpact(+1.0f); }
-	if (map.IsActionPressed("AltFire"))	{ FireBeam(-1.0f); EmitImpact(-1.0f); }
-
 	if (!m_aimHit || !IsCrate(m_aimHit->actor))
 		return;
-
-	// LMB: kick the crate at the hit point (off-center hits also spin it)
-	if (map.IsActionPressed("Fire"))
-	{
-		eng::RigidBody* body = m_aimHit->actor->GetComponent<eng::RigidBody>();
-		const Vector3 offset = Vector3Subtract(m_aimHit->point, m_aimHit->actor->GetWorldPosition());
-		body->AddImpulse(Vector3Scale(m_camera.Forward(), body->GetMass() * KICK_SPEED), offset);
-	}
 
 	// X: delete it mid-simulation (the body leaves the world at the end of the frame)
 	if (map.IsActionPressed("DeleteAimed"))
@@ -421,15 +412,6 @@ void ScaleGame::UpdateAudioDemo()
 	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
 	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
 
-	// The wheel picks the factor in PlayerInput
-	const float factor = m_playerState.GetFactor();
-
-	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
-	if (map.IsActionPressed("Fire"))
-		m_sfx.PlayScaling(+1.0f, factor);
-	if (map.IsActionPressed("AltFire"))
-		m_sfx.PlayScaling(-1.0f, factor);
-
 	// Cross-fade between the menu and gameplay themes
 	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
 	{
@@ -538,7 +520,7 @@ void ScaleGame::DrawPhysicsPanel() const
 	DrawText("heavy 20 kg (brown)  light 2 kg (yellow)  jump crate (red)", x + 10, y + 44, 10, DARKGRAY);
 	if (m_aimHit)
 		DrawText(TextFormat("Aim: %s  %.1f m%s", m_aimHit->actor->GetName().c_str(), m_aimHit->distance,
-			IsCrate(m_aimHit->actor) ? "  (LMB kick, X delete)" : ""), x + 10, y + 60, 10, BLACK);
+			IsCrate(m_aimHit->actor) ? "  (X delete)" : ""), x + 10, y + 60, 10, BLACK);
 	else
 		DrawText("Aim: nothing within 30 m", x + 10, y + 60, 10, DARKGRAY);
 
@@ -581,6 +563,7 @@ void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
+	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_shotToken);
 	ClearSandbox();
 	m_sfx.Clear();
 	m_themeMenu		= nullptr;

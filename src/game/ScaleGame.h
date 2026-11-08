@@ -6,6 +6,7 @@
 #include "state/LevelList.h"
 #include "player/PlayerInput.h"
 #include "player/PlayerActor.h"
+#include "player/ScalingGun.h"
 #include <optional>
 #include <vector>
 
@@ -57,8 +58,8 @@ private:
 	void		SpawnPlayer();
 	void		ThrowPellet();
 	void		UpdatePellets();
-	void		EmitImpact(float sign);
-	void		FireBeam(float sign);
+	void		EmitImpact(float sign, const Vector3& point, const Vector3& normal);
+	void		FireBeam(float sign, const Vector3& muzzle, const Vector3& target);
 	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();
@@ -78,11 +79,11 @@ private:
 	static constexpr float	LIGHT_MASS		= 2.0f;		// kg, the tower: light enough to push
 	std::vector<eng::ActorHandle>	m_crates;			// dynamic crates (handles: deleted ones stop resolving)
 	static constexpr float	AIM_REACH		= 30.0f;	// m, Unity PlayerState ray reach
-	static constexpr float	KICK_SPEED		= 6.0f;		// m/s given to the aimed crate by LMB
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
 	int						m_deletedCrates	= 0;
 	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
 	eng::EventBus::Token	m_triggerToken	= 0;
+	eng::EventBus::Token	m_shotToken		= 0;
 
 	// The player (PlayerActor): spawn point of the sandbox, feet position
 	static constexpr Vector3	SANDBOX_SPAWN		= { 0.0f, 0.0f, 10.0f };
