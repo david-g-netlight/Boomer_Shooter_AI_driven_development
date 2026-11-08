@@ -117,7 +117,9 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `EditorCamera` (RMB look + WASD/QE fly, Shift fast, wheel speed, `FocusOn` for F; swaps the active camera on enter/exit)
 - [x] `Picker` (physics raycast first, render bounds fallback) (+ Editor selection: LMB picks, orange bounds highlight, F focuses the camera, selection dropped when the actor goes)
 - [x] `TransformGizmo` (move / scale) → `RigidBody::Teleport`, `Collider::SetScale` (W move / R scale, constant screen size, drag projects the mouse ray onto the axis, works with parented actors)
-- [ ] `HierarchyPanel`, `InspectorPanel` (incl. `RigidBody` / `Collider` fields), `EditorToolbar`
+- [x] `HierarchyPanel` (tree, select, rename, Add Cube / Add Trigger / Delete; Duplicate waits for the serializer) (+ panel layout helpers, hotkeys quiet while typing, clicks over panels never pick, banner shows the controls)
+- [ ] `InspectorPanel` (incl. `RigidBody` / `Collider` fields)
+- [ ] `EditorToolbar`
 - [ ] `LevelSerializer` + `ComponentRegistry` (`.lvl` format)
 - [ ] Bullet debug wireframes in the editor overlay
 - [ ] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
