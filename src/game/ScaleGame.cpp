@@ -26,6 +26,17 @@ bool ScaleGame::Init()
 
 	BuildSandbox();
 
+	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
+	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
+	{
+		if (e.other != "Player")
+			return;
+		eng::Engine::GetInstance().GetUI().Push<eng::MessageScreen>("Zone reached", "The player entered the " + e.zone + ".",
+			std::vector<eng::MessageScreen::Button>{
+				{ "Continue", {} },
+				{ "Main Menu", [] { eng::Engine::GetInstance().GetModes().Request(eng::EngineMode::MainMenu); } } });
+	});
+
 	// Minimap: high above the sandbox looking down (pitch is clamped to -89), pixel size follows the DPI
 	m_minimapCamera.SetPosition({ 0.0f, 32.0f, 0.01f });
 	m_minimapCamera.SetYawPitch(0.0f, -89.0f);
@@ -64,11 +75,7 @@ void ScaleGame::BindInput()
 	map.BindAction("AltFire",	InputBinding::Mouse(MOUSE_BUTTON_RIGHT));
 	map.BindAxis("Scroll",		AxisBinding::Wheel());
 
-	// TODO(Phase 8): cursor is released by Pause (ESC); temporary toggle until then
-	map.BindAction("ToggleCursor", InputBinding::Key(KEY_C));
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
-	// TODO(Phase 8): replaced by the real Pause (ESC); simulates its audio side
-	map.BindAction("TogglePauseAudio", InputBinding::Key(KEY_P));
 	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
 
 	// Physics sandbox
@@ -285,6 +292,26 @@ void ScaleGame::UpdateAim()
 	}
 }
 
+void ScaleGame::ClearSandbox()
+{
+	m_aimHit.reset();
+	m_triggerCounter	= nullptr;
+	m_player			= nullptr;
+	m_isPlayerMode		= false;
+	m_pellets.clear();
+	m_crates.clear();
+	m_level.Clear();
+}
+
+void ScaleGame::OnRestartRequested()
+{
+	// Called by the ModeMachine between frames (not inside a level update): safe to clear the level
+	ClearSandbox();
+	BuildSandbox();
+	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
+	eng::Log::Info("ScaleGame: sandbox rebuilt");
+}
+
 void ScaleGame::PruneDestroyedCrates()
 {
 	m_crates.erase(std::remove_if(m_crates.begin(), m_crates.end(),
@@ -298,9 +325,6 @@ void ScaleGame::Update(float deltaTime)
 {
 	eng::InputManager&		input	= eng::Engine::GetInstance().GetInputManager();
 	const eng::InputMap&	map		= input.GetMap();
-
-	if (map.IsActionPressed("ToggleCursor"))
-		input.SetCursorLocked(!input.IsCursorLocked());
 
 	if (map.IsActionPressed("ToggleDebug"))
 	{
@@ -318,20 +342,22 @@ void ScaleGame::Update(float deltaTime)
 	{
 		m_isPlayerMode = !m_isPlayerMode;
 		if (m_isPlayerMode)
-		{
 			m_player->GetComponent<eng::CharacterMotor>()->Warp(PLAYER_SPAWN);
-			input.SetCursorLocked(true);
-		}
 	}
 
-	if (map.IsActionPressed("ThrowPellet"))
+	// Menus, pause and the editor only move the camera: clicks there belong to the UI
+	const bool isPlaying = eng::Engine::GetInstance().GetModes().IsSimulating();
+	if (isPlaying && map.IsActionPressed("ThrowPellet"))
 		ThrowPellet();
 
 	UpdatePlayer(deltaTime);
 	UpdateCamera(deltaTime);
-	UpdateAim();
+	if (isPlaying)
+	{
+		UpdateAim();
+		UpdateAudioDemo();
+	}
 	UpdatePellets();
-	UpdateAudioDemo();
 	PruneDestroyedCrates();
 
 	m_secondTimer += deltaTime;
@@ -386,7 +412,8 @@ void ScaleGame::UpdateCamera(float deltaTime)
 		return;
 	}
 
-	if (input.IsCursorLocked())
+	const eng::EngineMode mode = eng::Engine::GetInstance().GetModes().GetMode();
+	if (mode == eng::EngineMode::Play && input.IsCursorLocked())
 	{
 		// TODO(Phase 10): replaced by FirstPersonLook / FirstPersonController
 		const Vector2 look = map.GetAxis2D("Look");
@@ -394,8 +421,9 @@ void ScaleGame::UpdateCamera(float deltaTime)
 		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
 		m_camera.MoveLocal(move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f);
 	}
-	else
+	else if (mode == eng::EngineMode::MainMenu)
 	{
+		// Menu backdrop: slow orbit around the sandbox
 		m_orbitAngle += ORBIT_SPEED * deltaTime;
 		const float angle = m_orbitAngle * DEG2RAD;
 		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
@@ -427,12 +455,6 @@ void ScaleGame::UpdateAudioDemo()
 		music.Play(music.GetCurrent() == m_themeMenu ? *m_themeGame : *m_themeMenu, MUSIC_CROSSFADE);
 	}
 
-	if (map.IsActionPressed("TogglePauseAudio"))
-	{
-		m_isAudioPaused = !m_isAudioPaused;
-		audio.Duck(m_isAudioPaused);
-		if (m_isAudioPaused) audio.PauseAll(); else audio.ResumeAll();
-	}
 }
 
 void ScaleGame::FixedUpdate(float /*fixedDeltaTime*/)
@@ -502,8 +524,8 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("V: %s  |  C: %s cursor  |  F2 / F3 debug", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
-		engine.GetInputManager().IsCursorLocked() ? "unlock" : "lock"), 20, 100, 10, DARKGRAY);
+	DrawText(TextFormat("V: %s  |  ESC: pause  |  F2 / F3 debug  |  %s", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
+		eng::ModeName(engine.GetModes().GetMode())), 20, 100, 10, DARKGRAY);
 
 	DrawPhysicsPanel();
 	DrawAudioPanel();
@@ -567,19 +589,14 @@ void ScaleGame::DrawAudioPanel() const
 	DrawRectangleLines(x, y, 330, 45, BROWN);
 	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
 		x + 10, y + 10, 10, DARKGRAY);
-	DrawText(TextFormat("P: %s  |  duck %.2f", m_isAudioPaused ? "resume audio" : "pause audio (demo of Pause)",
-		audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
+	DrawText(TextFormat("ESC pause ducks the music  |  duck %.2f", audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
 }
 
 void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
-	m_aimHit.reset();
-	m_triggerCounter = nullptr;
-	m_player = nullptr;
-	m_pellets.clear();
-	m_crates.clear();
-	m_level.Clear();
+	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
+	ClearSandbox();
 	m_sfxStretch	= nullptr;
 	m_sfxShrink		= nullptr;
 	m_themeMenu		= nullptr;

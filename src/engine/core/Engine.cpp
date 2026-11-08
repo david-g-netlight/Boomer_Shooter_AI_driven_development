@@ -3,6 +3,7 @@
 #include "EngineInfo.h"
 #include "Log.h"
 #include "level/Level.h"
+#include "ui/UIStyle.h"
 #include <raylib.h>
 
 namespace eng
@@ -53,6 +54,8 @@ namespace eng
 
 		SetTargetFPS(60);
 
+		UIStyle::Apply();
+
 		// A missing audio device is not fatal: the game runs silently
 		m_audio.Init();
 		m_physics.Init(m_world.gravity);
@@ -70,6 +73,8 @@ namespace eng
 		m_isAppInitialized = m_app->Init();
 		if (!m_isAppInitialized)
 			Log::Error("Application::Init() failed");
+		else
+			m_modes.Begin(m_app->GetStartMode());
 
 		return m_isAppInitialized;
 	}
@@ -89,10 +94,18 @@ namespace eng
 			m_window.Refresh();
 			m_inputManager.Poll(); // State polled by the previous EndDrawing()
 
+			// Mode changes requested last frame (menus) or by ESC / TAB now take effect before anything updates
+			m_modes.HandleInput(m_inputManager);
+			m_modes.HandleFocus(m_window.isFocused);
+			m_modes.ApplyPendingTransition();
+
 			// 2. Fixed step (physics rate), then variable step. The level runs before the game
 			Level* level = m_app->GetActiveLevel();
 
-			m_time.AdvanceAccumulator();
+			// Only Play simulates: in menus, Paused and the editor the world stays exactly as it was
+			const bool isSimulating = m_modes.IsSimulating();
+			if (isSimulating)
+				m_time.AdvanceAccumulator();
 			while (m_time.ConsumeFixedStep())
 			{
 				if (level) level->FixedUpdate(m_time.GetFixedDeltaTime());
@@ -100,9 +113,15 @@ namespace eng
 				m_physics.Step(m_time.GetFixedDeltaTime());
 			}
 
-			if (level) level->Update(m_time.GetDeltaTime());
-			m_app->Update(m_time.GetDeltaTime());
-			m_particles.Update(m_time.GetDeltaTime());
+			if (isSimulating)
+			{
+				if (level) level->Update(m_time.GetDeltaTime());
+				m_particles.Update(m_time.GetDeltaTime());
+			}
+			m_app->Update(m_time.GetDeltaTime());	// always runs: menu backdrop, editor camera, input
+
+			// UI (unscaled: menus work while the game is frozen)
+			m_ui.Update(m_time.GetUnscaledDeltaTime());
 
 			// 3. Audio (unscaled: fades and ducking keep running while the game is paused)
 			if (const Camera* listener = m_activeCamera.GetActiveCamera())
@@ -127,9 +146,12 @@ namespace eng
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 
 				m_app->DrawHUD();
+				m_ui.Draw();	// menus and dialogs on top of everything
 			EndDrawing(); // Swaps buffers and polls input events
 
-			// 5. End of frame: actors marked for destroy are deleted (nothing refers to them anymore)
+			// 5. End of frame: queued events (handlers may still look at actors marked this frame),
+			//    then actors marked for destroy are deleted (nothing refers to them anymore)
+			m_events.Dispatch();
 			m_renderQueue.Clear();
 			m_debugDraw.EndFrame(m_time.GetUnscaledDeltaTime());
 			if (level) level->FlushDestroyed();
@@ -138,6 +160,8 @@ namespace eng
 
 	void Engine::Shutdown()
 	{
+		m_ui.Clear();	// screens may refer to the game
+
 		if (m_app && m_isAppInitialized)
 		{
 			m_app->Destroy(); // logical clean up only
@@ -217,6 +241,21 @@ namespace eng
 	ParticleSystem& Engine::GetParticles()
 	{
 		return m_particles;
+	}
+
+	EventBus& Engine::GetEvents()
+	{
+		return m_events;
+	}
+
+	ModeMachine& Engine::GetModes()
+	{
+		return m_modes;
+	}
+
+	UIStack& Engine::GetUI()
+	{
+		return m_ui;
 	}
 
 	Time& Engine::GetTime()

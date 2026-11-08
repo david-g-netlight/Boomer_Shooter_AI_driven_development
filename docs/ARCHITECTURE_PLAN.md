@@ -317,9 +317,13 @@ Engine::Run()
 
 ---
 
+**As implemented (Phases 1–8):** modes are applied at the *start* of the frame (`ModeMachine::HandleInput` + `ApplyPendingTransition`, right after `Input.Poll`); `ParticleSystem::Update` runs after `app->Update`; `UIStack::Update` runs every frame and `UIStack::Draw` after `DrawHUD`; physics steps inside the fixed loop as `SyncTriggers → stepSimulation → DispatchTriggers`; `EventBus::Dispatch` runs before `Level::FlushDestroyed`. Shutdown: UI cleared → `app->Destroy()` → `PhysicsWorld::Shutdown` → `ReleaseVoices` → `ResourceManager::UnloadAll` → `AudioManager::Shutdown` → `CloseWindow`.
+
+---
+
 ## 5. Implementation plan (in order)
 
-Each phase ends with something you can run. Do not start a phase before the previous one's **Done when** passes.
+Each phase ends with something you can run. Do not start a phase before the previous one's **Done when** passes. Progress, decisions after this plan (D9–D11) and per‑phase devlogs: [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 
 > Order changed on 2026-11-06 (decision D9): Audio moved before Scene and Physics because it has fewer dependencies. Phases 4–6 are now Audio, Scene, Physics.
 
@@ -377,7 +381,7 @@ add_custom_command(TARGET my_app POST_BUILD
 ### Phase 1 — Core: Engine, Application, Time, Window
 - `eng::Application` (abstract), `eng::Engine` (Meyer's singleton, deleted copy/move, `SetApplication` ownership transfer).
 - `Engine::Init`: `SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI)`,
-  `InitWindow`, `InitAudioDevice`, `SetExitKey(KEY_NULL)`, `ChangeDirectory(GetApplicationDirectory())`, `SetTargetFPS(60)`.
+  `InitWindow`, `SetExitKey(KEY_NULL)`, `ChangeDirectory(GetApplicationDirectory())`, `SetTargetFPS(60)`.
 - `eng::Time` (dt, clamped dt, total time, fixed‑step accumulator), `eng::WindowInfo`, `eng::World`, `eng::Log`.
 - `main.cpp` reduced to the reference pattern; a temporary `ScaleGame` draws the cube from the old example.
 
@@ -391,7 +395,7 @@ add_custom_command(TARGET my_app POST_BUILD
 **Done when:** a debug overlay prints action states, and mouse look works with the cursor locked.
 
 ### Phase 3 — Resources and rendering
-- `eng::ResourceManager`: path‑keyed cache for `Model`, `Shader`, `Texture2D`, `Sound`, `Music`, `Font`; primitive generators (`GetCube()`, `GetPlane()`); `UnloadAll()`.
+- `eng::ResourceManager`: path‑keyed cache for `Model`, `Shader`, `Texture2D`, `Font` (`Sound` / `Music` added in Phase 4 with the audio device, which `AudioManager` owns); primitive generators (`GetCube()`, `GetPlane()`); `UnloadAll()`.
 - `eng::Camera` (wraps `Camera3D`, fov/near/far, `Forward/Right/Up`, `Rotate(yaw,pitch)`), `eng::ActiveCamera`.
 - `eng::Material` (wraps `::Material`, tint, optional shader, named float params like the reference).
 - `eng::RenderCommand`, `eng::RenderQueue` (`Submit`, `Flush` inside `BeginMode3D`).
@@ -434,7 +438,7 @@ Bullet is hidden behind `eng::` classes. Public headers forward‑declare `class
 - **`RigidBody`** component (requires `Collider`): `BodyType {Static, Dynamic, Kinematic}`, mass, friction, restitution, damping, `lockRotation` (angular factor 0). Builds a `btRigidBody` with an `ActorMotionState`. Kinematic bodies get `CF_KINEMATIC_OBJECT` + `DISABLE_DEACTIVATION`. API: `AddImpulse`, `SetLinearVelocity`, `Teleport(::Transform)` (sets the transform, clears velocities, `activate(true)`), `OnScaleChanged()` (recompute inertia with `calculateLocalInertia`, `setMassProps`, `updateInertiaTensor`, `updateSingleAabb`, `activate`).
 - **`ActorMotionState : btMotionState`**: `getWorldTransform` reads the actor's world transform; `setWorldTransform` writes position and rotation back into the actor (dynamic bodies only). Scale is **never** taken from Bullet; it lives on the actor and is pushed through `setLocalScaling`.
 - **`TriggerVolume`** component (requires `Collider`): `btPairCachingGhostObject` with `CF_NO_CONTACT_RESPONSE`, group `Trigger`, mask `Player | Prop`.
-- **`CharacterMotor`** component: the player is a **dynamic capsule rigid body** (`btCapsuleShape` r 0.5, height 1.0, mass 80), not Bullet's kinematic controller (decision D7):
+- **`CharacterMotor`** component (uses the actor's capsule `Collider`, layer Player): the player is a **dynamic capsule rigid body** (`btCapsuleShape` r 0.5, height 1.0, mass 80), not Bullet's kinematic controller (decision D7):
   - Body setup: `setAngularFactor(0)` (never tips over), friction 0, restitution 0, `DISABLE_DEACTIVATION`, CCD on, group `Player`, mask `Ground | Prop | Trigger`.
   - Own gravity: the `BT_DISABLE_WORLD_GRAVITY` flag is set before `addRigidBody`, then `setGravity({0, -g, 0})`, so the player can use the snappy jump‑arc gravity while props keep −9.81.
   - Each fixed tick, `SetWalkVelocity(v)` sets the linear velocity to `(v.x, current.y, v.z)`. On the ground, `v` is projected onto the ground plane so slopes don't make the player bounce; in the air, an `airControl` factor (0.5) blends toward `v`.
@@ -451,7 +455,7 @@ Bullet is hidden behind `eng::` classes. Public headers forward‑declare `class
 
 ### Phase 7 — FX: particles and lines
 - `ParticleEmitter` (burst count, lifetime, speed, spread cone, size, **color gradient over lifetime with alpha fade**) and `ParticleSystem` (pooled, max ~1024, drawn as billboards or small cubes).
-- `LineRenderer` (start/end points, start/end colors, thickness via `DrawCylinderEx`, or `DrawLine3D` for 1px).
+- `LineRenderer` (start/end points, start/end colors, start/end width, fade‑out), submitted as a `LineCommand` to the RenderQueue's transparent line pass: an open tapered tube with per‑vertex colors (capped `DrawCylinderEx` segments showed stacked caps through the transparency).
 
 **Done when:** clicking spawns a colored burst and a fading beam line.
 
@@ -489,6 +493,7 @@ Bullet is hidden behind `eng::` classes. Public headers forward‑declare `class
 **Done when:** enter the editor mid‑game, move/scale a crate, add a trigger, save `level_01.lvl`, exit to Play with the edits live; restarting the app and loading the file reproduces the level.
 
 ### Phase 10 — Game: state and player
+- `ActorHandle` (decision D11): id‑based weak reference to a `GameActor` (Level lookup, null once deleted). Gameplay code stores handles, not raw `GameActor*`.
 - `PlayerState` (from `PlayerState.cs`): walk speed 10, scale factors `{0.25, 0.5, 0.75}` (rate 0.25 × 3), index, `ChangeFactor(±1)`, cooldown 1.0 s, `readyToShoot`, ray reach 30.
 - `GameState` (from `GameState.cs`): `Reset`, `StartGame`, `WinGame`, `LoseGame`, `ProgressToNextLevel`; publishes `GameStarted / GameWon / GameLost` on the `EventBus`.
 - `PlayerInput` (from `InputManager.cs`): reads the engine `InputMap`, exposes `Direction`, `Jump`, `Look`; `giveControl` flag; LMB → `gun.Fire(+1)`, RMB → `gun.Fire(-1)`, wheel → `playerState.ChangeFactor(sign)`.
@@ -535,7 +540,10 @@ public:
     virtual bool Init() = 0;
     virtual void Update(float dt) = 0;
     virtual void FixedUpdate(float fixedDt) {}
-    virtual void DrawHUD() {}                       // 2D, Play mode, after EndMode3D
+    virtual void SubmitRenderables(RenderQueue&) {} // every frame, also while paused (as built in Phase 3)
+    virtual void UpdateFrozen(float unscaledDt) {}  // instead of Update outside Play (Phase 8, planned)
+    virtual void DrawHUD() {}                       // 2D, after the 3D pass
+    virtual EngineMode GetStartMode() const { return EngineMode::MainMenu; }
     virtual void Destroy() = 0;
 
     // Mode hooks (called by ModeMachine)
@@ -690,6 +698,10 @@ private:
 
 ---
 
+**Added during implementation** (see the devlogs): `MathUtils::DecomposeTransform` (replaces raymath's row‑based `MatrixDecompose`, wrong with non‑uniform scale), `RaycastHit`, `ActorMotionState`, `PhysicsDebugDrawer`, `CcdMode` (Auto below 0.3 m), `SceneLighting`, `LineCommand`, `ModeChangedEvent`, `EditorBannerScreen` (placeholder until Phase 9), `ParticleEmitterSettings`. Sounds and music load through `ResourceManager`; `AudioSource` is a `Component` since Phase 5.
+
+---
+
 ## 8. Game classes (Application layer)
 
 | # | Class | Folder | Responsibility | Unity origin |
@@ -776,6 +788,9 @@ TAB / "Play" ─> ModeMachine.Request(Play) ─> DisableCursor, audio.Unduck, ap
 - **ESC closes raylib windows by default**: call `SetExitKey(KEY_NULL)` in `Engine::Init`, otherwise Pause can't work.
 - **Input timing**: raylib polls events inside `EndDrawing()`, so "pressed this frame" refers to the previous `EndDrawing`. Read input once per frame in `InputManager::Poll()` and never inside `FixedUpdate` (it can run 0..N times per frame). Fire requests are latched and consumed by the next fixed step if needed.
 - **Bullet build flags must match**: the engine and the prebuilt libs must agree on `BT_USE_DOUBLE_PRECISION` (OFF) and architecture (arm64), or you get silent memory corruption, not link errors. `build_bullet.sh` pins both; do not define `BT_USE_DOUBLE_PRECISION` anywhere in the engine.
+- **raymath `MatrixDecompose` reads matrix rows**: wrong rotation/scale for non‑uniformly scaled, rotated actors. Always use `eng::DecomposeTransform` (found in Phase 6).
+- **macOS toolchain**: an Xcode linker older than the Command Line Tools SDK fails with `tapi error: malformed file`; use the CLT toolchain or update Xcode (see README).
+- **Raw `GameActor*` in game code** can dangle after a late destroy (ASan, Phase 6) → `ActorHandle` in Phase 10.
 - **Dynamic capsule player**: the usual problems are sliding down slopes, bouncing on slope changes, sticking to walls in mid‑air, and being launched by props that are scaling. Mitigations: friction 0 + velocity projected onto the ground plane, `vy = -0.05` glue while grounded, zero friction on walls, clamp the player's max vertical velocity after each step (e.g. 15 m/s), and a jump grace period. If it proves unreliable, the fallback is `btKinematicCharacterController` (not chosen; it jitters on slopes and is poorly maintained). That is a change inside `eng::CharacterMotor` only; the game is unaffected.
 - **Scaling into the player or into other props**: a fast `setLocalScaling` can create deep penetrations. Bullet then separates bodies with a velocity spike. Keep `Scalable.speed` moderate (5), clamp the max linear velocity after the step, and skip the stretch if an `OverlapBox` at the target size hits a static wall.
 - **Shape scaling cost**: `btBvhTriangleMeshShape` (static mesh) must not be scaled at runtime. Scalable props always use primitive or convex hull shapes.

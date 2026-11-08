@@ -2,6 +2,7 @@
 #include "Time.h"
 #include "WindowInfo.h"
 #include "World.h"
+#include "EventBus.h"
 #include "input/InputManager.h"
 #include "resources/ResourceManager.h"
 #include "render/Camera.h"
@@ -10,6 +11,8 @@
 #include "audio/AudioManager.h"
 #include "physics/PhysicsWorld.h"
 #include "fx/ParticleSystem.h"
+#include "modes/ModeMachine.h"
+#include "ui/UIStack.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -87,6 +90,9 @@ namespace eng
 		AudioManager&		GetAudio();
 		PhysicsWorld&		GetPhysics();
 		ParticleSystem&		GetParticles();
+		EventBus&			GetEvents();
+		ModeMachine&		GetModes();
+		UIStack&			GetUI();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -111,6 +117,9 @@ namespace eng
 		AudioManager	m_audio;
 		PhysicsWorld	m_physics;
 		ParticleSystem	m_particles;
+		EventBus		m_events;
+		ModeMachine		m_modes;
+		UIStack			m_ui;
 
 		Time			m_time;
 		WindowInfo		m_window;

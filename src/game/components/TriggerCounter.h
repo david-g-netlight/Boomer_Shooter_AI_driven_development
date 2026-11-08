@@ -3,7 +3,17 @@
 #include <string>
 
 /// <summary>
-/// Demo component for a TriggerVolume: counts Enter / Exit events and tints the zone while occupied.
+/// Published by TriggerCounter on every Enter (EventBus demo).
+/// </summary>
+struct TriggerEnteredEvent
+{
+	std::string	zone;
+	std::string	other;
+};
+
+/// <summary>
+/// Demo component for a TriggerVolume: counts Enter / Exit events, tints the zone while occupied and
+/// publishes a TriggerEnteredEvent.
 /// </summary>
 class TriggerCounter : public eng::Component
 {
@@ -13,6 +23,7 @@ public:
 		++m_enters;
 		m_last = "entered: " + other.GetName();
 		Refresh();
+		eng::Engine::GetInstance().GetEvents().Publish(TriggerEnteredEvent{ GetOwner()->GetName(), other.GetName() });
 	}
 
 	void OnTriggerExit(eng::GameActor& other) override

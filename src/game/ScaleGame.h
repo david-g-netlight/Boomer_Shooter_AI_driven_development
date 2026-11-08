@@ -22,6 +22,7 @@ public:
 
 	const char*	GetTitle() const				override;
 	eng::Level*	GetActiveLevel()				override;
+	void		OnRestartRequested()			override;
 
 private:
 	struct BoxDesc
@@ -37,6 +38,7 @@ private:
 	};
 
 	void		BindInput();
+	void		ClearSandbox();
 	void		BuildSandbox();
 	eng::GameActor*	SpawnBox(const BoxDesc& desc);
 	void		UpdateCamera(float deltaTime);
@@ -68,7 +70,8 @@ private:
 	static constexpr float	KICK_SPEED		= 6.0f;		// m/s given to the aimed crate by LMB
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
 	int						m_deletedCrates	= 0;
-	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (never destroyed)
+	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
+	eng::EventBus::Token	m_triggerToken	= 0;
 
 	// Player capsule (CharacterMotor). V toggles fly camera <-> first person
 	static constexpr Vector3	PLAYER_SPAWN	= { 0.0f, 1.0f, 10.0f };
@@ -118,7 +121,6 @@ private:
 	int			m_scaleFactorIndex		= 0;
 	const Sound*	m_sfxStretch		= nullptr;
 	const Sound*	m_sfxShrink			= nullptr;
-	bool		m_isAudioPaused			= false;
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
 	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds
