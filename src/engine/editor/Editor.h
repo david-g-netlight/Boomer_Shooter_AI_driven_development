@@ -66,6 +66,12 @@ namespace eng
 		void				DeleteSelected();
 
 		/// <summary>
+		/// The level's spawn point goes where the editor camera is: on the ground below it (a physics ray down),
+		/// facing the way the camera looks.
+		/// </summary>
+		void				SetSpawnHere();
+
+		/// <summary>
 		/// Copies the selection (with children) next to it and selects the copy. Needs every component registered.
 		/// </summary>
 		GameActor*			DuplicateSelected();

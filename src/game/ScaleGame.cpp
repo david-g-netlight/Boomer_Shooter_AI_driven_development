@@ -25,7 +25,7 @@ bool ScaleGame::Init()
 		music.Play(*m_themeMenu, MUSIC_FADE_IN);
 	}
 
-	BuildSandbox();
+	LoadCurrentLevel();
 
 	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
 	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
@@ -150,7 +150,6 @@ void ScaleGame::BuildSandbox()
 	SpawnBox({ "Thin Wall", { 0.0f, 1.5f, WALL_Z }, { 6.0f, 3.0f, 0.05f }, {}, BodyType::Static, 0.0f,
 			   { 200, 200, 210, 255 }, eng::Layer::Ground });
 
-	SpawnPlayer();
 }
 
 void ScaleGame::ThrowPellet()
@@ -192,7 +191,10 @@ void ScaleGame::UpdatePellets()
 
 void ScaleGame::SpawnPlayer()
 {
-	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera }, SANDBOX_SPAWN, SANDBOX_SPAWN_YAW, true);
+	// From the level's spawn line; a level without one uses the sandbox spot
+	const eng::SpawnPoint& spawn = m_level.GetSpawn();
+	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera },
+		spawn.isSet ? spawn.position : SANDBOX_SPAWN, spawn.isSet ? spawn.yawDegrees : SANDBOX_SPAWN_YAW, true);
 }
 
 void ScaleGame::EmitImpact(float sign)
@@ -296,15 +298,36 @@ void ScaleGame::OnRestartRequested()
 	m_gameState.StartGame();
 
 	// Called by the ModeMachine between frames (not inside a level update): safe to clear the level
-	ClearSandbox();
-	BuildSandbox();
+	LoadCurrentLevel();
 	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
 	eng::Log::Info("ScaleGame: sandbox rebuilt");
 }
 
+void ScaleGame::LoadCurrentLevel()
+{
+	ClearSandbox();
+
+	const std::string path = GetLevelPath();
+	if (!eng::LevelSerializer::Load(m_level, path).ok)
+	{
+		eng::Log::Warning("ScaleGame: '%s' not found, building the code sandbox", path.c_str());
+		BuildSandbox();
+	}
+
+	RebindActors();
+	SpawnPlayer();
+}
+
 void ScaleGame::OnLevelLoaded()
 {
-	// The editor replaced every actor: find the ones the sandbox logic works with again
+	// The editor replaced every actor
+	RebindActors();
+	SpawnPlayer();
+}
+
+void ScaleGame::RebindActors()
+{
+	// Find the actors the sandbox logic works with again
 	m_aimHit.reset();
 	m_triggerCounter	= nullptr;
 	m_player			= nullptr;
@@ -323,13 +346,12 @@ void ScaleGame::OnLevelLoaded()
 			m_crates.push_back(actor);
 	}
 
-	SpawnPlayer();
 	eng::Log::Info("ScaleGame: level loaded, %zu crates", m_crates.size());
 }
 
 std::string ScaleGame::GetLevelPath() const
 {
-	return "assets/levels/sandbox.lvl";
+	return m_levels.GetPath(m_gameState.GetLevelIndex());
 }
 
 void ScaleGame::PruneDestroyedCrates()

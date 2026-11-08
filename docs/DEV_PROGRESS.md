@@ -129,7 +129,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList` (+ `src/game/state/`; the sandbox uses them: wheel factor, scaling SFX, Idle → Playing on Start / Restart, status line in the HUD)
 - [x] `PlayerInput` (Direction / Look / Jump / Fire / wheel → `PlayerState`; jump and fire buffered 0.1 s for FixedUpdate; `SetControl(false)` and non‑Play cut everything; the sandbox reads it)
 - [x] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook` (+ `src/game/player/`; the sandbox plays with them, the old fly camera / V mode is gone; headless run: walked 9.6 m in 1 s, jump rise 0.92 m, yaw / pitch and body rotation correct, no input without control)
-- [ ] Spawn from `.lvl`
+- [x] Spawn from `.lvl` (`spawn x y z yaw` line, `Level::GetSpawn`, editor "Set Spawn Here" + overlay capsule; the sandbox loads `assets/levels/level_01.lvl` (exported from the code sandbox), falls back to building it, Restart reloads the file; the player is spawned by the game and never saved in a file)
 - [ ] **Done when:** walk, jump, look in `level_01`; wheel cycles x0.25 / x0.5 / x0.75
 
 ### Phase 11 — Game: scaling mechanic ⬜

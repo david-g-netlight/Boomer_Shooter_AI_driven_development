@@ -49,6 +49,8 @@ private:
 
 	void		BindInput();
 	void		ClearSandbox();
+	void		LoadCurrentLevel();			// the LevelList's file, or the code sandbox when it is missing
+	void		RebindActors();				// crates, trigger counter after a level was loaded
 	void		BuildSandbox();
 	eng::GameActor*	SpawnBox(const BoxDesc& desc);
 	void		UpdateCamera(float deltaTime);

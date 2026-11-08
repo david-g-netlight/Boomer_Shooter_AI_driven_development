@@ -1,0 +1,153 @@
+lvl 1
+spawn 0 0 10  yaw 0
+actor "Ground"
+  transform 0 -0.51 0  0 0 0  40 1 40
+  component MeshRenderer mesh=cube tint=120,140,110,255 lit=1 specular=0.1
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Ramp 30"
+  transform -9 1.5 -6  0 0 30  6 0.4 4
+  component MeshRenderer mesh=cube tint=150,150,160,255 lit=1 specular=0.1
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Ramp 50"
+  transform 9 2.29813 -6  0 0 50  6 0.4 4
+  component MeshRenderer mesh=cube tint=170,130,150,255 lit=1 specular=0.1
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 0.0"
+  transform -1.53 0.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 0.1"
+  transform -0.51 0.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 0.2"
+  transform 0.51 0.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 0.3"
+  transform 1.53 0.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 1.0"
+  transform -1.02 1.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 1.1"
+  transform 0 1.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 1.2"
+  transform 1.02 1.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 2.0"
+  transform -0.51 2.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 2.1"
+  transform 0.51 2.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Heavy 3.0"
+  transform 0 3.5 -4  0 0 0  1 1 1
+  component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=20 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Light 0"
+  transform 5 0.45 2  0 0 0  0.9 0.9 0.9
+  component MeshRenderer mesh=cube tint=235,205,80,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=2 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Light 1"
+  transform 5 1.35 2  0 0 0  0.9 0.9 0.9
+  component MeshRenderer mesh=cube tint=235,205,80,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=2 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Light 2"
+  transform 5 2.25 2  0 0 0  0.9 0.9 0.9
+  component MeshRenderer mesh=cube tint=235,205,80,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=2 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Light 3"
+  transform 5 3.15 2  0 0 0  0.9 0.9 0.9
+  component MeshRenderer mesh=cube tint=235,205,80,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=2 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Light 4"
+  transform 5 4.05 2  0 0 0  0.9 0.9 0.9
+  component MeshRenderer mesh=cube tint=235,205,80,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=2 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Dropped 0"
+  transform -4 6 2  0 0 10  0.8 0.8 0.8
+  component MeshRenderer mesh=cube tint=230,120,40,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=5 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Dropped 1"
+  transform -3.6 8 2.3  15 30 10  0.8 0.8 0.8
+  component MeshRenderer mesh=cube tint=230,120,40,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=5 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Dropped 2"
+  transform -3.2 10 2.6  30 60 10  0.8 0.8 0.8
+  component MeshRenderer mesh=cube tint=230,120,40,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=5 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Dropped 3"
+  transform -2.8 12 2.9  90 89.9802 -1.05379  0.8 0.8 0.8
+  component MeshRenderer mesh=cube tint=230,120,40,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=5 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Jump crate"
+  transform -3 0.4 7  0 0 0  1.6 0.8 1.6
+  component MeshRenderer mesh=cube tint=230,41,55,255 lit=1 specular=0.4
+  component Collider shape=box half=0.5,0.5,0.5 layer=Prop
+  component RigidBody type=dynamic mass=60 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end
+actor "Trigger Zone"
+  transform 2 1 5  0 0 0  3 2 3
+  component MeshRenderer mesh=cube tint=60,140,255,70
+  component Collider shape=box half=0.5,0.5,0.5 layer=Trigger
+  component TriggerVolume
+  component TriggerCounter
+end
+actor "Thin Wall"
+  transform 0 1.5 -9  0 0 0  6 3 0.05
+  component MeshRenderer mesh=cube tint=200,200,210,255 lit=1 specular=0.1
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
+end

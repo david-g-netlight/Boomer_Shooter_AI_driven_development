@@ -149,8 +149,19 @@ namespace eng
 		return m_actors;
 	}
 
+	const SpawnPoint& Level::GetSpawn() const
+	{
+		return m_spawn;
+	}
+
+	void Level::SetSpawn(const Vector3& feetPosition, float yawDegrees)
+	{
+		m_spawn = { true, feetPosition, yawDegrees };
+	}
+
 	void Level::Clear()
 	{
+		m_spawn = {};
 		for (const auto& actor : m_actors)
 			actor->MarkForDestroy();
 		FlushDestroyed();

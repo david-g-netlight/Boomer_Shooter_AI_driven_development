@@ -242,6 +242,21 @@ namespace eng
 		return actor;
 	}
 
+	void Editor::SetSpawnHere()
+	{
+		if (!m_level)
+			return;
+
+		const Camera& camera = m_camera.GetCamera();
+		Vector3 feet = camera.GetPosition();
+		if (const auto hit = Engine::GetInstance().GetPhysics().Raycast(feet, { 0.0f, -1.0f, 0.0f }, 200.0f, Layer::Ground | Layer::Prop))
+			feet = hit->point;
+
+		m_level->SetSpawn(feet, camera.GetYaw());
+		Log::Info("Editor: spawn set to %.2f %.2f %.2f yaw %.0f", static_cast<double>(feet.x), static_cast<double>(feet.y),
+			static_cast<double>(feet.z), static_cast<double>(camera.GetYaw()));
+	}
+
 	void Editor::DeleteSelected()
 	{
 		if (!m_selected)
@@ -285,6 +300,16 @@ namespace eng
 				DrawCubeV(center, size, Fade(SKYBLUE, 0.25f));
 				DrawCubeWiresV(center, size, Fade(BLUE, 0.8f));
 			}
+
+		// Spawn point: the player's capsule and the way it faces
+		if (m_level && m_level->GetSpawn().isSet)
+		{
+			const SpawnPoint& spawn = m_level->GetSpawn();
+			const float yaw = spawn.yawDegrees * DEG2RAD;
+			const Vector3 feet = spawn.position;
+			DrawCapsuleWires({ feet.x, feet.y + 0.5f, feet.z }, { feet.x, feet.y + 1.5f, feet.z }, 0.5f, 8, 4, GREEN);
+			DrawLine3D({ feet.x, feet.y + 1.5f, feet.z }, { feet.x + std::sin(yaw) * 1.5f, feet.y + 1.5f, feet.z - std::cos(yaw) * 1.5f }, GREEN);
+		}
 
 		if (!m_selected || m_selected->IsMarkedForDestroy())
 			return;

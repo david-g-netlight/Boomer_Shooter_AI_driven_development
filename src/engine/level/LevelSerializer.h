@@ -11,6 +11,7 @@ namespace eng
 	/// Text level files (.lvl). One block per actor, parents before children:
 	///
 	///		lvl 1
+	///		spawn 0 0 10  yaw 0                          # where the player starts (feet), omitted when not set
 	///		actor "Crate 01"
 	///		  parent 0                                   # index of an earlier actor, omitted for roots
 	///		  active 0                                   # omitted when active
