@@ -26,6 +26,17 @@ bool ScaleGame::Init()
 
 	BuildSandbox();
 
+	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
+	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
+	{
+		if (e.other != "Player")
+			return;
+		eng::Engine::GetInstance().GetUI().Push<eng::MessageScreen>("Zone reached", "The player entered the " + e.zone + ".",
+			std::vector<eng::MessageScreen::Button>{
+				{ "Continue", {} },
+				{ "Main Menu", [] { eng::Engine::GetInstance().GetModes().Request(eng::EngineMode::MainMenu); } } });
+	});
+
 	// Minimap: high above the sandbox looking down (pitch is clamped to -89), pixel size follows the DPI
 	m_minimapCamera.SetPosition({ 0.0f, 32.0f, 0.01f });
 	m_minimapCamera.SetYawPitch(0.0f, -89.0f);
@@ -279,6 +290,26 @@ void ScaleGame::UpdateAim()
 		m_aimHit->actor->MarkForDestroy();
 		++m_deletedCrates;
 	}
+}
+
+void ScaleGame::ClearSandbox()
+{
+	m_aimHit.reset();
+	m_triggerCounter	= nullptr;
+	m_player			= nullptr;
+	m_isPlayerMode		= false;
+	m_pellets.clear();
+	m_crates.clear();
+	m_level.Clear();
+}
+
+void ScaleGame::OnRestartRequested()
+{
+	// Called by the ModeMachine between frames (not inside a level update): safe to clear the level
+	ClearSandbox();
+	BuildSandbox();
+	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
+	eng::Log::Info("ScaleGame: sandbox rebuilt");
 }
 
 void ScaleGame::PruneDestroyedCrates()
@@ -559,12 +590,8 @@ void ScaleGame::DrawAudioPanel() const
 void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
-	m_aimHit.reset();
-	m_triggerCounter = nullptr;
-	m_player = nullptr;
-	m_pellets.clear();
-	m_crates.clear();
-	m_level.Clear();
+	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
+	ClearSandbox();
 	m_sfxStretch	= nullptr;
 	m_sfxShrink		= nullptr;
 	m_themeMenu		= nullptr;

@@ -5,6 +5,7 @@
 namespace eng
 {
 	class InputManager;
+	class UIScreen;
 
 	/// <summary>
 	/// Engine modes and their transitions, owned by the Engine.
@@ -18,7 +19,8 @@ namespace eng
 	///      OnReturnToMainMenu, OnRestartRequested)
 	///   2. cursor: locked in Play, free otherwise
 	///   3. audio: Paused / Editor duck the music and pause sound effects; Play / MainMenu restore them
-	///   4. ModeChangedEvent on the EventBus
+	///   4. the mode's screen (MainMenuScreen, PauseMenuScreen, editor banner) replaces the previous one
+	///   5. ModeChangedEvent on the EventBus
 	/// </summary>
 	class ModeMachine
 	{
@@ -48,10 +50,11 @@ namespace eng
 		void		ApplyPendingTransition();
 
 	private:
-		void		ApplyModeEffects(EngineMode mode) const;
+		void		ApplyModeEffects(EngineMode mode);
 
 		EngineMode					m_mode			= EngineMode::MainMenu;
 		std::optional<EngineMode>	m_pending;
 		bool						m_isRestart		= false;
+		const UIScreen*				m_modeScreen	= nullptr;	// the screen this machine pushed for the current mode
 	};
 }

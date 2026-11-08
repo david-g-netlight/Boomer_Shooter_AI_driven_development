@@ -107,7 +107,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `EventBus` (queued dispatch)
 - [x] `ModeMachine` (MainMenu / Play / Paused / Editor; cursor, audio duck, hooks) (+ ESC / TAB, `ModeChangedEvent`, `Application::GetStartMode`; removed the C / P demo keys)
 - [x] `UIStack`, `UIScreen`, `UIStyle`, `RayGuiImpl.cpp`
-- [ ] `MainMenuScreen`, `PauseMenuScreen`, `MessageScreen`
+- [x] `MainMenuScreen`, `PauseMenuScreen`, `MessageScreen` (+ ModeMachine shows the mode's screen, editor placeholder banner, Restart rebuilds the sandbox, EventBus → dialog demo)
 - [ ] Auto‑pause on focus loss
 - [ ] Physics not stepped while Paused / Menu / Editor
 - [ ] **Done when:** Menu → Start → Play → ESC pause (frozen, crates stay mid‑air) → Resume exactly where it was → Menu → Quit
@@ -191,6 +191,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 8 | 4 of 6 Phase 8 tasks committed on `events_modes_menus` (EventBus, ModeMachine, UI stack, menu screens); screenshots confirm main menu, pause menu and dialog. **Known gap:** the simulation still runs behind the pause menu until the last task | Auto‑pause on focus loss; freeze simulation outside Play | — |
 | 2026-11-07 | 7 | Developer validated Phase 7 (and deleted the accidental `list` branch); devlog written; merged into `integration` | Start Phase 8 on `events_modes_menus` | — |
 | 2026-11-07 | 7 | Both Phase 7 tasks committed on `fx`; particle pool test passed; ASan screenshot runs: 80 particles + 2 beams on fire, both beams gone after the fade; replaced capped cylinders (stacked hexagon artifacts) with an open per‑vertex‑colored tube | Developer runs the Phase 7 **Done when** check | — |
 | 2026-11-07 | 6 | Developer validated Phase 6; `ActorHandle` scheduled in Phase 10 (D11); devlog written; merged into `integration` | Start Phase 7 on `fx` | — |

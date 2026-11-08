@@ -18,6 +18,7 @@
 #include "ui/UIScreen.h"
 #include "ui/UIStack.h"
 #include "ui/UIStyle.h"
+#include "ui/MenuScreens.h"
 #include "core/MathUtils.h"
 #include "input/InputManager.h"
 #include "input/InputMap.h"

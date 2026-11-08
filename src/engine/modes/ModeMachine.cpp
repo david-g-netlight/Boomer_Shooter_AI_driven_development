@@ -4,6 +4,8 @@
 #include "core/EngineInfo.h"
 #include "core/Log.h"
 #include "input/InputManager.h"
+#include "ui/MenuScreens.h"
+#include "ui/UIStack.h"
 
 namespace eng
 {
@@ -109,18 +111,30 @@ namespace eng
 			if (to == EngineMode::Editor)		app->OnEnterEditor();
 		}
 
-		// 2 + 3. Cursor and audio
+		// 2 + 3 + 4. Cursor, audio, mode screen
 		ApplyModeEffects(to);
 
-		// 4. Event
+		// 5. Event
 		Engine::GetInstance().GetEvents().Publish(ModeChangedEvent{ from, to, isRestart });
 		Log::Info("ModeMachine: %s -> %s%s", ModeName(from), ModeName(to), isRestart ? " (restart)" : "");
 	}
 
-	void ModeMachine::ApplyModeEffects(EngineMode mode) const
+	void ModeMachine::ApplyModeEffects(EngineMode mode)
 	{
 		Engine&			engine	= Engine::GetInstance();
 		AudioManager&	audio	= engine.GetAudio();
+		UIStack&		ui		= engine.GetUI();
+
+		// Replace the previous mode's screen (game screens such as dialogs are left alone)
+		ui.Remove(m_modeScreen);
+		m_modeScreen = nullptr;
+		switch (mode)
+		{
+			case EngineMode::MainMenu:	m_modeScreen = ui.Push<MainMenuScreen>();		break;
+			case EngineMode::Paused:	m_modeScreen = ui.Push<PauseMenuScreen>();		break;
+			case EngineMode::Editor:	m_modeScreen = ui.Push<EditorBannerScreen>();	break;	// TODO(Phase 9)
+			case EngineMode::Play:		break;
+		}
 
 		engine.GetInputManager().SetCursorLocked(mode == EngineMode::Play);
 
