@@ -11,6 +11,7 @@
 #include "fx/RayBeamSpawner.h"
 #include "flow/GameContext.h"
 #include "flow/GameplayManager.h"
+#include "ui/GameUI.h"
 #include "flow/TriggerZone.h"
 #include <optional>
 #include <vector>
@@ -86,7 +87,6 @@ private:
 	std::optional<eng::RaycastHit>	m_aimHit;			// this frame's center-screen ray (valid until frame end)
 	int						m_deletedCrates	= 0;
 	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
-	eng::EventBus::Token	m_triggerToken	= 0;
 	RayBeamSpawner			m_beams;
 
 	// The player (PlayerActor): spawn point of the sandbox, feet position
@@ -132,6 +132,7 @@ private:
 	PlayerInput		m_input{ m_playerState };
 	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
 	GameplayManager	m_gameplay;
+	GameUI			m_gameUI;
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
 	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds

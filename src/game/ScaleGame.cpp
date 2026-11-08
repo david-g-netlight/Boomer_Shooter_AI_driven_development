@@ -36,16 +36,7 @@ bool ScaleGame::Init()
 
 	m_beams.Init(&m_level);	// every gun shot: muzzle burst, beam, impact, sound
 
-	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
-	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
-	{
-		if (e.other != "Player")
-			return;
-		eng::Engine::GetInstance().GetUI().Push<eng::MessageScreen>("Zone reached", "The player entered the " + e.zone + ".",
-			std::vector<eng::MessageScreen::Button>{
-				{ "Continue", {} },
-				{ "Main Menu", [] { eng::Engine::GetInstance().GetModes().Request(eng::EngineMode::MainMenu); } } });
-	});
+	m_gameUI.Init(m_input, m_gameplay);	// win / lose dialogs
 
 	// Minimap: high above the sandbox looking down (pitch is clamped to -89), pixel size follows the DPI
 	m_minimapCamera.SetPosition({ 0.0f, 32.0f, 0.01f });
@@ -529,7 +520,7 @@ void ScaleGame::DrawAudioPanel() const
 void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
-	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
+	m_gameUI.Shutdown();
 	m_beams.Shutdown();
 	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
