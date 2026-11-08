@@ -12,7 +12,8 @@
 ///
 /// Rules: a prop that is still scaling ignores new shots; stretching stops at MAX_RATIO times the scale it
 /// had before the first shot (the target is clamped, so it never overshoots); once the largest axis is below
-/// MIN_SIZE after a shrink, the prop is destroyed. The sound plays when a change actually starts.
+/// MIN_SIZE after a shrink, the prop is destroyed. A stretch is refused when the prop at its target size would
+/// overlap static level geometry (layer Ground), so it can't grow into a wall or ceiling. The sound plays when a change actually starts.
 /// Needs a Collider (and normally a RigidBody) on the same actor, added before it.
 /// </summary>
 class Scalable : public eng::Component
@@ -27,6 +28,12 @@ public:
 	/// already at the cap, or no change.
 	/// </summary>
 	bool			TriggerScaling(float multiplier);
+
+	/// <summary>
+	/// Would the prop, scaled by `multiplier`, intersect static level geometry? (Its own bottom resting on the floor
+	/// doesn't count.)
+	/// </summary>
+	bool			WouldOverlapStatic(float multiplier) const;
 
 	bool			IsScaling() const;
 	float			GetScaleRatio() const;		// current / base scale (largest axis)

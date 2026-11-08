@@ -1,6 +1,7 @@
 #include "Scalable.h"
 #include <algorithm>
 #include <cmath>
+#include <vector>
 #include "state/SoundFXBank.h"
 
 namespace
@@ -61,6 +62,8 @@ bool Scalable::TriggerScaling(float multiplier)
 	}
 	if (std::fabs(target - 1.0f) < 1e-4f)
 		return false;
+	if (target > 1.0f && WouldOverlapStatic(target))
+		return false;						// no room to grow
 
 	m_isScaling		= true;
 	m_t				= 0.0f;
@@ -71,6 +74,27 @@ bool Scalable::TriggerScaling(float multiplier)
 	// Unity ScalingAudioFX: the pitch follows the factor, up for a stretch and down for a shrink
 	SoundFXBank::Instance().PlayScaling(multiplier > 1.0f ? +1.0f : -1.0f, std::fabs(multiplier - 1.0f));
 	return true;
+}
+
+bool Scalable::WouldOverlapStatic(float multiplier) const
+{
+	constexpr float INSET = 0.08f;		// touching the floor or a wall is not overlapping it (also covers Bullet's 4 cm collision margin)
+
+	const eng::Collider* collider = GetOwner()->GetComponent<eng::Collider>();
+	if (!collider)
+		return false;
+
+	// The collider's box after the change: same footing, bigger around it (grows upward with keepBottom)
+	const BoundingBox box	= collider->GetWorldBounds();
+	const Vector3 size		= { (box.max.x - box.min.x) * multiplier, (box.max.y - box.min.y) * multiplier, (box.max.z - box.min.z) * multiplier };
+	const Vector3 center	= { (box.min.x + box.max.x) * 0.5f,
+								m_keepBottom ? box.min.y + size.y * 0.5f : (box.min.y + box.max.y) * 0.5f,
+								(box.min.z + box.max.z) * 0.5f };
+	const Vector3 half		= { std::max(0.0f, size.x * 0.5f - INSET), std::max(0.0f, size.y * 0.5f - INSET), std::max(0.0f, size.z * 0.5f - INSET) };
+
+	std::vector<eng::GameActor*> touched;
+	eng::Engine::GetInstance().GetPhysics().OverlapBox(center, half, eng::Layer::Ground, GetOwner(), touched);
+	return !touched.empty();
 }
 
 float Scalable::GetLowestPoint() const
