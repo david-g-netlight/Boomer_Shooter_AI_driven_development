@@ -13,6 +13,7 @@
 #include "flow/TriggerZone.h"
 #include "ui/GameUI.h"
 #include "ui/GunHUD.h"
+#include "player/GunView.h"
 #include "audio/MusicManager.h"
 
 /// <summary>
@@ -28,6 +29,7 @@ class ScaleGame : public eng::Application
 public:
 	bool		Init()							override;
 	void		Update(float deltaTime)			override;
+	void		DrawViewModel()					override;
 	void		DrawHUD()						override;
 	void		Destroy()						override;
 
@@ -57,6 +59,7 @@ private:
 	RayBeamSpawner	m_beams;
 	GameUI			m_gameUI;
 	GunHUD			m_gunHUD;
+	GunView			m_gunView;
 	MusicManager	m_music;
 
 	// Main menu backdrop: a slow orbit around the level

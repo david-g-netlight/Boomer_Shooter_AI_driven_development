@@ -160,6 +160,7 @@ namespace eng
 				m_activeCamera.End3D();
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 
+				m_app->DrawViewModel();
 				m_app->DrawHUD();
 				if (m_modes.GetMode() == EngineMode::Editor)
 					m_editor.DrawPanels();

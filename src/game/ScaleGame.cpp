@@ -25,6 +25,7 @@ bool ScaleGame::Init()
 	m_gameplay.LoadNow(0);			// the menu's backdrop
 	m_beams.Init(&m_level);			// every gun shot: muzzle burst, beam, impact, sound
 	m_gameUI.Init(m_input, m_gameplay);
+	m_gunView.Init(m_playerState);
 
 	eng::Log::Info("ScaleGame initialized");
 	return true;
@@ -54,6 +55,7 @@ void ScaleGame::BindInput()
 void ScaleGame::Destroy()
 {
 	// Actors first: their bodies leave the physics world before it shuts down
+	m_gunView.Shutdown();
 	m_gameUI.Shutdown();
 	m_beams.Shutdown();
 	m_gameplay.Shutdown();
@@ -147,6 +149,7 @@ void ScaleGame::Update(float deltaTime)
 	}
 
 	m_input.Update(deltaTime, map);
+	m_gunView.Update(deltaTime);
 	UpdateMenuCamera(deltaTime);
 }
 
@@ -160,6 +163,11 @@ void ScaleGame::UpdateMenuCamera(float deltaTime)
 	const float angle = m_orbitAngle * DEG2RAD;
 	m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
 	m_camera.LookAt({ 0.0f, 1.0f, -1.0f });
+}
+
+void ScaleGame::DrawViewModel()
+{
+	m_gunView.Draw();
 }
 
 void ScaleGame::DrawHUD()
