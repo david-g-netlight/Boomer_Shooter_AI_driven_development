@@ -175,6 +175,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | D11 | 2026-11-07 | `ActorHandle` (id‑based weak actor reference) added as the first Phase 10 task | Developer decision after the Phase 6 ASan finding: gameplay code (player, triggers, beams) must not hold raw `GameActor*` that can dangle | Phase 10, known issues |
 | D12 | 2026-11-08 | Level files use one `PropertyBag` (key=value) for both `Serialize` and `Deserialize` instead of separate `LevelWriter` / `LevelReader`; actors with an unregistered component are not saved (transient beams, timers); mesh colliders and model meshes are not serializable yet | Simpler API, same format as plan §8; avoids saving runtime-only actors | Phase 9 |
 | D13 | 2026-11-08 | `ResourceManager::SetDefaultLitShader` carries the game's lit shader (`lit=1` in level files, editor cubes) | Level loading must work in release builds, so it can't live in the editor class | Phase 9 |
+| D14 | 2026-11-08 | Architecture plan synchronized with the code: §1, §3, §4, §6–§10 rewritten as built, **As built** notes on every phase, new §11 listing each difference from the first plan and why | Review after Phase 13: layering, ownership rules, loop shape and the engine / game split held; folders, level format, the Editor, events, level flow, gun view and settings changed | whole plan |
 
 ---
 
@@ -197,6 +198,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | — | Architecture review: compared the plan with the code and rewrote the plan as built (D14) | Developer reviews `plan_sync` | — |
 | 2026-11-08 | 13 | Developer validated Phase 13; devlog written; merged into `integration` | Architecture review: compare the plan with the code | — |
 | 2026-11-08 | 13 | All Phase 13 tasks committed on `polish_and_release` (cleanup, GunHUD, GunView, settings, release packaging, README) | Developer runs the Phase 13 **Done when** check | — |
 | 2026-11-08 | 12 | Developer validated Phase 12; devlog written; merged into `integration` | Start Phase 13 on `polish_and_release` | — |
