@@ -1,5 +1,5 @@
 #pragma once
-#include <functional>
+#include <string>
 #include "editor/EditorCamera.h"
 #include "editor/EditorToolbar.h"
 #include "editor/HierarchyPanel.h"
@@ -66,18 +66,19 @@ namespace eng
 		void				DeleteSelected();
 
 		/// <summary>
-		/// Save / Load go through the game's level file code (LevelSerializer, a later Phase 9 task).
-		/// The toolbar buttons stay disabled until both are set.
+		/// Copies the selection (with children) next to it and selects the copy. Needs every component registered.
 		/// </summary>
-		void				SetSaveLoad(std::function<void()> save, std::function<void()> load);
-		bool				CanSaveLoad() const;
-		void				Save();
-		void				Load();
+		GameActor*			DuplicateSelected();
 
 		/// <summary>
-		/// Shader given to new cubes (the game's lit shader). nullptr = raylib's default.
+		/// Level file of the Application (Application::GetLevelPath). Save writes it (and, in editor builds, the
+		/// copy in the source tree so the build's asset copy can't overwrite it). Load is applied at the start of
+		/// the next editor frame: the level is cleared, the file loaded, Application::OnLevelLoaded() called,
+		/// and the loaded state becomes the new Reset point.
 		/// </summary>
-		void				SetDefaultShader(const Shader* shader);
+		bool				CanSaveLoad() const;
+		void				Save();
+		void				RequestLoad();
 
 		/// <summary>
 		/// True while a text box has the keyboard: hotkeys stay quiet.
@@ -92,6 +93,8 @@ namespace eng
 
 	private:
 		void				ValidateSelection();
+		void				LoadNow();
+		std::string			GetLevelPath() const;
 
 		Level*			m_level		= nullptr;
 		GameActor*		m_selected	= nullptr;
@@ -101,9 +104,7 @@ namespace eng
 		HierarchyPanel	m_hierarchy;
 		InspectorPanel	m_inspector;
 		EditorToolbar	m_toolbar;
-		std::function<void()>	m_onSave;
-		std::function<void()>	m_onLoad;
-		const Shader*	m_defaultShader	= nullptr;
+		bool			m_isLoadPending	= false;
 		int				m_spawnCounter	= 0;
 		bool			m_isActive	= false;
 		LevelSnapshot	m_snapshot;

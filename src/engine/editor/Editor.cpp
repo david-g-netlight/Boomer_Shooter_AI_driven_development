@@ -7,7 +7,10 @@
 #include "input/InputManager.h"
 #include "level/GameActor.h"
 #include "level/Level.h"
+#include "core/Application.h"
+#include "editor/ActorEdit.h"
 #include "editor/EditorUI.h"
+#include "level/LevelSerializer.h"
 #include "editor/Picker.h"
 #include "physics/Collider.h"
 #include "physics/RigidBody.h"
@@ -68,6 +71,9 @@ namespace eng
 		if (!m_isActive)
 			return;
 
+		if (m_isLoadPending && m_level)
+			LoadNow();
+
 		ValidateSelection();
 		m_camera.Update(input, unscaledDeltaTime);
 
@@ -84,6 +90,8 @@ namespace eng
 			if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
 			if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
 			if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
+			if (input.IsKeyPressed(KEY_D) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
+				DuplicateSelected();
 			if (input.IsKeyPressed(KEY_S) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
 				Save();
 		}
@@ -127,19 +135,65 @@ namespace eng
 		m_inspector.Draw(*this);
 	}
 
-	void Editor::SetSaveLoad(std::function<void()> save, std::function<void()> load)
+	std::string Editor::GetLevelPath() const
 	{
-		m_onSave = std::move(save);
-		m_onLoad = std::move(load);
+		const Application* app = Engine::GetInstance().GetApplication();
+		return app ? app->GetLevelPath() : std::string();
 	}
 
-	bool Editor::CanSaveLoad() const	{ return m_onSave && m_onLoad; }
-	void Editor::Save()					{ if (m_onSave) m_onSave(); }
-	void Editor::Load()					{ if (m_onLoad) m_onLoad(); }
+	bool Editor::CanSaveLoad() const	{ return m_level && !GetLevelPath().empty(); }
+
+	void Editor::Save()
+	{
+		if (!CanSaveLoad())
+			return;
+
+		const std::string path = GetLevelPath();
+		LevelSerializer::Save(*m_level, path);
+#if defined(ENG_SOURCE_DIR)
+		// The build copies assets/ over the executable's copy: keep a copy where the developer commits it
+		LevelSerializer::Save(*m_level, std::string(ENG_SOURCE_DIR) + "/" + path);
+#endif
+	}
+
+	void Editor::RequestLoad()
+	{
+		if (CanSaveLoad())
+			m_isLoadPending = true;
+	}
+
+	void Editor::LoadNow()
+	{
+		m_isLoadPending = false;
+		m_selected = nullptr;
+		m_gizmo.CancelDrag();
+
+		if (!LevelSerializer::Load(*m_level, GetLevelPath()).ok)
+			return;
+
+		if (Application* app = Engine::GetInstance().GetApplication())
+			app->OnLevelLoaded();
+		m_snapshot.Capture(*m_level);
+	}
+
+	GameActor* Editor::DuplicateSelected()
+	{
+		if (!m_selected || !m_level)
+			return nullptr;
+
+		GameActor* copy = LevelSerializer::Duplicate(*m_level, *m_selected);
+		if (!copy)
+			return nullptr;
+
+		// Step aside so the copy doesn't hide the original
+		::Transform transform = copy->GetTransform();
+		transform.translation.x += 1.0f;
+		ActorEdit::SetLocalTransform(*copy, transform);
+		Select(copy);
+		return copy;
+	}
 
 	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText() || m_inspector.IsEditingText(); }
-
-	void Editor::SetDefaultShader(const Shader* shader) { m_defaultShader = shader; }
 
 	GameActor* Editor::AddCube()
 	{
@@ -152,7 +206,7 @@ namespace eng
 
 		ResourceManager& resources = Engine::GetInstance().GetResources();
 		actor->AddComponent<MeshRenderer>(resources.GetPrimitive(Primitive::Cube))
-			->CreateOwnMaterial(m_defaultShader).SetTint({ 200, 160, 90, 255 });
+			->CreateOwnMaterial(resources.GetDefaultLitShader()).SetTint({ 200, 160, 90, 255 });
 		actor->AddComponent<Collider>()->SetLayer(Layer::Prop);
 		RigidBodySettings settings;
 		settings.mass = 2.0f;

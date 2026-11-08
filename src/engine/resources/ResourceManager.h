@@ -51,6 +51,13 @@ namespace eng
 		//////////////////////////////////////////
 		const ::Mesh*	GetPrimitive(Primitive primitive);
 
+		/// <summary>
+		/// The lit shader of the game (assets/shaders/lit.*). Level files mark materials with `lit=1`,
+		/// and the editor gives it to new cubes. nullptr = raylib's default shader.
+		/// </summary>
+		void			SetDefaultLitShader(const Shader* shader);
+		const Shader*	GetDefaultLitShader() const;
+
 		void		UnloadAll();
 
 		size_t		GetLoadedCount() const;
@@ -63,6 +70,7 @@ namespace eng
 		std::unordered_map<std::string, Sound>		m_sounds;
 		std::unordered_map<std::string, Music>		m_music;
 
+		const Shader*	m_defaultLitShader	= nullptr;
 		std::array<::Mesh, static_cast<size_t>(Primitive::Count)>	m_primitives			= {};
 		std::array<bool,   static_cast<size_t>(Primitive::Count)>	m_isPrimitiveLoaded		= {};
 	};

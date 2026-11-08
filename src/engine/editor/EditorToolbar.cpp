@@ -32,7 +32,7 @@ namespace eng
 
 		GuiSetState(editor.CanSaveLoad() ? STATE_NORMAL : STATE_DISABLED);
 		if (GuiButton(slot(4), "Save"))	editor.Save();
-		if (GuiButton(slot(5), "Load"))	editor.Load();
+		if (GuiButton(slot(5), "Load"))	editor.RequestLoad();
 		GuiSetState(STATE_NORMAL);
 	}
 }

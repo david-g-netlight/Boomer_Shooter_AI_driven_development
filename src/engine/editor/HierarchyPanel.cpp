@@ -30,9 +30,8 @@ namespace eng
 		GuiSetState(selected ? STATE_NORMAL : STATE_DISABLED);
 		if (GuiButton({ x, y, half, EditorUI::ROW_HEIGHT }, "Delete"))
 			editor.DeleteSelected();
-		GuiSetState(STATE_NORMAL);
-		GuiSetState(STATE_DISABLED);	// Duplicate arrives with the LevelSerializer (it clones through it)
-		GuiButton({ x + half + EditorUI::PADDING, y, half, EditorUI::ROW_HEIGHT }, "Duplicate");
+		if (GuiButton({ x + half + EditorUI::PADDING, y, half, EditorUI::ROW_HEIGHT }, "Duplicate"))
+			editor.DuplicateSelected();
 		GuiSetState(STATE_NORMAL);
 		y += EditorUI::ROW_HEIGHT + 8.0f;
 

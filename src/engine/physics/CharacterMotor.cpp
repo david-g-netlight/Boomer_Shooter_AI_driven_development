@@ -11,6 +11,7 @@
 #include <cmath>
 #include <raymath.h>
 #include "editor/InspectorLayout.h"
+#include "level/PropertyBag.h"
 #include <cstdio>
 
 namespace eng
@@ -273,5 +274,36 @@ namespace eng
 		char text[32];
 		std::snprintf(text, sizeof(text), "%.1f deg", static_cast<double>(GetGroundSlopeDegrees()));
 		ui.Info("Ground slope", text);
+	}
+
+	void CharacterMotor::SetSettings(const CharacterMotorSettings& settings)
+	{
+		m_settings = settings;
+	}
+
+	void CharacterMotor::Serialize(PropertyBag& out) const
+	{
+		out.SetFloat("mass", m_settings.mass);
+		out.SetFloat("gravity", m_settings.gravity);
+		out.SetFloat("maxSlope", m_settings.maxSlopeDegrees);
+		out.SetFloat("airControl", m_settings.airControl);
+		out.SetFloat("groundGlue", m_settings.groundGlue);
+		out.SetFloat("jumpGrace", m_settings.jumpGraceSeconds);
+		out.SetFloat("maxVerticalSpeed", m_settings.maxVerticalSpeed);
+		out.SetFloat("groundProbe", m_settings.groundProbe);
+	}
+
+	void CharacterMotor::Deserialize(const PropertyBag& in)
+	{
+		CharacterMotorSettings s = m_settings;
+		s.mass				= in.GetFloat("mass", s.mass);
+		s.gravity			= in.GetFloat("gravity", s.gravity);
+		s.maxSlopeDegrees	= in.GetFloat("maxSlope", s.maxSlopeDegrees);
+		s.airControl		= in.GetFloat("airControl", s.airControl);
+		s.groundGlue		= in.GetFloat("groundGlue", s.groundGlue);
+		s.jumpGraceSeconds	= in.GetFloat("jumpGrace", s.jumpGraceSeconds);
+		s.maxVerticalSpeed	= in.GetFloat("maxVerticalSpeed", s.maxVerticalSpeed);
+		s.groundProbe		= in.GetFloat("groundProbe", s.groundProbe);
+		SetSettings(s);
 	}
 }

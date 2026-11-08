@@ -120,7 +120,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `HierarchyPanel` (tree, select, rename, Add Cube / Add Trigger / Delete; Duplicate waits for the serializer) (+ panel layout helpers, hotkeys quiet while typing, clicks over panels never pick, banner shows the controls)
 - [x] `InspectorPanel` (incl. `RigidBody` / `Collider` fields) (+ `InspectorLayout` widgets, `Component::DrawInspector`, `ActorEdit` shared by gizmo and inspector; collider edits re‑create the body)
 - [x] `EditorToolbar` (Play / Reset / Move / Scale; Save / Load / Ctrl+S disabled until the serializer task)
-- [ ] `LevelSerializer` + `ComponentRegistry` (`.lvl` format)
+- [x] `LevelSerializer` + `ComponentRegistry` (`.lvl` format) (+ `PropertyBag`, `Component::Serialize / Deserialize` for MeshRenderer, Collider, RigidBody, TriggerVolume, CharacterMotor; toolbar Save / Load / Ctrl+S, Duplicate (Ctrl+D) enabled; `Application::GetLevelPath / OnLevelLoaded`; saves are mirrored into the source `assets/`)
 - [ ] Bullet debug wireframes in the editor overlay
 - [ ] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
 
@@ -171,6 +171,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | D9 | 2026-11-06 | **Phase order changed by the developer:** 4 Audio, 5 Scene, 6 Physics (was 4 Scene, 5 Physics, 6 Audio) | Audio is simpler and has fewer dependencies. Devlogs written before this keep the old numbers | §5, tracker |
 | D10 | 2026-11-06 | `AudioSource` is a standalone class in Phase 4 and becomes a `Component` in Phase 5; "pause ducks music" is shown with a demo key until Phase 8 | `Component` and Pause don't exist yet when Audio is built | Phase 4, 5, 8 |
 | D11 | 2026-11-07 | `ActorHandle` (id‑based weak actor reference) added as the first Phase 10 task | Developer decision after the Phase 6 ASan finding: gameplay code (player, triggers, beams) must not hold raw `GameActor*` that can dangle | Phase 10, known issues |
+| D12 | 2026-11-08 | Level files use one `PropertyBag` (key=value) for both `Serialize` and `Deserialize` instead of separate `LevelWriter` / `LevelReader`; actors with an unregistered component are not saved (transient beams, timers); mesh colliders and model meshes are not serializable yet | Simpler API, same format as plan §8; avoids saving runtime-only actors | Phase 9 |
+| D13 | 2026-11-08 | `ResourceManager::SetDefaultLitShader` carries the game's lit shader (`lit=1` in level files, editor cubes) | Level loading must work in release builds, so it can't live in the editor class | Phase 9 |
 
 ---
 

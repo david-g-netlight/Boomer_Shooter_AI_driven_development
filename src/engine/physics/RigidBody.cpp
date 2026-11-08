@@ -9,6 +9,7 @@
 #include "level/GameActor.h"
 #include <algorithm>
 #include "editor/InspectorLayout.h"
+#include "level/PropertyBag.h"
 #include <cstdio>
 
 namespace eng
@@ -354,5 +355,35 @@ namespace eng
 		std::snprintf(text, sizeof(text), "%.2f %.2f %.2f", static_cast<double>(v.x), static_cast<double>(v.y), static_cast<double>(v.z));
 		ui.Info("Velocity", text);
 		ui.Info("Sleeping", IsSleeping() ? "yes" : "no");
+	}
+
+	void RigidBody::Serialize(PropertyBag& out) const
+	{
+		static constexpr const char* TYPES[]	= { "static", "dynamic", "kinematic" };
+		static constexpr const char* CCD[]		= { "auto", "on", "off" };
+
+		out.SetString("type", TYPES[static_cast<int>(m_settings.type)]);
+		out.SetFloat("mass", m_settings.mass);
+		out.SetFloat("friction", m_settings.friction);
+		out.SetFloat("restitution", m_settings.restitution);
+		out.SetFloat("linearDamping", m_settings.linearDamping);
+		out.SetFloat("angularDamping", m_settings.angularDamping);
+		if (m_settings.lockRotation)
+			out.SetBool("lockRotation", true);
+		out.SetString("ccd", CCD[static_cast<int>(m_settings.ccd)]);
+	}
+
+	void RigidBody::Deserialize(const PropertyBag& in)
+	{
+		const std::string type = in.GetString("type", "dynamic");
+		SetType(type == "static" ? BodyType::Static : (type == "kinematic" ? BodyType::Kinematic : BodyType::Dynamic));
+		SetMass(in.GetFloat("mass", m_settings.mass));
+		SetFriction(in.GetFloat("friction", m_settings.friction));
+		SetRestitution(in.GetFloat("restitution", m_settings.restitution));
+		SetDamping(in.GetFloat("linearDamping", m_settings.linearDamping), in.GetFloat("angularDamping", m_settings.angularDamping));
+		SetLockRotation(in.GetBool("lockRotation", false));
+
+		const std::string ccd = in.GetString("ccd", "auto");
+		SetCcdMode(ccd == "on" ? CcdMode::On : (ccd == "off" ? CcdMode::Off : CcdMode::Auto));
 	}
 }

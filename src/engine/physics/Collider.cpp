@@ -7,6 +7,7 @@
 #include <raymath.h>
 #include "core/MathUtils.h"
 #include "editor/InspectorLayout.h"
+#include "level/PropertyBag.h"
 #include "physics/RigidBody.h"
 #include "physics/TriggerVolume.h"
 
@@ -71,6 +72,7 @@ namespace eng
 		m_isBottomPivot = bottomPivot; m_isDirty = true;
 	}
 
+	bool Collider::IsBottomPivot() const				{ return m_isBottomPivot; }
 	const Vector3& Collider::GetCenter() const			{ return m_center; }
 	ColliderShape Collider::GetShapeType() const		{ return m_shape; }
 	const Vector3& Collider::GetHalfExtents() const		{ return m_halfExtents; }
@@ -282,5 +284,52 @@ namespace eng
 				if (TriggerVolume* trigger = owner->GetComponent<TriggerVolume>())	{ trigger->SetEnabled(false); trigger->SetEnabled(true); }
 			}
 		}
+	}
+
+	namespace
+	{
+		constexpr uint32_t LAYERS[] = { Layer::Ground, Layer::Prop, Layer::Player, Layer::Trigger, Layer::Beam };
+	}
+
+	void Collider::Serialize(PropertyBag& out) const
+	{
+		switch (m_shape)
+		{
+			case ColliderShape::Box:		out.SetString("shape", "box");		out.SetVec3("half", m_halfExtents); break;
+			case ColliderShape::Sphere:		out.SetString("shape", "sphere");	out.SetFloat("radius", m_radius); break;
+			case ColliderShape::Capsule:	out.SetString("shape", "capsule");	out.SetFloat("radius", m_radius); out.SetFloat("height", m_height); break;
+			default:
+				Log::Warning("Collider: mesh shapes are not saved in level files; '%s' will load with a box",
+					GetOwner() ? GetOwner()->GetName().c_str() : "?");
+				out.SetString("shape", "box");
+				break;
+		}
+
+		if (m_isBottomPivot)
+			out.SetBool("bottomPivot", true);
+		else if (m_center.x != 0.0f || m_center.y != 0.0f || m_center.z != 0.0f)
+			out.SetVec3("center", m_center);
+
+		out.SetString("layer", LayerName(m_layer));
+		if (m_mask != DefaultCollisionMask(m_layer))
+			out.SetInt("mask", static_cast<int>(m_mask));
+	}
+
+	void Collider::Deserialize(const PropertyBag& in)
+	{
+		const std::string shape = in.GetString("shape", "box");
+		if (shape == "sphere")			SetSphere(in.GetFloat("radius", 0.5f));
+		else if (shape == "capsule")	SetCapsule(in.GetFloat("radius", 0.5f), in.GetFloat("height", 1.0f));
+		else							SetBox(in.GetVec3("half", { 0.5f, 0.5f, 0.5f }));
+
+		if (in.Has("center"))			SetCenter(in.GetVec3("center"));
+		if (in.GetBool("bottomPivot"))	SetBottomPivot(true);
+
+		const std::string layer = in.GetString("layer", "Prop");
+		for (uint32_t candidate : LAYERS)
+			if (layer == LayerName(candidate))
+				SetLayer(candidate);
+		if (in.Has("mask"))
+			SetMask(static_cast<uint32_t>(in.GetInt("mask")));
 	}
 }

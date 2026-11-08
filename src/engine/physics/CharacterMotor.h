@@ -52,6 +52,7 @@ namespace eng
 		bool			IsOnSteepSlope() const;
 		Vector3			GetVelocity() const;
 		const CharacterMotorSettings& GetSettings() const;
+		void			SetSettings(const CharacterMotorSettings& settings);
 
 		//////////////////////////////////////////
 		/// Component
@@ -60,6 +61,8 @@ namespace eng
 		void			OnDisable() override;
 		void			FixedUpdate(float fixedDeltaTime) override;
 		void			DrawInspector(InspectorLayout& ui) override;
+		void			Serialize(PropertyBag& out) const override;
+		void			Deserialize(const PropertyBag& in) override;
 		const char*		TypeName() const override { return "CharacterMotor"; }
 
 	private:

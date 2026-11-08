@@ -33,6 +33,9 @@ else()
     target_compile_definitions(engine PUBLIC $<IF:$<CONFIG:Debug>,ENG_EDITOR=1,ENG_EDITOR=0>)
 endif()
 
+# Where the editor mirrors saved level files (only used when ENG_EDITOR is 1)
+target_compile_definitions(engine PRIVATE ENG_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
 # Bullet Physics: engine-private, the game never includes Bullet headers
 target_include_directories(engine PRIVATE include/bullet)
 target_link_libraries(engine PRIVATE

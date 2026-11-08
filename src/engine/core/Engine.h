@@ -13,6 +13,7 @@
 #include "fx/ParticleSystem.h"
 #include "modes/ModeMachine.h"
 #include "editor/Editor.h"
+#include "level/ComponentRegistry.h"
 #include "ui/UIStack.h"
 
 /////////////////////////////////////////////////////////
@@ -94,6 +95,7 @@ namespace eng
 		EventBus&			GetEvents();
 		ModeMachine&		GetModes();
 		Editor&				GetEditor();
+		ComponentRegistry&	GetComponentRegistry();
 		UIStack&			GetUI();
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
@@ -122,6 +124,7 @@ namespace eng
 		EventBus		m_events;
 		ModeMachine		m_modes;
 		Editor			m_editor;
+		ComponentRegistry m_componentRegistry;
 		UIStack			m_ui;
 
 		Time			m_time;
