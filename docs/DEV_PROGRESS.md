@@ -128,7 +128,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11) (+ `GameActor::GetId`, `Level::FindActor`; the sandbox's player, crates and pellets are handles now)
 - [x] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList` (+ `src/game/state/`; the sandbox uses them: wheel factor, scaling SFX, Idle → Playing on Start / Restart, status line in the HUD)
 - [x] `PlayerInput` (Direction / Look / Jump / Fire / wheel → `PlayerState`; jump and fire buffered 0.1 s for FixedUpdate; `SetControl(false)` and non‑Play cut everything; the sandbox reads it)
-- [ ] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook`
+- [x] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook` (+ `src/game/player/`; the sandbox plays with them, the old fly camera / V mode is gone; headless run: walked 9.6 m in 1 s, jump rise 0.92 m, yaw / pitch and body rotation correct, no input without control)
 - [ ] Spawn from `.lvl`
 - [ ] **Done when:** walk, jump, look in `level_01`; wheel cycles x0.25 / x0.5 / x0.75
 

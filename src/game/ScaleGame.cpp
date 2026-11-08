@@ -66,7 +66,6 @@ void ScaleGame::BindInput()
 
 	// Physics sandbox
 	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
-	map.BindAction("TogglePlayer", InputBinding::Key(KEY_V));
 	map.BindAction("TogglePhysicsDebug", InputBinding::Key(KEY_F3));
 	map.BindAction("ThrowPellet", InputBinding::Key(KEY_T));
 }
@@ -193,22 +192,7 @@ void ScaleGame::UpdatePellets()
 
 void ScaleGame::SpawnPlayer()
 {
-	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
-
-	// Capsule radius 0.5, 1 m between the sphere centers: 2 m tall, actor position = capsule center
-	m_player = m_level.CreateGameActor("Player");
-	m_player->SetPosition(PLAYER_SPAWN);
-	eng::Collider* collider = m_player->AddComponent<eng::Collider>();
-	collider->SetCapsule(0.5f, 1.0f);
-	collider->SetLayer(eng::Layer::Player);
-	m_player->AddComponent<eng::CharacterMotor>();
-
-	// Visual: the unit cylinder sits on y = 0, so offset it down to cover the capsule (-1 .. +1)
-	eng::GameActor* body = m_level.CreateGameActor("Player Mesh", m_player.Get());
-	body->SetPosition({ 0.0f, -1.0f, 0.0f });
-	body->SetScale({ 1.0f, 2.0f, 1.0f });
-	body->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cylinder))
-		->CreateOwnMaterial(m_litShader).SetTint({ 70, 110, 220, 255 });
+	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera }, SANDBOX_SPAWN, SANDBOX_SPAWN_YAW, true);
 }
 
 void ScaleGame::EmitImpact(float sign)
@@ -288,7 +272,6 @@ void ScaleGame::ClearSandbox()
 	m_aimHit.reset();
 	m_triggerCounter	= nullptr;
 	m_player			= nullptr;
-	m_isPlayerMode		= false;
 	m_pellets.clear();
 	m_crates.clear();
 	m_level.Clear();
@@ -325,7 +308,6 @@ void ScaleGame::OnLevelLoaded()
 	m_aimHit.reset();
 	m_triggerCounter	= nullptr;
 	m_player			= nullptr;
-	m_isPlayerMode		= false;
 	m_pellets.clear();
 	m_crates.clear();
 
@@ -333,7 +315,7 @@ void ScaleGame::OnLevelLoaded()
 	{
 		eng::GameActor* actor = owned.get();
 		if (actor->GetComponent<eng::CharacterMotor>())
-			m_player = actor;
+			actor->MarkForDestroy();	// an old file saved before the player was spawned by the game: the game spawns its own
 		else if (TriggerCounter* counter = actor->GetComponent<TriggerCounter>())
 			m_triggerCounter = counter;
 		else if (const eng::RigidBody* body = actor->GetComponent<eng::RigidBody>();
@@ -341,8 +323,7 @@ void ScaleGame::OnLevelLoaded()
 			m_crates.push_back(actor);
 	}
 
-	if (!m_player)
-		SpawnPlayer();	// a level file without a player still has to be playable in the sandbox
+	SpawnPlayer();
 	eng::Log::Info("ScaleGame: level loaded, %zu crates", m_crates.size());
 }
 
@@ -377,20 +358,12 @@ void ScaleGame::Update(float deltaTime)
 		physics.SetDebugDrawEnabled(!physics.IsDebugDrawEnabled());
 	}
 
-	if (map.IsActionPressed("TogglePlayer") && m_player)
-	{
-		m_isPlayerMode = !m_isPlayerMode;
-		if (m_isPlayerMode)
-			m_player->GetComponent<eng::CharacterMotor>()->Warp(PLAYER_SPAWN);
-	}
-
 	// Menus, pause and the editor only move the camera: clicks there belong to the UI
 	const bool isPlaying = eng::Engine::GetInstance().GetModes().IsSimulating();
 	if (isPlaying && map.IsActionPressed("ThrowPellet"))
 		ThrowPellet();
 
 	m_input.Update(deltaTime, map);
-	UpdatePlayer(deltaTime);
 	UpdateCamera(deltaTime);
 	if (isPlaying)
 	{
@@ -409,61 +382,11 @@ void ScaleGame::Update(float deltaTime)
 	}
 }
 
-void ScaleGame::UpdatePlayer(float /*deltaTime*/)
-{
-	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
-	eng::CharacterMotor*		motor	= m_player ? m_player->GetComponent<eng::CharacterMotor>() : nullptr;
-	if (!motor)
-		return;
-
-	if (!m_isPlayerMode)
-	{
-		motor->SetWalkVelocity({ 0.0f, 0.0f, 0.0f });
-		return;
-	}
-
-	// TODO(Phase 10): replaced by PlayerInput + FirstPersonController + FirstPersonLook
-	if (input.IsCursorLocked())
-	{
-		const Vector2 look = m_input.GetLook();
-		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
-	}
-
-	// Walk relative to where the camera faces, on the ground plane
-	const Vector2 move		= m_input.GetDirection();
-	Vector3 forward			= m_camera.Forward();
-	forward.y				= 0.0f;
-	forward					= Vector3Normalize(forward);
-	const Vector3 right		= m_camera.Right();
-	motor->SetWalkVelocity(Vector3Scale(Vector3Add(Vector3Scale(forward, move.y), Vector3Scale(right, move.x)), WALK_SPEED));
-
-	if (m_input.ConsumeJump())
-		motor->Jump(JUMP_SPEED);
-}
-
 void ScaleGame::UpdateCamera(float deltaTime)
 {
-	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
-
-	if (m_isPlayerMode && m_player)
+	// Play: the FirstPersonLook on the player owns the camera. The menu gets a slow orbit around the sandbox
+	if (eng::Engine::GetInstance().GetModes().GetMode() == eng::EngineMode::MainMenu)
 	{
-		// Eyes on the capsule (the actor holds the physics position after the last fixed step)
-		m_camera.SetPosition(Vector3Add(m_player->GetWorldPosition(), { 0.0f, EYE_HEIGHT, 0.0f }));
-		return;
-	}
-
-	const eng::EngineMode mode = eng::Engine::GetInstance().GetModes().GetMode();
-	if (mode == eng::EngineMode::Play && input.IsCursorLocked())
-	{
-		// TODO(Phase 10): replaced by FirstPersonLook / FirstPersonController
-		const Vector2 look = m_input.GetLook();
-		const Vector2 move = m_input.GetDirection();
-		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
-		m_camera.MoveLocal(move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f);
-	}
-	else if (mode == eng::EngineMode::MainMenu)
-	{
-		// Menu backdrop: slow orbit around the sandbox
 		m_orbitAngle += ORBIT_SPEED * deltaTime;
 		const float angle = m_orbitAngle * DEG2RAD;
 		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
@@ -561,7 +484,7 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("V: %s  |  ESC: pause  |  F2 / F3 debug  |  %s", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
+	DrawText(TextFormat("WASD walk  Space jump  mouse look  |  ESC pause  |  F2 / F3 debug  |  %s",
 		eng::ModeName(engine.GetModes().GetMode())), 20, 100, 10, DARKGRAY);
 
 	DrawPhysicsPanel();

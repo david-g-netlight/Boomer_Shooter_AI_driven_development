@@ -5,6 +5,7 @@
 #include "state/SoundFXBank.h"
 #include "state/LevelList.h"
 #include "player/PlayerInput.h"
+#include "player/PlayerActor.h"
 #include <optional>
 #include <vector>
 
@@ -51,7 +52,6 @@ private:
 	void		BuildSandbox();
 	eng::GameActor*	SpawnBox(const BoxDesc& desc);
 	void		UpdateCamera(float deltaTime);
-	void		UpdatePlayer(float deltaTime);
 	void		SpawnPlayer();
 	void		ThrowPellet();
 	void		UpdatePellets();
@@ -82,13 +82,10 @@ private:
 	TriggerCounter*			m_triggerCounter = nullptr;	// on the Trigger Zone actor (rebuilt on Restart)
 	eng::EventBus::Token	m_triggerToken	= 0;
 
-	// Player capsule (CharacterMotor). V toggles fly camera <-> first person
-	static constexpr Vector3	PLAYER_SPAWN	= { 0.0f, 1.0f, 10.0f };
-	static constexpr float		WALK_SPEED		= 6.0f;		// m/s (Unity PlayerState uses 10; tuned in Phase 10)
-	static constexpr float		JUMP_SPEED		= 8.0f;		// m/s: with gravity 32 the apex is ~1 m (Unity jump arc)
-	static constexpr float		EYE_HEIGHT		= 0.7f;		// above the capsule center (1.7 m above the feet)
+	// The player (PlayerActor): spawn point of the sandbox, feet position
+	static constexpr Vector3	SANDBOX_SPAWN		= { 0.0f, 0.0f, 10.0f };
+	static constexpr float		SANDBOX_SPAWN_YAW	= 0.0f;
 	eng::ActorHandle			m_player;
-	bool						m_isPlayerMode	= false;
 
 	// CCD check: T throws small fast pellets at a 5 cm wall; none should end up behind it
 	static constexpr float		WALL_Z			= -9.0f;
@@ -111,8 +108,6 @@ private:
 	//////////////////////////////////////////
 	/// Fly / orbit camera (Phase 2-3)
 	//////////////////////////////////////////
-	static constexpr float	LOOK_SENSITIVITY	= 0.1f;		// degrees per screen point
-	static constexpr float	FLY_SPEED			= 8.0f;		// m/s
 	static constexpr float	ORBIT_SPEED			= 10.0f;	// degrees/s
 	static constexpr float	ORBIT_RADIUS		= 20.0f;
 	float		m_orbitAngle			= 40.0f;	// degrees, used while the cursor is unlocked
