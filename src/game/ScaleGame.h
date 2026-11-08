@@ -9,6 +9,8 @@
 #include "player/ScalingGun.h"
 #include "props/Scalable.h"
 #include "fx/RayBeamSpawner.h"
+#include "flow/GameContext.h"
+#include "flow/TriggerZone.h"
 #include <optional>
 #include <vector>
 

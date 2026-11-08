@@ -140,7 +140,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] **Done when:** LMB grows smoothly (capped), RMB shrinks until it disappears, correct colors, cooldown works, scaled crates still rest on the floor and react to gravity
 
 ### Phase 12 — Game: level flow, UI, music 🟡
-- [ ] `TriggerZone`, `WinTrigger`, `LoseTrigger`, `NextLevelTrigger`
+- [x] `TriggerZone`, `WinTrigger`, `LoseTrigger`, `NextLevelTrigger` (+ `src/game/flow/`, `GameContext` for loader‑made components, `NextLevelRequestedEvent`; registered for level files; headless: a crate through the Win zone does nothing, the player wins / loses / asks for the next level once)
 - [ ] `GameplayManager` (load / next / reload)
 - [ ] `GameUI` (win / lose screens)
 - [ ] `MusicManager` + `assets/audio/CREDITS.txt`

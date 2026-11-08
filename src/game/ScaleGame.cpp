@@ -15,6 +15,10 @@ bool ScaleGame::Init()
 	resources.SetDefaultLitShader(m_litShader);	// level files (lit=1) and editor-made cubes use it
 	eng::Engine::GetInstance().GetComponentRegistry().Register<TriggerCounter>("TriggerCounter");
 	eng::Engine::GetInstance().GetComponentRegistry().Register<Scalable>("Scalable");
+	eng::Engine::GetInstance().GetComponentRegistry().Register<WinTrigger>("WinTrigger");
+	eng::Engine::GetInstance().GetComponentRegistry().Register<LoseTrigger>("LoseTrigger");
+	eng::Engine::GetInstance().GetComponentRegistry().Register<NextLevelTrigger>("NextLevelTrigger");
+	GameContext::SetGameState(&m_gameState);
 	eng::Engine::GetInstance().GetEditor().SetPropDecorator([](eng::GameActor& prop) { prop.AddComponent<Scalable>(); });
 	SoundFXBank::Instance().Load(resources);
 
@@ -531,6 +535,7 @@ void ScaleGame::Destroy()
 	// Actors first: their bodies leave the physics world before it shuts down
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
 	m_beams.Shutdown();
+	GameContext::SetGameState(nullptr);
 	ClearSandbox();
 	SoundFXBank::Instance().Clear();
 	m_themeMenu		= nullptr;
