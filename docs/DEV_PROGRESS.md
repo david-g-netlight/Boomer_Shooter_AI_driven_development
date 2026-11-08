@@ -108,8 +108,8 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `ModeMachine` (MainMenu / Play / Paused / Editor; cursor, audio duck, hooks) (+ ESC / TAB, `ModeChangedEvent`, `Application::GetStartMode`; removed the C / P demo keys)
 - [x] `UIStack`, `UIScreen`, `UIStyle`, `RayGuiImpl.cpp`
 - [x] `MainMenuScreen`, `PauseMenuScreen`, `MessageScreen` (+ ModeMachine shows the mode's screen, editor placeholder banner, Restart rebuilds the sandbox, EventBus → dialog demo)
-- [ ] Auto‑pause on focus loss
-- [ ] Physics not stepped while Paused / Menu / Editor
+- [x] Auto‑pause on focus loss (`ModeMachine::HandleFocus`, focus‑lost edge only; never auto‑resumes)
+- [x] Physics not stepped while Paused / Menu / Editor (+ fixed accumulator, `Level::Update` and particles gated on Play; sandbox clicks ignored outside Play)
 - [ ] **Done when:** Menu → Start → Play → ESC pause (frozen, crates stay mid‑air) → Resume exactly where it was → Menu → Quit
 
 ### Phase 9 — Editor mode ⬜
@@ -191,6 +191,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 8 | All 6 Phase 8 tasks committed on `events_modes_menus`: focus‑loss auto‑pause and simulation freeze outside Play (closes the known gap); app smoke run starts clean in MainMenu | Developer runs the Phase 8 **Done when** check | — |
 | 2026-11-08 | 8 | 4 of 6 Phase 8 tasks committed on `events_modes_menus` (EventBus, ModeMachine, UI stack, menu screens); screenshots confirm main menu, pause menu and dialog. **Known gap:** the simulation still runs behind the pause menu until the last task | Auto‑pause on focus loss; freeze simulation outside Play | — |
 | 2026-11-07 | 7 | Developer validated Phase 7 (and deleted the accidental `list` branch); devlog written; merged into `integration` | Start Phase 8 on `events_modes_menus` | — |
 | 2026-11-07 | 7 | Both Phase 7 tasks committed on `fx`; particle pool test passed; ASan screenshot runs: 80 particles + 2 beams on fire, both beams gone after the fade; replaced capped cylinders (stacked hexagon artifacts) with an open per‑vertex‑colored tube | Developer runs the Phase 7 **Done when** check | — |
