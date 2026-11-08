@@ -12,6 +12,7 @@
 #include "flow/GameContext.h"
 #include "flow/GameplayManager.h"
 #include "ui/GameUI.h"
+#include "audio/MusicManager.h"
 #include "flow/TriggerZone.h"
 #include <optional>
 #include <vector>
@@ -65,7 +66,6 @@ private:
 	void		SpawnPlayer();
 	void		ThrowPellet();
 	void		UpdatePellets();
-	void		UpdateAudioDemo();
 	void		PruneDestroyedCrates();
 	void		UpdateAim();
 	bool		IsCrate(const eng::GameActor* actor) const;
@@ -135,8 +135,5 @@ private:
 	GameUI			m_gameUI;
 
 	// Music (Unity ThemeMusicManager: fade-in 0.05/s up to 0.2 = 4 s)
-	static constexpr float	MUSIC_FADE_IN		= 4.0f;		// seconds
-	static constexpr float	MUSIC_CROSSFADE		= 2.0f;
-	Music*		m_themeMenu				= nullptr;
-	Music*		m_themeGame				= nullptr;
+	MusicManager	m_music;
 };

@@ -22,14 +22,7 @@ bool ScaleGame::Init()
 	eng::Engine::GetInstance().GetEditor().SetPropDecorator([](eng::GameActor& prop) { prop.AddComponent<Scalable>(); });
 	SoundFXBank::Instance().Load(resources);
 
-	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
-	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
-	if (m_themeMenu)
-	{
-		eng::MusicPlayer& music = eng::Engine::GetInstance().GetAudio().GetMusic();
-		music.SetVolume(0.7f);
-		music.Play(*m_themeMenu, MUSIC_FADE_IN);
-	}
+	m_music.Init(resources);		// menu / gameplay themes follow the engine mode
 
 	m_gameplay.Init(m_gameState, m_playerState, LevelList::Default(), [this](const std::string& path) { return LoadLevelFile(path); });
 	m_gameplay.LoadNow(0);
@@ -62,7 +55,6 @@ void ScaleGame::BindInput()
 	PlayerInput::BindDefaults(map);
 
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
-	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
 
 	// Physics sandbox
 	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
@@ -339,7 +331,6 @@ void ScaleGame::Update(float deltaTime)
 	if (isPlaying)
 	{
 		UpdateAim();
-		UpdateAudioDemo();
 	}
 	UpdatePellets();
 	PruneDestroyedCrates();
@@ -363,20 +354,6 @@ void ScaleGame::UpdateCamera(float deltaTime)
 		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
 		m_camera.LookAt({ 0.0f, 1.0f, -1.0f });
 	}
-}
-
-void ScaleGame::UpdateAudioDemo()
-{
-	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
-	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
-
-	// Cross-fade between the menu and gameplay themes
-	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
-	{
-		eng::MusicPlayer& music = audio.GetMusic();
-		music.Play(music.GetCurrent() == m_themeMenu ? *m_themeGame : *m_themeMenu, MUSIC_CROSSFADE);
-	}
-
 }
 
 void ScaleGame::FixedUpdate(float /*fixedDeltaTime*/)
@@ -503,14 +480,12 @@ void ScaleGame::DrawPhysicsPanel() const
 void ScaleGame::DrawAudioPanel() const
 {
 	const eng::AudioManager&	audio	= eng::Engine::GetInstance().GetAudio();
-	const eng::MusicPlayer&		music	= audio.GetMusic();
-	const char*					track	= music.GetCurrent() == m_themeMenu ? "menu"
-										: music.GetCurrent() == m_themeGame ? "game" : "none";
+	const char*					track	= m_music.GetCurrentName();
 
 	const int x = 10, y = 276;
 	DrawRectangle(x, y, 330, 59, Fade(BEIGE, 0.6f));
 	DrawRectangleLines(x, y, 330, 59, BROWN);
-	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", m_playerState.GetFactor(), track),
+	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  music: %s theme", m_playerState.GetFactor(), track),
 		x + 10, y + 10, 10, DARKGRAY);
 	DrawText(TextFormat("ESC pause ducks the music  |  duck %.2f", audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
 	DrawText(TextFormat("Game: %s  |  level %d of %zu", GameState::StatusName(m_gameState.GetStatus()),
@@ -526,8 +501,7 @@ void ScaleGame::Destroy()
 	GameContext::SetGameState(nullptr);
 	ClearSandbox();
 	SoundFXBank::Instance().Clear();
-	m_themeMenu		= nullptr;
-	m_themeGame		= nullptr;
+	m_music.Shutdown();
 	m_litShader		= nullptr;
 	m_minimap.Unload();
 	eng::Log::Info("ScaleGame destroyed");

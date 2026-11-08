@@ -143,7 +143,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `TriggerZone`, `WinTrigger`, `LoseTrigger`, `NextLevelTrigger` (+ `src/game/flow/`, `GameContext` for loader‑made components, `NextLevelRequestedEvent`; registered for level files; headless: a crate through the Win zone does nothing, the player wins / loses / asks for the next level once)
 - [x] `GameplayManager` (load / next / reload) (+ requests applied in `Update()` between frames, every load resets `GameState` / `PlayerState`, auto‑start while in Play, `LevelProgressedEvent` after a win; Start loads level 1, Restart reloads the current one; headless: next, retry, win → next, last level, menu → Start)
 - [x] `GameUI` (win / lose screens) (+ "Level Complete" with Next Level / Main Menu, "You did it!" with Play Again after the last level, "You fell!" with Retry / Main Menu; control cut while a dialog is up and given back on GameStarted; the sandbox's "Zone reached" demo dialog is gone; headless + screenshot)
-- [ ] `MusicManager` + `assets/audio/CREDITS.txt`
+- [x] `MusicManager` + `assets/audio/CREDITS.txt` (+ menu / gameplay themes follow `ModeChangedEvent`: fade‑in for the first track, cross‑fade after, resume and editor leave the track alone; the M demo key is gone; credits file lists where each file plays; headless: menu → game → pause / resume (not restarted) → menu)
 - [ ] Levels 1–3 authored in the editor
 - [ ] **Done when:** Menu → L1 win → L2 fall → retry → win → Menu
 
