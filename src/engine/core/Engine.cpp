@@ -149,6 +149,8 @@ namespace eng
 				m_debugDraw.DrawLabels(*m_activeCamera.GetActiveCamera());
 
 				m_app->DrawHUD();
+				if (m_modes.GetMode() == EngineMode::Editor)
+					m_editor.DrawPanels();
 				m_ui.Draw();	// menus and dialogs on top of everything
 			EndDrawing(); // Swaps buffers and polls input events
 

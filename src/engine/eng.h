@@ -16,6 +16,7 @@
 #include "modes/EngineMode.h"
 #include "modes/ModeMachine.h"
 #include "editor/Picker.h"
+#include "editor/HierarchyPanel.h"
 #include "editor/TransformGizmo.h"
 #include "editor/EditorCamera.h"
 #include "editor/LevelSnapshot.h"

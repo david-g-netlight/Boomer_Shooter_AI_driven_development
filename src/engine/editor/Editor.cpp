@@ -1,11 +1,19 @@
 #include "Editor.h"
 #include <cmath>
+#include <string>
+#include <raymath.h>
 #include "core/Engine.h"
 #include "core/Log.h"
 #include "input/InputManager.h"
 #include "level/GameActor.h"
 #include "level/Level.h"
+#include "editor/EditorUI.h"
 #include "editor/Picker.h"
+#include "physics/Collider.h"
+#include "physics/RigidBody.h"
+#include "physics/TriggerVolume.h"
+#include "render/MeshRenderer.h"
+#include "resources/ResourceManager.h"
 
 namespace eng
 {
@@ -70,15 +78,20 @@ namespace eng
 			return;
 		}
 
-		if (input.IsKeyPressed(KEY_W))	m_gizmo.SetMode(GizmoMode::Move);
-		if (input.IsKeyPressed(KEY_R))	m_gizmo.SetMode(GizmoMode::Scale);
+		const bool overPanels = EditorUI::IsOverPanels(input.GetMousePosition());
+		if (!IsTyping())
+		{
+			if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
+			if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
+			if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
+		}
 
-		const bool gizmoHasMouse = m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
+		const bool gizmoHasMouse = !overPanels && m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
 			input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT), input.IsMouseButtonDown(MOUSE_BUTTON_LEFT), m_selected);
-		if (m_level && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+		if (m_level && !overPanels && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			Select(Picker::Pick(m_camera.GetCamera(), input.GetMousePosition(), *m_level, Engine::GetInstance().GetPhysics()));
 
-		if (m_selected && input.IsKeyPressed(KEY_F))
+		if (m_selected && !IsTyping() && input.IsKeyPressed(KEY_F))
 		{
 			const BoundingBox box = Picker::GetActorBounds(*m_selected);
 			const Vector3 center	= { (box.min.x + box.max.x) * 0.5f, (box.min.y + box.max.y) * 0.5f, (box.min.z + box.max.z) * 0.5f };
@@ -99,6 +112,70 @@ namespace eng
 				if (owned.get() == m_selected) { found = true; break; }
 		if (!found)
 			m_selected = nullptr;
+	}
+
+	void Editor::DrawPanels()
+	{
+		if (!m_isActive || !m_level)
+			return;
+
+		// A drag started over a panel must not keep the gizmo alive: panels only react to the free cursor
+		m_hierarchy.Draw(*this, *m_level);
+	}
+
+	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText(); }
+
+	void Editor::SetDefaultShader(const Shader* shader) { m_defaultShader = shader; }
+
+	GameActor* Editor::AddCube()
+	{
+		if (!m_level)
+			return nullptr;
+
+		const Camera& camera = m_camera.GetCamera();
+		GameActor* actor = m_level->CreateGameActor("Cube " + std::to_string(++m_spawnCounter));
+		actor->SetPosition(Vector3Add(camera.GetPosition(), Vector3Scale(camera.Forward(), 4.0f)));
+
+		ResourceManager& resources = Engine::GetInstance().GetResources();
+		actor->AddComponent<MeshRenderer>(resources.GetPrimitive(Primitive::Cube))
+			->CreateOwnMaterial(m_defaultShader).SetTint({ 200, 160, 90, 255 });
+		actor->AddComponent<Collider>()->SetLayer(Layer::Prop);
+		RigidBodySettings settings;
+		settings.mass = 2.0f;
+		actor->AddComponent<RigidBody>(settings);
+
+		Select(actor);
+		return actor;
+	}
+
+	GameActor* Editor::AddTrigger()
+	{
+		if (!m_level)
+			return nullptr;
+
+		const Camera& camera = m_camera.GetCamera();
+		GameActor* actor = m_level->CreateGameActor("Trigger " + std::to_string(++m_spawnCounter));
+		actor->SetPosition(Vector3Add(camera.GetPosition(), Vector3Scale(camera.Forward(), 4.0f)));
+		actor->SetScale(2.0f);
+
+		ResourceManager& resources = Engine::GetInstance().GetResources();
+		actor->AddComponent<MeshRenderer>(resources.GetPrimitive(Primitive::Cube))
+			->CreateOwnMaterial().SetTint({ 60, 140, 255, 70 });
+		actor->AddComponent<Collider>()->SetLayer(Layer::Trigger);
+		actor->AddComponent<TriggerVolume>();
+
+		Select(actor);
+		return actor;
+	}
+
+	void Editor::DeleteSelected()
+	{
+		if (!m_selected)
+			return;
+
+		Log::Info("Editor: deleted '%s'", m_selected->GetName().c_str());
+		m_selected->MarkForDestroy();
+		m_selected = nullptr;
 	}
 
 	void Editor::Select(GameActor* actor)

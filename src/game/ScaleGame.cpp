@@ -12,6 +12,7 @@ bool ScaleGame::Init()
 
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
 	m_litShader		= resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
+	eng::Engine::GetInstance().GetEditor().SetDefaultShader(m_litShader);	// editor-made cubes match the sandbox
 	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
 	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
 
