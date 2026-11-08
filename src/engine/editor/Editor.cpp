@@ -37,6 +37,7 @@ namespace eng
 	{
 		m_isActive = false;
 		m_selected = nullptr;
+		m_gizmo.CancelDrag();
 		if (m_previousCamera)
 			Engine::GetInstance().GetMainCamera().SetActiveCamera(*m_previousCamera);
 		m_previousCamera = nullptr;
@@ -62,8 +63,19 @@ namespace eng
 		ValidateSelection();
 		m_camera.Update(input, unscaledDeltaTime);
 
-		const bool isLooking = input.IsCursorLocked();	// RMB fly mode: clicks belong to the camera
-		if (m_level && !isLooking && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+		const bool isLooking = input.IsCursorLocked();	// RMB fly mode: keys and clicks belong to the camera
+		if (isLooking)
+		{
+			m_gizmo.CancelDrag();
+			return;
+		}
+
+		if (input.IsKeyPressed(KEY_W))	m_gizmo.SetMode(GizmoMode::Move);
+		if (input.IsKeyPressed(KEY_R))	m_gizmo.SetMode(GizmoMode::Scale);
+
+		const bool gizmoHasMouse = m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
+			input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT), input.IsMouseButtonDown(MOUSE_BUTTON_LEFT), m_selected);
+		if (m_level && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			Select(Picker::Pick(m_camera.GetCamera(), input.GetMousePosition(), *m_level, Engine::GetInstance().GetPhysics()));
 
 		if (m_selected && input.IsKeyPressed(KEY_F))
@@ -104,9 +116,11 @@ namespace eng
 			return;
 
 		DrawBoundingBox(Picker::GetActorBounds(*m_selected), ORANGE);
+		m_gizmo.Draw3D(m_camera.GetCamera(), m_selected);
 	}
 
 	EditorCamera& Editor::GetCamera()					{ return m_camera; }
+	TransformGizmo& Editor::GetGizmo()					{ return m_gizmo; }
 	bool Editor::IsActive() const						{ return m_isActive; }
 	Level* Editor::GetLevel() const						{ return m_level; }
 	const LevelSnapshot& Editor::GetSnapshot() const	{ return m_snapshot; }

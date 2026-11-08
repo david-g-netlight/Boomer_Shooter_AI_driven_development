@@ -1,6 +1,7 @@
 #pragma once
 #include "editor/EditorCamera.h"
 #include "editor/LevelSnapshot.h"
+#include "editor/TransformGizmo.h"
 
 namespace eng
 {
@@ -49,6 +50,7 @@ namespace eng
 
 		bool				IsActive() const;
 		EditorCamera&		GetCamera();
+		TransformGizmo&		GetGizmo();
 		Level*				GetLevel() const;
 		const LevelSnapshot& GetSnapshot() const;
 
@@ -59,6 +61,7 @@ namespace eng
 		GameActor*		m_selected	= nullptr;
 		Camera*			m_previousCamera = nullptr;	// the game's camera, active again after Exit()
 		EditorCamera	m_camera;
+		TransformGizmo	m_gizmo;
 		bool			m_isActive	= false;
 		LevelSnapshot	m_snapshot;
 	};
