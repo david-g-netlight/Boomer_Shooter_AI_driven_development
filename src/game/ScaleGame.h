@@ -4,6 +4,7 @@
 #include "state/GameState.h"
 #include "state/SoundFXBank.h"
 #include "state/LevelList.h"
+#include "player/PlayerInput.h"
 #include <optional>
 #include <vector>
 
@@ -126,6 +127,7 @@ private:
 	//////////////////////////////////////////
 	// Unity ScalingAudioFX: stretch / shrink pitched by the scale factor
 	PlayerState		m_playerState;		// scale factor (wheel), cooldown
+	PlayerInput		m_input{ m_playerState };
 	GameState		m_gameState;		// Idle -> Playing -> Won | Lost
 	SoundFXBank		m_sfx;
 	LevelList		m_levels			= LevelList::Default();

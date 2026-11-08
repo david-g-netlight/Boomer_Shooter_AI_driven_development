@@ -127,7 +127,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 ### Phase 10 — Game: state and player 🟡
 - [x] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11) (+ `GameActor::GetId`, `Level::FindActor`; the sandbox's player, crates and pellets are handles now)
 - [x] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList` (+ `src/game/state/`; the sandbox uses them: wheel factor, scaling SFX, Idle → Playing on Start / Restart, status line in the HUD)
-- [ ] `PlayerInput`
+- [x] `PlayerInput` (Direction / Look / Jump / Fire / wheel → `PlayerState`; jump and fire buffered 0.1 s for FixedUpdate; `SetControl(false)` and non‑Play cut everything; the sandbox reads it)
 - [ ] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook`
 - [ ] Spawn from `.lvl`
 - [ ] **Done when:** walk, jump, look in `level_01`; wheel cycles x0.25 / x0.5 / x0.75

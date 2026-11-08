@@ -58,23 +58,8 @@ void ScaleGame::BindInput()
 
 	eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
 
-	// Movement: WASD and arrows, clamped so diagonals are not faster
-	map.BindAxis("MoveX", AxisBinding::Keys(KEY_A, KEY_D));
-	map.BindAxis("MoveX", AxisBinding::Keys(KEY_LEFT, KEY_RIGHT));
-	map.BindAxis("MoveY", AxisBinding::Keys(KEY_S, KEY_W));
-	map.BindAxis("MoveY", AxisBinding::Keys(KEY_DOWN, KEY_UP));
-	map.BindAxis2D("Move", "MoveX", "MoveY", true);
-
-	// Look: mouse delta in screen points
-	map.BindAxis("LookX", AxisBinding::MouseX());
-	map.BindAxis("LookY", AxisBinding::MouseY());
-	map.BindAxis2D("Look", "LookX", "LookY", false);
-
-	// Scaling gun (Phase 11): stretch, shrink, change factor
-	map.BindAction("Jump",		InputBinding::Key(KEY_SPACE));
-	map.BindAction("Fire",		InputBinding::Mouse(MOUSE_BUTTON_LEFT));
-	map.BindAction("AltFire",	InputBinding::Mouse(MOUSE_BUTTON_RIGHT));
-	map.BindAxis("Scroll",		AxisBinding::Wheel());
+	// Walk, look, jump, fire, wheel
+	PlayerInput::BindDefaults(map);
 
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
 	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
@@ -404,6 +389,7 @@ void ScaleGame::Update(float deltaTime)
 	if (isPlaying && map.IsActionPressed("ThrowPellet"))
 		ThrowPellet();
 
+	m_input.Update(deltaTime, map);
 	UpdatePlayer(deltaTime);
 	UpdateCamera(deltaTime);
 	if (isPlaying)
@@ -426,7 +412,6 @@ void ScaleGame::Update(float deltaTime)
 void ScaleGame::UpdatePlayer(float /*deltaTime*/)
 {
 	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
-	const eng::InputMap&		map		= input.GetMap();
 	eng::CharacterMotor*		motor	= m_player ? m_player->GetComponent<eng::CharacterMotor>() : nullptr;
 	if (!motor)
 		return;
@@ -440,26 +425,25 @@ void ScaleGame::UpdatePlayer(float /*deltaTime*/)
 	// TODO(Phase 10): replaced by PlayerInput + FirstPersonController + FirstPersonLook
 	if (input.IsCursorLocked())
 	{
-		const Vector2 look = map.GetAxis2D("Look");
+		const Vector2 look = m_input.GetLook();
 		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
 	}
 
 	// Walk relative to where the camera faces, on the ground plane
-	const Vector2 move		= map.GetAxis2D("Move");
+	const Vector2 move		= m_input.GetDirection();
 	Vector3 forward			= m_camera.Forward();
 	forward.y				= 0.0f;
 	forward					= Vector3Normalize(forward);
 	const Vector3 right		= m_camera.Right();
 	motor->SetWalkVelocity(Vector3Scale(Vector3Add(Vector3Scale(forward, move.y), Vector3Scale(right, move.x)), WALK_SPEED));
 
-	if (map.IsActionPressed("Jump"))
+	if (m_input.ConsumeJump())
 		motor->Jump(JUMP_SPEED);
 }
 
 void ScaleGame::UpdateCamera(float deltaTime)
 {
 	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
-	const eng::InputMap&		map		= input.GetMap();
 
 	if (m_isPlayerMode && m_player)
 	{
@@ -472,8 +456,8 @@ void ScaleGame::UpdateCamera(float deltaTime)
 	if (mode == eng::EngineMode::Play && input.IsCursorLocked())
 	{
 		// TODO(Phase 10): replaced by FirstPersonLook / FirstPersonController
-		const Vector2 look = map.GetAxis2D("Look");
-		const Vector2 move = map.GetAxis2D("Move");
+		const Vector2 look = m_input.GetLook();
+		const Vector2 move = m_input.GetDirection();
 		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
 		m_camera.MoveLocal(move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f);
 	}
@@ -492,10 +476,7 @@ void ScaleGame::UpdateAudioDemo()
 	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
 	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
 
-	// Wheel picks the scale factor (Unity PlayerState::ChangeFactor)
-	const float scroll = map.GetAxis("Scroll");
-	if (scroll != 0.0f)
-		m_playerState.ChangeFactor(scroll > 0.0f ? 1 : -1);
+	// The wheel picks the factor in PlayerInput
 	const float factor = m_playerState.GetFactor();
 
 	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
