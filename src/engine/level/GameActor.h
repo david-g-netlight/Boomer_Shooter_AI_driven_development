@@ -7,6 +7,7 @@
 #include <vector>
 #include <raylib.h>
 #include "Component.h"
+#include "ActorHandle.h"
 
 namespace eng
 {
@@ -33,6 +34,7 @@ namespace eng
 		//////////////////////////////////////////
 		/// Identity and state
 		//////////////////////////////////////////
+		ActorId				GetId() const;		// unique in the process, never reused; see ActorHandle
 		const std::string&	GetName() const;
 		void				SetName(const std::string& name);
 
@@ -139,6 +141,7 @@ namespace eng
 		void				NotifyTriggerEnter(GameActor& other);
 		void				NotifyTriggerExit(GameActor& other);
 
+		ActorId					m_id				= INVALID_ACTOR_ID;
 		std::string				m_name				= "Unnamed";
 		GameActor*				m_parent			= nullptr;
 		std::vector<GameActor*>	m_children;

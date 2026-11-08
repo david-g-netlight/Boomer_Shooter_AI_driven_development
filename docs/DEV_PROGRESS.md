@@ -24,13 +24,13 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 7 | FX: particles and lines | ✅ | 2026-11-07 | 2026-11-07 | [devlog](fx_devlog.md) |
 | 8 | Events, modes, menus | ✅ | 2026-11-07 | 2026-11-08 | [devlog](devlogs/events_modes_menus_devlog.md) |
 | 9 | Editor mode | ✅ | 2026-11-08 | 2026-11-08 | [devlog](devlogs/editor_mode_devlog.md) |
-| 10 | Game: state and player | 🟡 | 2026-11-08 | | |
-| 11 | Game: scaling mechanic | ⬜ | | | |
+| 10 | Game: state and player | ✅ | 2026-11-08 | 2026-11-08 | [devlog](devlogs/game_state_and_player_devlog.md) |
+| 11 | Game: scaling mechanic | 🟡 | 2026-11-08 | | |
 | 12 | Game: level flow, UI, music | ⬜ | | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 10
-**Branch:** `game_state_and_player` (from `integration`)
+**Current focus:** Phase 11
+**Branch:** `scaling_mechanic` (from `integration`)
 
 ---
 
@@ -124,15 +124,15 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Bullet debug wireframes in the editor overlay (+ forced on while editing and restored on exit, toolbar Physics toggle, editor grid, translucent trigger boxes from the collider)
 - [x] **Done when:** edit a level mid‑game, save, exit with edits live; reload reproduces it; Reset restores positions **and** velocities
 
-### Phase 10 — Game: state and player 🟡
-- [ ] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11)
-- [ ] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList`
-- [ ] `PlayerInput`
-- [ ] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook`
-- [ ] Spawn from `.lvl`
-- [ ] **Done when:** walk, jump, look in `level_01`; wheel cycles x0.25 / x0.5 / x0.75
+### Phase 10 — Game: state and player ✅
+- [x] `ActorHandle`: id‑based weak reference to a `GameActor` (`Level` lookup, null once deleted); game code stores handles instead of raw pointers (D11) (+ `GameActor::GetId`, `Level::FindActor`; the sandbox's player, crates and pellets are handles now)
+- [x] `PlayerState`, `GameState` (+ events), `SoundFXBank`, `LevelList` (+ `src/game/state/`; the sandbox uses them: wheel factor, scaling SFX, Idle → Playing on Start / Restart, status line in the HUD)
+- [x] `PlayerInput` (Direction / Look / Jump / Fire / wheel → `PlayerState`; jump and fire buffered 0.1 s for FixedUpdate; `SetControl(false)` and non‑Play cut everything; the sandbox reads it)
+- [x] `PlayerActor`, `FirstPersonController` (capsule gravity 32, jump 8), `FirstPersonLook` (+ `src/game/player/`; the sandbox plays with them, the old fly camera / V mode is gone; headless run: walked 9.6 m in 1 s, jump rise 0.92 m, yaw / pitch and body rotation correct, no input without control)
+- [x] Spawn from `.lvl` (`spawn x y z yaw` line, `Level::GetSpawn`, editor "Set Spawn Here" + overlay capsule; the sandbox loads `assets/levels/level_01.lvl` (exported from the code sandbox), falls back to building it, Restart reloads the file; the player is spawned by the game and never saved in a file)
+- [x] **Done when:** walk, jump, look in `level_01`; wheel cycles x0.25 / x0.5 / x0.75
 
-### Phase 11 — Game: scaling mechanic ⬜
+### Phase 11 — Game: scaling mechanic 🟡
 - [ ] `ScalingGun` (cooldown, center raycast with `Ground | Prop` mask)
 - [ ] `Scalable` (SmoothStep, 1.9 cap, min‑size destroy, `setLocalScaling`, inertia update, pitched SFX)
 - [ ] `RayBeamSpawner`, `RayBeam`, `MuzzleFX`
@@ -182,7 +182,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 |---|---|---|---|
 | Dynamic capsule: slope sliding / bouncing / wall sticking | 6 / 10 | open | Ground‑plane projection, friction 0, grounded glue; see plan §10 |
 | Player launched by a crate scaling under them | 11 | open | Clamp player vertical velocity after the step |
-| Game code holding raw `GameActor*` dangles if the actor is destroyed after the game pruned its list that frame (ASan use‑after‑free in a Phase 6 test that deleted after the prune) | 6 → 10 | planned | Engine side is safe. `ActorHandle` scheduled as the first Phase 10 task (D11) |
+| Game code holding raw `GameActor*` dangles if the actor is destroyed after the game pruned its list that frame (ASan use‑after‑free in a Phase 6 test that deleted after the prune) | 6 → 10 | mitigated (`ActorHandle`; raw pointers from `Get()` must not outlive the frame) | Engine side is safe. `ActorHandle` scheduled as the first Phase 10 task (D11) |
 | Scaling causes deep penetration → velocity spikes | 11 | open | Clamp velocity, overlap check before stretch |
 | Bullet precision / arch mismatch | 0 | mitigated | Libs verified arm64, macOS 11.0, single precision |
 | Xcode 26 linker can't read the Command Line Tools SDK 27.2 (`tapi error: malformed file`) | 0 | resolved | Switched to the Command Line Tools toolchain (`xcode-select -s /Library/Developer/CommandLineTools`, ld‑27106); plain `cmake` builds with no SDK override. README lists the fixes |
@@ -195,6 +195,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 10 | Developer validated Phase 10; devlog written; merged into `integration` | Start Phase 11 on `scaling_mechanic` | — |
+| 2026-11-08 | 10 | All 5 Phase 10 tasks committed on `game_state_and_player` (ActorHandle, state classes, PlayerInput, player actor and controllers, spawn from `.lvl`); headless tests plus a sandbox run: walk 9.6 m / s, jump 0.92 m, look, level flow | Developer runs the Phase 10 **Done when** check | — |
 | 2026-11-08 | 9 | Developer validated Phase 9; devlog written; merged into `integration` | Start Phase 10 on `game_state_and_player` | — |
 | 2026-11-08 | 9 | All 10 Phase 9 tasks committed on `editor_mode` (Editor + LevelSnapshot, EditorCamera, Picker, TransformGizmo, Hierarchy / Inspector panels, toolbar, LevelSerializer, wireframe overlay); headless tests for snapshot, camera, picker, gizmo drag, serializer round trip (identical text on a second pass); real sandbox saved, edited, reloaded and played | Developer runs the Phase 9 **Done when** check | — |
 | 2026-11-08 | 8 | Developer validated Phase 8; devlog written; merged into `integration` | Start Phase 9 on `editor_mode` | — |

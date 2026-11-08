@@ -172,6 +172,9 @@ namespace eng::LevelSerializer
 	{
 		SaveResult result;
 		result.text = "lvl " + std::to_string(FORMAT_VERSION) + "\n";
+		if (const SpawnPoint& spawn = level.GetSpawn(); spawn.isSet)
+			result.text += "spawn " + Number(spawn.position.x) + " " + Number(spawn.position.y) + " " + Number(spawn.position.z)
+				+ "  yaw " + Number(spawn.yawDegrees) + "\n";
 
 		const ComponentRegistry& registry = Engine::GetInstance().GetComponentRegistry();
 		int nextIndex = 0;
@@ -219,6 +222,16 @@ namespace eng::LevelSerializer
 				const size_t open = line.find('"'), close = line.rfind('"');
 				block.name = (open != std::string::npos && close > open) ? line.substr(open + 1, close - open - 1) : "Unnamed";
 				isInBlock = true;
+			}
+			else if (keyword == "spawn")
+			{
+				if (tokens.size() < 4)
+				{
+					warn("spawn needs x y z");
+					continue;
+				}
+				const float yaw = (tokens.size() >= 6 && tokens[4] == "yaw") ? std::strtof(tokens[5].c_str(), nullptr) : 0.0f;
+				level.SetSpawn({ std::strtof(tokens[1].c_str(), nullptr), std::strtof(tokens[2].c_str(), nullptr), std::strtof(tokens[3].c_str(), nullptr) }, yaw);
 			}
 			else if (!isInBlock)
 			{

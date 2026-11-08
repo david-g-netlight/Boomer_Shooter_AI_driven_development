@@ -33,6 +33,9 @@ namespace eng
 		if (GuiButton({ x + half + EditorUI::PADDING, y, half, EditorUI::ROW_HEIGHT }, "Duplicate"))
 			editor.DuplicateSelected();
 		GuiSetState(STATE_NORMAL);
+		y += EditorUI::ROW_HEIGHT + 4.0f;
+		if (GuiButton({ x, y, w, EditorUI::ROW_HEIGHT }, "Set Spawn Here (camera)"))
+			editor.SetSpawnHere();
 		y += EditorUI::ROW_HEIGHT + 8.0f;
 
 		// Rename box for the selection

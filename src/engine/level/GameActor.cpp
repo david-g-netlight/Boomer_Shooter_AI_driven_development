@@ -95,6 +95,11 @@ namespace eng
 	//////////////////////////////////////////
 	/// Components
 	//////////////////////////////////////////
+	ActorId GameActor::GetId() const
+	{
+		return m_id;
+	}
+
 	size_t GameActor::GetComponentCount() const
 	{
 		return m_components.size();

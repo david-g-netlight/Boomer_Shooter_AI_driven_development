@@ -4,11 +4,23 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <raylib.h>
 #include "GameActor.h"
 
 namespace eng
 {
 	class RenderQueue;
+
+	/// <summary>
+	/// Where the game puts the player when the level starts (`spawn x y z yaw` in a .lvl file).
+	/// position = the feet; yaw in degrees, positive turns right.
+	/// </summary>
+	struct SpawnPoint
+	{
+		bool	isSet		= false;
+		Vector3	position	= { 0.0f, 0.0f, 0.0f };
+		float	yawDegrees	= 0.0f;
+	};
 
 	/// <summary>
 	/// Owns the GameActors of one scene and drives them each frame. The Engine updates the
@@ -58,11 +70,19 @@ namespace eng
 		/// Queries
 		//////////////////////////////////////////
 		GameActor*	FindByName(const std::string& name) const;
+
+		/// <summary>
+		/// The live actor with this id in any Level, nullptr if it was deleted (what ActorHandle uses).
+		/// </summary>
+		static GameActor*	FindActor(ActorId id);
 		size_t		GetActorCount() const;
 		const std::vector<std::unique_ptr<GameActor>>& GetActors() const;
 
+		const SpawnPoint&	GetSpawn() const;
+		void				SetSpawn(const Vector3& feetPosition, float yawDegrees);
+
 		/// <summary>
-		/// Deletes every actor now. Don't call from inside an Update (use MarkForDestroy there).
+		/// Deletes every actor now (and forgets the spawn point). Don't call from inside an Update (use MarkForDestroy there).
 		/// </summary>
 		void		Clear();
 
@@ -75,5 +95,6 @@ namespace eng
 		void		Register(std::unique_ptr<GameActor> actor, const std::string& name, GameActor* parent);
 
 		std::vector<std::unique_ptr<GameActor>>	m_actors;
+		SpawnPoint								m_spawn;
 	};
 }

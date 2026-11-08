@@ -42,6 +42,7 @@
 #include "audio/AudioSource.h"
 #include "audio/MusicPlayer.h"
 #include "level/Component.h"
+#include "level/ActorHandle.h"
 #include "level/GameActor.h"
 #include "level/Level.h"
 #include "level/PropertyBag.h"

@@ -14,8 +14,7 @@ bool ScaleGame::Init()
 	m_litShader		= resources.LoadShader("assets/shaders/lit.vs", "assets/shaders/lit.fs");
 	resources.SetDefaultLitShader(m_litShader);	// level files (lit=1) and editor-made cubes use it
 	eng::Engine::GetInstance().GetComponentRegistry().Register<TriggerCounter>("TriggerCounter");
-	m_sfxStretch	= resources.LoadSound("assets/audio/sfx_stretch.wav");
-	m_sfxShrink		= resources.LoadSound("assets/audio/sfx_shrink.wav");
+	m_sfx.Load(resources);
 
 	m_themeMenu = resources.LoadMusic("assets/audio/music_menu.wav");
 	m_themeGame = resources.LoadMusic("assets/audio/music_game.wav");
@@ -26,7 +25,7 @@ bool ScaleGame::Init()
 		music.Play(*m_themeMenu, MUSIC_FADE_IN);
 	}
 
-	BuildSandbox();
+	LoadCurrentLevel();
 
 	// EventBus demo: the player walking into the trigger zone opens a dialog (preview of the Phase 12 win screen)
 	m_triggerToken = eng::Engine::GetInstance().GetEvents().Subscribe<TriggerEnteredEvent>([](const TriggerEnteredEvent& e)
@@ -59,30 +58,14 @@ void ScaleGame::BindInput()
 
 	eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
 
-	// Movement: WASD and arrows, clamped so diagonals are not faster
-	map.BindAxis("MoveX", AxisBinding::Keys(KEY_A, KEY_D));
-	map.BindAxis("MoveX", AxisBinding::Keys(KEY_LEFT, KEY_RIGHT));
-	map.BindAxis("MoveY", AxisBinding::Keys(KEY_S, KEY_W));
-	map.BindAxis("MoveY", AxisBinding::Keys(KEY_DOWN, KEY_UP));
-	map.BindAxis2D("Move", "MoveX", "MoveY", true);
-
-	// Look: mouse delta in screen points
-	map.BindAxis("LookX", AxisBinding::MouseX());
-	map.BindAxis("LookY", AxisBinding::MouseY());
-	map.BindAxis2D("Look", "LookX", "LookY", false);
-
-	// Scaling gun (Phase 11): stretch, shrink, change factor
-	map.BindAction("Jump",		InputBinding::Key(KEY_SPACE));
-	map.BindAction("Fire",		InputBinding::Mouse(MOUSE_BUTTON_LEFT));
-	map.BindAction("AltFire",	InputBinding::Mouse(MOUSE_BUTTON_RIGHT));
-	map.BindAxis("Scroll",		AxisBinding::Wheel());
+	// Walk, look, jump, fire, wheel
+	PlayerInput::BindDefaults(map);
 
 	map.BindAction("ToggleDebug", InputBinding::Key(KEY_F2));
 	map.BindAction("SwitchTheme", InputBinding::Key(KEY_M));
 
 	// Physics sandbox
 	map.BindAction("DeleteAimed", InputBinding::Key(KEY_X));
-	map.BindAction("TogglePlayer", InputBinding::Key(KEY_V));
 	map.BindAction("TogglePhysicsDebug", InputBinding::Key(KEY_F3));
 	map.BindAction("ThrowPellet", InputBinding::Key(KEY_T));
 }
@@ -167,7 +150,6 @@ void ScaleGame::BuildSandbox()
 	SpawnBox({ "Thin Wall", { 0.0f, 1.5f, WALL_Z }, { 6.0f, 3.0f, 0.05f }, {}, BodyType::Static, 0.0f,
 			   { 200, 200, 210, 255 }, eng::Layer::Ground });
 
-	SpawnPlayer();
 }
 
 void ScaleGame::ThrowPellet()
@@ -175,7 +157,8 @@ void ScaleGame::ThrowPellet()
 	// Oldest out when the cap is reached
 	if (m_pellets.size() >= MAX_PELLETS)
 	{
-		m_pellets.front()->MarkForDestroy();
+		if (eng::GameActor* oldest = m_pellets.front().Get())
+			oldest->MarkForDestroy();
 		m_pellets.erase(m_pellets.begin());
 	}
 
@@ -189,8 +172,12 @@ void ScaleGame::ThrowPellet()
 void ScaleGame::UpdatePellets()
 {
 	// A pellet "tunnelled" if it ends up behind the wall's footprint (counted once, then removed)
-	for (eng::GameActor*& pellet : m_pellets)
+	for (const eng::ActorHandle& handle : m_pellets)
 	{
+		eng::GameActor* pellet = handle.Get();
+		if (!pellet)
+			continue;
+
 		const Vector3 p = pellet->GetWorldPosition();
 		if (p.z < WALL_Z - 0.3f && std::fabs(p.x) < 3.0f && p.y > 0.0f && p.y < 3.0f)
 		{
@@ -199,27 +186,15 @@ void ScaleGame::UpdatePellets()
 		}
 	}
 	m_pellets.erase(std::remove_if(m_pellets.begin(), m_pellets.end(),
-		[](const eng::GameActor* pellet) { return pellet->IsMarkedForDestroy(); }), m_pellets.end());
+		[](const eng::ActorHandle& pellet) { return !pellet.IsAlive(); }), m_pellets.end());
 }
 
 void ScaleGame::SpawnPlayer()
 {
-	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
-
-	// Capsule radius 0.5, 1 m between the sphere centers: 2 m tall, actor position = capsule center
-	m_player = m_level.CreateGameActor("Player");
-	m_player->SetPosition(PLAYER_SPAWN);
-	eng::Collider* collider = m_player->AddComponent<eng::Collider>();
-	collider->SetCapsule(0.5f, 1.0f);
-	collider->SetLayer(eng::Layer::Player);
-	m_player->AddComponent<eng::CharacterMotor>();
-
-	// Visual: the unit cylinder sits on y = 0, so offset it down to cover the capsule (-1 .. +1)
-	eng::GameActor* body = m_level.CreateGameActor("Player Mesh", m_player);
-	body->SetPosition({ 0.0f, -1.0f, 0.0f });
-	body->SetScale({ 1.0f, 2.0f, 1.0f });
-	body->AddComponent<eng::MeshRenderer>(resources.GetPrimitive(eng::Primitive::Cylinder))
-		->CreateOwnMaterial(m_litShader).SetTint({ 70, 110, 220, 255 });
+	// From the level's spawn line; a level without one uses the sandbox spot
+	const eng::SpawnPoint& spawn = m_level.GetSpawn();
+	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera },
+		spawn.isSet ? spawn.position : SANDBOX_SPAWN, spawn.isSet ? spawn.yawDegrees : SANDBOX_SPAWN_YAW, true);
 }
 
 void ScaleGame::EmitImpact(float sign)
@@ -260,7 +235,7 @@ void ScaleGame::FireBeam(float sign)
 
 bool ScaleGame::IsCrate(const eng::GameActor* actor) const
 {
-	return std::find(m_crates.begin(), m_crates.end(), actor) != m_crates.end();
+	return actor && std::find(m_crates.begin(), m_crates.end(), eng::ActorHandle(actor)) != m_crates.end();
 }
 
 void ScaleGame::UpdateAim()
@@ -299,28 +274,63 @@ void ScaleGame::ClearSandbox()
 	m_aimHit.reset();
 	m_triggerCounter	= nullptr;
 	m_player			= nullptr;
-	m_isPlayerMode		= false;
 	m_pellets.clear();
 	m_crates.clear();
 	m_level.Clear();
 }
 
+void ScaleGame::OnStartRequested()
+{
+	m_playerState.Reset();
+	m_gameState.Reset();
+	m_gameState.StartGame();
+}
+
+void ScaleGame::OnReturnToMainMenu()
+{
+	m_gameState.Reset();
+}
+
 void ScaleGame::OnRestartRequested()
 {
+	m_playerState.Reset();
+	m_gameState.Reset();
+	m_gameState.StartGame();
+
 	// Called by the ModeMachine between frames (not inside a level update): safe to clear the level
-	ClearSandbox();
-	BuildSandbox();
+	LoadCurrentLevel();
 	m_deletedCrates = m_pelletsThrown = m_tunnelled = 0;
 	eng::Log::Info("ScaleGame: sandbox rebuilt");
 }
 
+void ScaleGame::LoadCurrentLevel()
+{
+	ClearSandbox();
+
+	const std::string path = GetLevelPath();
+	if (!eng::LevelSerializer::Load(m_level, path).ok)
+	{
+		eng::Log::Warning("ScaleGame: '%s' not found, building the code sandbox", path.c_str());
+		BuildSandbox();
+	}
+
+	RebindActors();
+	SpawnPlayer();
+}
+
 void ScaleGame::OnLevelLoaded()
 {
-	// The editor replaced every actor: find the ones the sandbox logic works with again
+	// The editor replaced every actor
+	RebindActors();
+	SpawnPlayer();
+}
+
+void ScaleGame::RebindActors()
+{
+	// Find the actors the sandbox logic works with again
 	m_aimHit.reset();
 	m_triggerCounter	= nullptr;
 	m_player			= nullptr;
-	m_isPlayerMode		= false;
 	m_pellets.clear();
 	m_crates.clear();
 
@@ -328,7 +338,7 @@ void ScaleGame::OnLevelLoaded()
 	{
 		eng::GameActor* actor = owned.get();
 		if (actor->GetComponent<eng::CharacterMotor>())
-			m_player = actor;
+			actor->MarkForDestroy();	// an old file saved before the player was spawned by the game: the game spawns its own
 		else if (TriggerCounter* counter = actor->GetComponent<TriggerCounter>())
 			m_triggerCounter = counter;
 		else if (const eng::RigidBody* body = actor->GetComponent<eng::RigidBody>();
@@ -336,20 +346,18 @@ void ScaleGame::OnLevelLoaded()
 			m_crates.push_back(actor);
 	}
 
-	if (!m_player)
-		SpawnPlayer();	// a level file without a player still has to be playable in the sandbox
 	eng::Log::Info("ScaleGame: level loaded, %zu crates", m_crates.size());
 }
 
 std::string ScaleGame::GetLevelPath() const
 {
-	return "assets/levels/sandbox.lvl";
+	return m_levels.GetPath(m_gameState.GetLevelIndex());
 }
 
 void ScaleGame::PruneDestroyedCrates()
 {
 	m_crates.erase(std::remove_if(m_crates.begin(), m_crates.end(),
-		[](const eng::GameActor* crate) { return crate->IsMarkedForDestroy(); }), m_crates.end());
+		[](const eng::ActorHandle& crate) { return !crate.IsAlive(); }), m_crates.end());
 }
 
 //////////////////////////////////////////
@@ -372,19 +380,12 @@ void ScaleGame::Update(float deltaTime)
 		physics.SetDebugDrawEnabled(!physics.IsDebugDrawEnabled());
 	}
 
-	if (map.IsActionPressed("TogglePlayer"))
-	{
-		m_isPlayerMode = !m_isPlayerMode;
-		if (m_isPlayerMode)
-			m_player->GetComponent<eng::CharacterMotor>()->Warp(PLAYER_SPAWN);
-	}
-
 	// Menus, pause and the editor only move the camera: clicks there belong to the UI
 	const bool isPlaying = eng::Engine::GetInstance().GetModes().IsSimulating();
 	if (isPlaying && map.IsActionPressed("ThrowPellet"))
 		ThrowPellet();
 
-	UpdatePlayer(deltaTime);
+	m_input.Update(deltaTime, map);
 	UpdateCamera(deltaTime);
 	if (isPlaying)
 	{
@@ -403,61 +404,11 @@ void ScaleGame::Update(float deltaTime)
 	}
 }
 
-void ScaleGame::UpdatePlayer(float /*deltaTime*/)
-{
-	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
-	const eng::InputMap&		map		= input.GetMap();
-	eng::CharacterMotor*		motor	= m_player->GetComponent<eng::CharacterMotor>();
-
-	if (!m_isPlayerMode)
-	{
-		motor->SetWalkVelocity({ 0.0f, 0.0f, 0.0f });
-		return;
-	}
-
-	// TODO(Phase 10): replaced by PlayerInput + FirstPersonController + FirstPersonLook
-	if (input.IsCursorLocked())
-	{
-		const Vector2 look = map.GetAxis2D("Look");
-		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
-	}
-
-	// Walk relative to where the camera faces, on the ground plane
-	const Vector2 move		= map.GetAxis2D("Move");
-	Vector3 forward			= m_camera.Forward();
-	forward.y				= 0.0f;
-	forward					= Vector3Normalize(forward);
-	const Vector3 right		= m_camera.Right();
-	motor->SetWalkVelocity(Vector3Scale(Vector3Add(Vector3Scale(forward, move.y), Vector3Scale(right, move.x)), WALK_SPEED));
-
-	if (map.IsActionPressed("Jump"))
-		motor->Jump(JUMP_SPEED);
-}
-
 void ScaleGame::UpdateCamera(float deltaTime)
 {
-	const eng::InputManager&	input	= eng::Engine::GetInstance().GetInputManager();
-	const eng::InputMap&		map		= input.GetMap();
-
-	if (m_isPlayerMode)
+	// Play: the FirstPersonLook on the player owns the camera. The menu gets a slow orbit around the sandbox
+	if (eng::Engine::GetInstance().GetModes().GetMode() == eng::EngineMode::MainMenu)
 	{
-		// Eyes on the capsule (the actor holds the physics position after the last fixed step)
-		m_camera.SetPosition(Vector3Add(m_player->GetWorldPosition(), { 0.0f, EYE_HEIGHT, 0.0f }));
-		return;
-	}
-
-	const eng::EngineMode mode = eng::Engine::GetInstance().GetModes().GetMode();
-	if (mode == eng::EngineMode::Play && input.IsCursorLocked())
-	{
-		// TODO(Phase 10): replaced by FirstPersonLook / FirstPersonController
-		const Vector2 look = map.GetAxis2D("Look");
-		const Vector2 move = map.GetAxis2D("Move");
-		m_camera.Rotate(look.x * LOOK_SENSITIVITY, -look.y * LOOK_SENSITIVITY);	// screen y grows downwards
-		m_camera.MoveLocal(move.y * FLY_SPEED * deltaTime, move.x * FLY_SPEED * deltaTime, 0.0f);
-	}
-	else if (mode == eng::EngineMode::MainMenu)
-	{
-		// Menu backdrop: slow orbit around the sandbox
 		m_orbitAngle += ORBIT_SPEED * deltaTime;
 		const float angle = m_orbitAngle * DEG2RAD;
 		m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
@@ -470,17 +421,14 @@ void ScaleGame::UpdateAudioDemo()
 	eng::AudioManager&		audio	= eng::Engine::GetInstance().GetAudio();
 	const eng::InputMap&	map		= eng::Engine::GetInstance().GetInputManager().GetMap();
 
-	// Wheel picks the scale factor (Unity PlayerState::ChangeFactor)
-	const float scroll = map.GetAxis("Scroll");
-	if (scroll > 0.0f && m_scaleFactorIndex < 2)	++m_scaleFactorIndex;
-	if (scroll < 0.0f && m_scaleFactorIndex > 0)	--m_scaleFactorIndex;
-	const float factor = SCALE_FACTORS[m_scaleFactorIndex];
+	// The wheel picks the factor in PlayerInput
+	const float factor = m_playerState.GetFactor();
 
 	// Unity ScalingAudioFX: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02
-	if (map.IsActionPressed("Fire") && m_sfxStretch)
-		audio.Play(*m_sfxStretch, 0.8f, 1.0f + factor + 0.02f);
-	if (map.IsActionPressed("AltFire") && m_sfxShrink)
-		audio.Play(*m_sfxShrink, 0.8f, 1.0f - factor - 0.02f);
+	if (map.IsActionPressed("Fire"))
+		m_sfx.PlayScaling(+1.0f, factor);
+	if (map.IsActionPressed("AltFire"))
+		m_sfx.PlayScaling(-1.0f, factor);
 
 	// Cross-fade between the menu and gameplay themes
 	if (map.IsActionPressed("SwitchTheme") && m_themeMenu && m_themeGame)
@@ -558,7 +506,7 @@ void ScaleGame::DrawHUD()
 		static_cast<int>(1.0f / eng::FIXED_DELTA_TIME)), 20, 60, 10, DARKGRAY);
 	DrawText(TextFormat("Screen %d x %d   Render %d x %d   DPI x%.1f", window.screenWidth, window.screenHeight,
 		window.renderWidth, window.renderHeight, window.dpiScale), 20, 80, 10, DARKGRAY);
-	DrawText(TextFormat("V: %s  |  ESC: pause  |  F2 / F3 debug  |  %s", m_isPlayerMode ? "fly camera" : "play (WASD, Space)",
+	DrawText(TextFormat("WASD walk  Space jump  mouse look  |  ESC pause  |  F2 / F3 debug  |  %s",
 		eng::ModeName(engine.GetModes().GetMode())), 20, 100, 10, DARKGRAY);
 
 	DrawPhysicsPanel();
@@ -575,9 +523,10 @@ void ScaleGame::DrawHUD()
 void ScaleGame::DrawPhysicsPanel() const
 {
 	int sleeping = 0;
-	for (const eng::GameActor* crate : m_crates)
-		if (const eng::RigidBody* body = crate->GetComponent<eng::RigidBody>(); body && body->IsSleeping())
-			++sleeping;
+	for (const eng::ActorHandle& handle : m_crates)
+		if (const eng::GameActor* crate = handle.Get())
+			if (const eng::RigidBody* body = crate->GetComponent<eng::RigidBody>(); body && body->IsSleeping())
+				++sleeping;
 
 	const int x = 10, y = 140;
 	DrawRectangle(x, y, 330, 126, Fade(LIME, 0.35f));
@@ -619,11 +568,13 @@ void ScaleGame::DrawAudioPanel() const
 										: music.GetCurrent() == m_themeGame ? "game" : "none";
 
 	const int x = 10, y = 276;
-	DrawRectangle(x, y, 330, 45, Fade(BEIGE, 0.6f));
-	DrawRectangleLines(x, y, 330, 45, BROWN);
-	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", SCALE_FACTORS[m_scaleFactorIndex], track),
+	DrawRectangle(x, y, 330, 59, Fade(BEIGE, 0.6f));
+	DrawRectangleLines(x, y, 330, 59, BROWN);
+	DrawText(TextFormat("Audio  |  LMB / RMB sfx x%.2f (wheel)  |  M: %s theme", m_playerState.GetFactor(), track),
 		x + 10, y + 10, 10, DARKGRAY);
 	DrawText(TextFormat("ESC pause ducks the music  |  duck %.2f", audio.GetDuckFactor()), x + 10, y + 26, 10, DARKGRAY);
+	DrawText(TextFormat("Game: %s  |  level %d of %zu", GameState::StatusName(m_gameState.GetStatus()),
+		m_gameState.GetLevelIndex() + 1, m_levels.GetCount()), x + 10, y + 42, 10, DARKGRAY);
 }
 
 void ScaleGame::Destroy()
@@ -631,8 +582,7 @@ void ScaleGame::Destroy()
 	// Actors first: their bodies leave the physics world before it shuts down
 	eng::Engine::GetInstance().GetEvents().Unsubscribe(m_triggerToken);
 	ClearSandbox();
-	m_sfxStretch	= nullptr;
-	m_sfxShrink		= nullptr;
+	m_sfx.Clear();
 	m_themeMenu		= nullptr;
 	m_themeGame		= nullptr;
 	m_litShader		= nullptr;
