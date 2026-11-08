@@ -59,6 +59,7 @@ namespace eng
 		void			OnEnable() override;
 		void			OnDisable() override;
 		void			FixedUpdate(float fixedDeltaTime) override;
+		void			DrawInspector(InspectorLayout& ui) override;
 		const char*		TypeName() const override { return "CharacterMotor"; }
 
 	private:

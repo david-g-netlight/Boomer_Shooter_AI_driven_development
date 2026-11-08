@@ -121,9 +121,10 @@ namespace eng
 
 		// A drag started over a panel must not keep the gizmo alive: panels only react to the free cursor
 		m_hierarchy.Draw(*this, *m_level);
+		m_inspector.Draw(*this);
 	}
 
-	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText(); }
+	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText() || m_inspector.IsEditingText(); }
 
 	void Editor::SetDefaultShader(const Shader* shader) { m_defaultShader = shader; }
 

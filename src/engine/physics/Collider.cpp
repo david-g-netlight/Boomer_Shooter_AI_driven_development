@@ -6,6 +6,9 @@
 #include <cmath>
 #include <raymath.h>
 #include "core/MathUtils.h"
+#include "editor/InspectorLayout.h"
+#include "physics/RigidBody.h"
+#include "physics/TriggerVolume.h"
 
 namespace eng
 {
@@ -217,5 +220,67 @@ namespace eng
 		}
 
 		m_impl->Root()->setLocalScaling(bt::ToBt(m_scale));
+	}
+
+	void Collider::DrawInspector(InspectorLayout& ui)
+	{
+		static constexpr const char*	SHAPE_NAMES[]	= { "Box", "Sphere", "Capsule", "Convex hull", "Static mesh" };
+		static constexpr const char*	LAYER_NAMES[]	= { "Ground", "Prop", "Player", "Trigger", "Beam" };
+		static constexpr uint32_t		LAYER_VALUES[]	= { Layer::Ground, Layer::Prop, Layer::Player, Layer::Trigger, Layer::Beam };
+
+		bool shapeChanged = false;
+		ui.Info("Shape", SHAPE_NAMES[static_cast<int>(m_shape)]);
+		switch (m_shape)
+		{
+			case ColliderShape::Box:
+			{
+				Vector3 half = m_halfExtents;
+				if (ui.Vec3("Half extents", half))
+				{
+					SetBox({ std::max(half.x, 0.01f), std::max(half.y, 0.01f), std::max(half.z, 0.01f) });
+					shapeChanged = true;
+				}
+				break;
+			}
+			case ColliderShape::Sphere:
+			{
+				float radius = m_radius;
+				if (ui.Float("Radius", radius))	{ SetSphere(std::max(radius, 0.01f)); shapeChanged = true; }
+				break;
+			}
+			case ColliderShape::Capsule:
+			{
+				float radius = m_radius, height = m_height;
+				const bool r = ui.Float("Radius", radius);
+				const bool h = ui.Float("Height", height);
+				if (r || h)	{ SetCapsule(std::max(radius, 0.01f), std::max(height, 0.0f)); shapeChanged = true; }
+				break;
+			}
+			default:
+				break;	// meshes are edited as assets, not here
+		}
+
+		Vector3 center = m_center;
+		if (ui.Vec3("Center", center))	{ SetCenter(center); shapeChanged = true; }
+
+		int layer = 0;
+		for (int i = 0; i < 5; ++i)
+			if (LAYER_VALUES[i] == m_layer)
+				layer = i;
+		if (ui.Choice("Layer", LAYER_NAMES, 5, layer))
+		{
+			SetLayer(LAYER_VALUES[layer]);
+			shapeChanged = true;
+		}
+
+		// The body / ghost picks up a new shape or filter when it is re-created
+		if (shapeChanged)
+		{
+			if (GameActor* owner = GetOwner())
+			{
+				if (RigidBody* body = owner->GetComponent<RigidBody>())			{ body->SetEnabled(false); body->SetEnabled(true); }
+				if (TriggerVolume* trigger = owner->GetComponent<TriggerVolume>())	{ trigger->SetEnabled(false); trigger->SetEnabled(true); }
+			}
+		}
 	}
 }

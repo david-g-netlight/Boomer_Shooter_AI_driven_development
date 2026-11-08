@@ -3,6 +3,7 @@
 #include "level/GameActor.h"
 #include <algorithm>
 #include <raymath.h>
+#include "editor/InspectorLayout.h"
 
 namespace eng
 {
@@ -107,5 +108,20 @@ namespace eng
 			m_localBounds = GetMeshBoundingBox(*m_mesh);
 		else
 			m_localBounds = { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+	}
+
+	void MeshRenderer::DrawInspector(InspectorLayout& ui)
+	{
+		ui.Bool("Visible", m_isVisible);
+		if (m_ownMaterial)
+		{
+			Color tint = m_ownMaterial->GetTint();
+			if (ui.Tint("Tint", tint))
+				m_ownMaterial->SetTint(tint);
+		}
+		else
+		{
+			ui.Info("Material", "shared");
+		}
 	}
 }

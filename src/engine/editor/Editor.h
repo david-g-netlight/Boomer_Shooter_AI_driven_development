@@ -1,6 +1,7 @@
 #pragma once
 #include "editor/EditorCamera.h"
 #include "editor/HierarchyPanel.h"
+#include "editor/InspectorPanel.h"
 #include "editor/LevelSnapshot.h"
 #include "editor/TransformGizmo.h"
 
@@ -87,6 +88,7 @@ namespace eng
 		EditorCamera	m_camera;
 		TransformGizmo	m_gizmo;
 		HierarchyPanel	m_hierarchy;
+		InspectorPanel	m_inspector;
 		const Shader*	m_defaultShader	= nullptr;
 		int				m_spawnCounter	= 0;
 		bool			m_isActive	= false;

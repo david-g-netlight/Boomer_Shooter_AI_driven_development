@@ -78,6 +78,7 @@ namespace eng
 		/// </summary>
 		btCollisionShape*	GetNativeShape();
 
+		void			DrawInspector(InspectorLayout& ui) override;
 		const char*		TypeName() const override { return "Collider"; }
 
 	private:

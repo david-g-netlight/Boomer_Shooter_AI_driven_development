@@ -5,9 +5,7 @@
 #include <raymath.h>
 #include <rlgl.h>
 #include "level/GameActor.h"
-#include "physics/Collider.h"
-#include "physics/CharacterMotor.h"
-#include "physics/RigidBody.h"
+#include "editor/ActorEdit.h"
 #include "render/Camera.h"
 
 namespace eng
@@ -151,22 +149,7 @@ namespace eng
 		transform.translation	= local;
 		transform.scale			= scale;
 
-		if (RigidBody* body = target.GetComponent<RigidBody>())
-		{
-			body->Teleport(transform);	// pose + zero velocity
-			body->OnScaleChanged();
-		}
-		else if (CharacterMotor* motor = target.GetComponent<CharacterMotor>())
-		{
-			target.GetTransform() = transform;
-			motor->Warp(local);
-		}
-		else
-		{
-			target.GetTransform() = transform;
-			if (Collider* collider = target.GetComponent<Collider>())
-				collider->SyncScaleFromActor();
-		}
+		ActorEdit::SetLocalTransform(target, transform);
 	}
 
 	void TransformGizmo::Draw3D(const Camera& camera, const GameActor* target) const

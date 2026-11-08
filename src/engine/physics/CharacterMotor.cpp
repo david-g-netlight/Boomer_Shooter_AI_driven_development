@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <cmath>
 #include <raymath.h>
+#include "editor/InspectorLayout.h"
+#include <cstdio>
 
 namespace eng
 {
@@ -263,5 +265,13 @@ namespace eng
 											 : Vector3{ 0.0f, -m_settings.gravity, 0.0f };
 		body->setGravity(bt::ToBt(gravity));
 		body->activate(true);
+	}
+
+	void CharacterMotor::DrawInspector(InspectorLayout& ui)
+	{
+		ui.Info("Grounded", IsGrounded() ? "yes" : "no");
+		char text[32];
+		std::snprintf(text, sizeof(text), "%.1f deg", static_cast<double>(GetGroundSlopeDegrees()));
+		ui.Info("Ground slope", text);
 	}
 }

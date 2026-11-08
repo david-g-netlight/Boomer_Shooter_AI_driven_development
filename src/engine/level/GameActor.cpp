@@ -100,6 +100,11 @@ namespace eng
 		return m_components.size();
 	}
 
+	const std::vector<std::unique_ptr<Component>>& GameActor::GetComponents() const
+	{
+		return m_components;
+	}
+
 	void GameActor::DestroyComponents()
 	{
 		// Reverse creation order, like destructors: later components may depend on earlier ones
