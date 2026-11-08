@@ -144,7 +144,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] `GameplayManager` (load / next / reload) (+ requests applied in `Update()` between frames, every load resets `GameState` / `PlayerState`, auto‑start while in Play, `LevelProgressedEvent` after a win; Start loads level 1, Restart reloads the current one; headless: next, retry, win → next, last level, menu → Start)
 - [x] `GameUI` (win / lose screens) (+ "Level Complete" with Next Level / Main Menu, "You did it!" with Play Again after the last level, "You fell!" with Retry / Main Menu; control cut while a dialog is up and given back on GameStarted; the sandbox's "Zone reached" demo dialog is gone; headless + screenshot)
 - [x] `MusicManager` + `assets/audio/CREDITS.txt` (+ menu / gameplay themes follow `ModeChangedEvent`: fade‑in for the first track, cross‑fade after, resume and editor leave the track alone; the M demo key is gone; credits file lists where each file plays; headless: menu → game → pause / resume (not restarted) → menu)
-- [ ] Levels 1–3 authored in the editor
+- [x] Levels 1–3 authored in the editor (first drafts written with the editor's own serializer from a script, since the GUI can't be driven here; open them in the editor to tune. L1 a 2 m ledge: stand on the small crate and stretch it; L2 a corridor blocked by a heavy wall to shrink, then a 2 m pit; L3 both. Each has a spawn, a Win zone and a kill volume. Scripted playthroughs win all three. The inspector got **Add Component** so Win / Lose / Next / Scalable can be added in the editor)
 - [ ] **Done when:** Menu → L1 win → L2 fall → retry → win → Menu
 
 ### Phase 13 — Polish and release ⬜
@@ -195,6 +195,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 12 | All 5 Phase 12 tasks committed on `level_flow_ui_music` (triggers, GameplayManager, GameUI, MusicManager, levels 1–3 + inspector Add Component); headless tests for each, a dialog screenshot, and scripted playthroughs that win levels 1–3 | Developer runs the Phase 12 **Done when** check | — |
 | 2026-11-08 | 11 | Developer validated Phase 11; devlog written; merged into `integration` | Start Phase 12 on `level_flow_ui_music` | — |
 | 2026-11-08 | 11 | All 4 Phase 11 tasks committed on `scaling_mechanic` (ScalingGun, Scalable, RayBeamSpawner / RayBeam / MuzzleFX, stretch blocked by static geometry); headless runs for the gun, smooth scaling, the cap, destroy at min size and the wall check; screenshot of the beam | Developer runs the Phase 11 **Done when** check | — |
 | 2026-11-08 | 10 | Developer validated Phase 10; devlog written; merged into `integration` | Start Phase 11 on `scaling_mechanic` | — |
