@@ -80,6 +80,19 @@ namespace eng
 		}
 	}
 
+	void ModeMachine::HandleFocus(bool isFocused)
+	{
+		// Only the edge pauses: coming back to the window never resumes by itself
+		const bool lostFocus = m_wasFocused && !isFocused;
+		m_wasFocused = isFocused;
+
+		if (lostFocus && m_mode == EngineMode::Play && !m_pending)
+		{
+			Log::Info("ModeMachine: window lost focus, pausing");
+			Request(EngineMode::Paused);
+		}
+	}
+
 	void ModeMachine::ApplyPendingTransition()
 	{
 		if (!m_pending)

@@ -96,6 +96,7 @@ namespace eng
 
 			// Mode changes requested last frame (menus) or by ESC / TAB now take effect before anything updates
 			m_modes.HandleInput(m_inputManager);
+			m_modes.HandleFocus(m_window.isFocused);
 			m_modes.ApplyPendingTransition();
 
 			// 2. Fixed step (physics rate), then variable step. The level runs before the game

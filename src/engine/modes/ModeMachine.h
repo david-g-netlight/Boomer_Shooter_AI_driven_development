@@ -47,6 +47,7 @@ namespace eng
 		//////////////////////////////////////////
 		void		Begin(EngineMode initial);				// after Application::Init
 		void		HandleInput(const InputManager& input);	// ESC / TAB
+		void		HandleFocus(bool isFocused);			// Play -> Paused on the frame the window loses focus
 		void		ApplyPendingTransition();
 
 	private:
@@ -55,6 +56,7 @@ namespace eng
 		EngineMode					m_mode			= EngineMode::MainMenu;
 		std::optional<EngineMode>	m_pending;
 		bool						m_isRestart		= false;
+		bool						m_wasFocused	= true;
 		const UIScreen*				m_modeScreen	= nullptr;	// the screen this machine pushed for the current mode
 	};
 }
