@@ -118,6 +118,8 @@ namespace eng
 				if (level) level->Update(m_time.GetDeltaTime());
 				m_particles.Update(m_time.GetDeltaTime());
 			}
+			if (m_modes.GetMode() == EngineMode::Editor)
+				m_editor.Update(m_inputManager, m_time.GetUnscaledDeltaTime());
 			m_app->Update(m_time.GetDeltaTime());	// always runs: menu backdrop, editor camera, input
 
 			// UI (unscaled: menus work while the game is frozen)

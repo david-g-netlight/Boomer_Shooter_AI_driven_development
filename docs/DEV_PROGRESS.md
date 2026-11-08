@@ -114,7 +114,7 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 
 ### Phase 9 — Editor mode 🟡
 - [x] TAB enter/exit, `LevelSnapshot` capture (+ `Editor` coordinator owned by the Engine; snapshot = actor state, deleted actors can't be restored until the serializer)
-- [ ] `EditorCamera`
+- [x] `EditorCamera` (RMB look + WASD/QE fly, Shift fast, wheel speed, `FocusOn` for F; swaps the active camera on enter/exit)
 - [ ] `Picker` (physics raycast first, render bounds fallback)
 - [ ] `TransformGizmo` (move / scale) → `RigidBody::Teleport`, `Collider::SetScale`
 - [ ] `HierarchyPanel`, `InspectorPanel` (incl. `RigidBody` / `Collider` fields), `EditorToolbar`

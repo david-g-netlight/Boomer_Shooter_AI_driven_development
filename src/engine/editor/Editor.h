@@ -1,9 +1,11 @@
 #pragma once
+#include "editor/EditorCamera.h"
 #include "editor/LevelSnapshot.h"
 
 namespace eng
 {
 	class Level;
+	class InputManager;
 
 	/// <summary>
 	/// Editor-mode coordinator, owned by the Engine and used only in editor builds (ENG_EDITOR=1).
@@ -28,12 +30,20 @@ namespace eng
 		/// </summary>
 		void				Reset();
 
+		/// <summary>
+		/// Once per frame while the editor is active (unscaled time).
+		/// </summary>
+		void				Update(InputManager& input, float unscaledDeltaTime);
+
 		bool				IsActive() const;
+		EditorCamera&		GetCamera();
 		Level*				GetLevel() const;
 		const LevelSnapshot& GetSnapshot() const;
 
 	private:
 		Level*			m_level		= nullptr;
+		Camera*			m_previousCamera = nullptr;	// the game's camera, active again after Exit()
+		EditorCamera	m_camera;
 		bool			m_isActive	= false;
 		LevelSnapshot	m_snapshot;
 	};
