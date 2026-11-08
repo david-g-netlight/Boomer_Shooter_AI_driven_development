@@ -25,12 +25,12 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 | 8 | Events, modes, menus | ✅ | 2026-11-07 | 2026-11-08 | [devlog](devlogs/events_modes_menus_devlog.md) |
 | 9 | Editor mode | ✅ | 2026-11-08 | 2026-11-08 | [devlog](devlogs/editor_mode_devlog.md) |
 | 10 | Game: state and player | ✅ | 2026-11-08 | 2026-11-08 | [devlog](devlogs/game_state_and_player_devlog.md) |
-| 11 | Game: scaling mechanic | 🟡 | 2026-11-08 | | |
-| 12 | Game: level flow, UI, music | ⬜ | | | |
+| 11 | Game: scaling mechanic | ✅ | 2026-11-08 | 2026-11-08 | [devlog](devlogs/scaling_mechanic_devlog.md) |
+| 12 | Game: level flow, UI, music | 🟡 | 2026-11-08 | | |
 | 13 | Polish and release | ⬜ | | | |
 
-**Current focus:** Phase 11
-**Branch:** `scaling_mechanic` (from `integration`)
+**Current focus:** Phase 12
+**Branch:** `level_flow_ui_music` (from `integration`)
 
 ---
 
@@ -132,14 +132,14 @@ Tracks the implementation of [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md). Pha
 - [x] Spawn from `.lvl` (`spawn x y z yaw` line, `Level::GetSpawn`, editor "Set Spawn Here" + overlay capsule; the sandbox loads `assets/levels/level_01.lvl` (exported from the code sandbox), falls back to building it, Restart reloads the file; the player is spawned by the game and never saved in a file)
 - [x] **Done when:** walk, jump, look in `level_01`; wheel cycles x0.25 / x0.5 / x0.75
 
-### Phase 11 — Game: scaling mechanic 🟡
+### Phase 11 — Game: scaling mechanic ✅
 - [x] `ScalingGun` (cooldown, center raycast with `Ground | Prop` mask) (+ `ScalingShotEvent` on the EventBus; the sandbox's beam, impact burst and SFX now listen to it, its LMB kick is gone; headless: hit at 13.5 m, second click blocked for 1 s, miss ends at the 30 m reach)
 - [x] `Scalable` (SmoothStep, 1.9 cap, min‑size destroy, `setLocalScaling`, inertia update, pitched SFX) (+ keeps the lowest point in place, mass follows volume, registered for level files and the editor's Add Cube, `RigidBody::Teleport(keepVelocity)`, `SoundFXBank::Instance()`; the crates of `level_01.lvl` carry it; headless: 0.9 → 1.575 in 0.2 s, mass 2 → 10.7, clamp to the 1.9 cap, repeated shrinks delete the prop)
 - [x] `RayBeamSpawner`, `RayBeam`, `MuzzleFX` (+ `src/game/fx/`: the spawner listens to `ScalingShotEvent`; tail travels at 20 m/s and the beam removes itself; impact burst, beam SFX at 0.3 with the placeholder ping; the sandbox's throwaway beam code is gone; screenshot: beam, impact and muzzle particles, no beams left 1 s later)
 - [x] Stretch blocked when the target size overlaps a static wall (+ `PhysicsWorld::OverlapBox`; the target box is tested against layer Ground with an 8 cm inset so resting on the floor doesn't count; headless: refused 0.05 m from the thin wall, allowed 0.5 m away and in the open up to the 1.9 cap, shrinking beside the wall is always allowed)
-- [ ] **Done when:** LMB grows smoothly (capped), RMB shrinks until it disappears, correct colors, cooldown works, scaled crates still rest on the floor and react to gravity
+- [x] **Done when:** LMB grows smoothly (capped), RMB shrinks until it disappears, correct colors, cooldown works, scaled crates still rest on the floor and react to gravity
 
-### Phase 12 — Game: level flow, UI, music ⬜
+### Phase 12 — Game: level flow, UI, music 🟡
 - [ ] `TriggerZone`, `WinTrigger`, `LoseTrigger`, `NextLevelTrigger`
 - [ ] `GameplayManager` (load / next / reload)
 - [ ] `GameUI` (win / lose screens)
@@ -195,6 +195,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-08 | 11 | Developer validated Phase 11; devlog written; merged into `integration` | Start Phase 12 on `level_flow_ui_music` | — |
 | 2026-11-08 | 11 | All 4 Phase 11 tasks committed on `scaling_mechanic` (ScalingGun, Scalable, RayBeamSpawner / RayBeam / MuzzleFX, stretch blocked by static geometry); headless runs for the gun, smooth scaling, the cap, destroy at min size and the wall check; screenshot of the beam | Developer runs the Phase 11 **Done when** check | — |
 | 2026-11-08 | 10 | Developer validated Phase 10; devlog written; merged into `integration` | Start Phase 11 on `scaling_mechanic` | — |
 | 2026-11-08 | 10 | All 5 Phase 10 tasks committed on `game_state_and_player` (ActorHandle, state classes, PlayerInput, player actor and controllers, spawn from `.lvl`); headless tests plus a sandbox run: walk 9.6 m / s, jump 0.92 m, look, level flow | Developer runs the Phase 10 **Done when** check | — |
