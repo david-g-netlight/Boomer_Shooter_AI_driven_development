@@ -345,14 +345,19 @@ void ScaleGame::Update(float deltaTime)
 			m_player->GetComponent<eng::CharacterMotor>()->Warp(PLAYER_SPAWN);
 	}
 
-	if (map.IsActionPressed("ThrowPellet"))
+	// Menus, pause and the editor only move the camera: clicks there belong to the UI
+	const bool isPlaying = eng::Engine::GetInstance().GetModes().IsSimulating();
+	if (isPlaying && map.IsActionPressed("ThrowPellet"))
 		ThrowPellet();
 
 	UpdatePlayer(deltaTime);
 	UpdateCamera(deltaTime);
-	UpdateAim();
+	if (isPlaying)
+	{
+		UpdateAim();
+		UpdateAudioDemo();
+	}
 	UpdatePellets();
-	UpdateAudioDemo();
 	PruneDestroyedCrates();
 
 	m_secondTimer += deltaTime;

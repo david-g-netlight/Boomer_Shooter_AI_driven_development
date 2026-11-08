@@ -102,7 +102,10 @@ namespace eng
 			// 2. Fixed step (physics rate), then variable step. The level runs before the game
 			Level* level = m_app->GetActiveLevel();
 
-			m_time.AdvanceAccumulator();
+			// Only Play simulates: in menus, Paused and the editor the world stays exactly as it was
+			const bool isSimulating = m_modes.IsSimulating();
+			if (isSimulating)
+				m_time.AdvanceAccumulator();
 			while (m_time.ConsumeFixedStep())
 			{
 				if (level) level->FixedUpdate(m_time.GetFixedDeltaTime());
@@ -110,9 +113,12 @@ namespace eng
 				m_physics.Step(m_time.GetFixedDeltaTime());
 			}
 
-			if (level) level->Update(m_time.GetDeltaTime());
-			m_app->Update(m_time.GetDeltaTime());
-			m_particles.Update(m_time.GetDeltaTime());
+			if (isSimulating)
+			{
+				if (level) level->Update(m_time.GetDeltaTime());
+				m_particles.Update(m_time.GetDeltaTime());
+			}
+			m_app->Update(m_time.GetDeltaTime());	// always runs: menu backdrop, editor camera, input
 
 			// UI (unscaled: menus work while the game is frozen)
 			m_ui.Update(m_time.GetUnscaledDeltaTime());
