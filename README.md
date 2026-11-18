@@ -56,16 +56,48 @@ The first three levels are drafts meant to be tuned in the editor.
 Requirements: macOS 11+ on Apple silicon, Xcode Command Line Tools, CMake 3.20+.
 
 ```bash
-# Development build (editor on)
+# Development build (editor and console on)
 cmake -S . -B build/debug -DCMAKE_BUILD_TYPE=Debug
 cmake --build build/debug -j
 ./build/debug/my_app
 
-# Release build (editor off, optimized)
+# Release build (editor and console off, optimized)
 cmake -S . -B build/release -DCMAKE_BUILD_TYPE=Release
 cmake --build build/release -j
 ./build/release/my_app
 ```
+
+### Build flags
+
+Two compile definitions decide which development tools are compiled in. Both are always defined as `0` or `1`
+(code tests them with `#if`), and the build type picks their value:
+
+| Definition | What it compiles in | Debug | Release | Force it into Release with |
+|---|---|---|---|---|
+| `ENG_EDITOR` | The level editor (TAB) | 1 | 0 | `-DENG_EDITOR_IN_RELEASE=ON` |
+| `ENG_DEV_CONSOLE` | The developer console | 1 | 0 | `-DENG_DEV_CONSOLE_IN_RELEASE=ON` |
+
+The `*_IN_RELEASE` switches are CMake options passed when the build folder is configured. Use a separate folder
+for each combination:
+
+```bash
+# Optimized build that keeps the developer console (editor still off)
+cmake -S . -B build/release-console -DCMAKE_BUILD_TYPE=Release -DENG_DEV_CONSOLE_IN_RELEASE=ON
+cmake --build build/release-console -j
+./build/release-console/my_app
+
+# Optimized build with both the editor and the console
+cmake -S . -B build/release-dev -DCMAKE_BUILD_TYPE=Release -DENG_EDITOR_IN_RELEASE=ON -DENG_DEV_CONSOLE_IN_RELEASE=ON
+cmake --build build/release-dev -j
+```
+
+Check what a binary contains: the first engine line of the log prints the flags, e.g.
+`Raylib Engine 0.0.1 | ... | editor OFF | console ON | audio ON`.
+
+> CMake remembers options in the build folder's cache. To turn one off again in the same folder, pass it
+> explicitly (`-DENG_DEV_CONSOLE_IN_RELEASE=OFF`) or delete the folder. In CLion, add the `-D...` options to the
+> profile's *CMake options* (Settings › Build, Execution, Deployment › CMake); a new profile gets its own folder.
+> `tools/package_release.sh` never passes them, so a shipped package has neither the editor nor the console.
 
 CLion opens the project from `CMakeLists.txt`. The build copies `assets/` next to the executable; the engine loads
 assets relative to the executable's folder, so the game can be started from anywhere.
