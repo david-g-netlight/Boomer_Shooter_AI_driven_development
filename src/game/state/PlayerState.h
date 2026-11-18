@@ -26,6 +26,12 @@ public:
 	void	SetCooldown(float seconds);				// clamped to >= 0.01
 
 	//////////////////////////////////////////
+	/// Developer flag (console `god`): placeholder, read by the damage code once there is some. Reset() keeps it.
+	//////////////////////////////////////////
+	bool	IsGod() const;
+	bool*	GetGodFlag();							// the console binds its variable to it
+
+	//////////////////////////////////////////
 	/// Gun cooldown
 	//////////////////////////////////////////
 	bool	IsReadyToShoot() const;
@@ -38,4 +44,5 @@ private:
 	float	m_reach			= DEFAULT_REACH;
 	float	m_cooldown		= DEFAULT_COOLDOWN;
 	float	m_cooldownLeft	= 0.0f;
+	bool	m_god			= false;
 };

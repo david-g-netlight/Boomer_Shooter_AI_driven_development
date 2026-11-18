@@ -30,6 +30,10 @@ bool ScaleGame::Init()
 	m_gameUI.Init(m_input, m_gameplay);
 	m_gunView.Init(m_playerState);
 
+#if ENG_DEV_CONSOLE
+	m_commands.Register({ &m_gameplay, &m_gameState, &m_playerState, &m_player, &m_level });
+#endif
+
 	eng::Log::Info("ScaleGame initialized");
 	return true;
 }
@@ -54,6 +58,10 @@ void ScaleGame::BindInput()
 
 void ScaleGame::Destroy()
 {
+#if ENG_DEV_CONSOLE
+	m_commands.Unregister();	// the handlers capture the game's members
+#endif
+
 	// Actors first: their bodies leave the physics world before it shuts down
 	m_gunView.Shutdown();
 	m_gameUI.Shutdown();
