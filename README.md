@@ -1,11 +1,10 @@
-# Build to Scale
+# Boomer Shooter
 
-An FPS puzzle game with a small C++ game engine underneath, for macOS on Apple silicon.
-Scale things up and down with your gun: **left click** stretches, **right click** shrinks, the **wheel** picks the
-scale factor (x0.25, x0.5, x0.75). Grow a crate to climb a ledge, shrink a wall that blocks the way, and reach the
-green zone without falling.
+An arena FPS (placeholder name) with a small C++ game engine underneath, for macOS on Apple silicon.
+The player spawns in a lit 16×6×16 arena. **Left click** fires a tracer; the crosshair turns red on a target.
+Enemies, waves and the timer come next.
 
-The game is a Unity jam game ([build_to_scale](https://github.com/DavidGiraldoCode/p_gmtk_game_jam_build_to_scale)) rebuilt on
+The engine began with a Unity jam game ([build_to_scale](https://github.com/DavidGiraldoCode/p_gmtk_game_jam_build_to_scale)), rebuilt on
 [raylib](https://www.raylib.com/) (window, input, rendering, audio, raygui) and
 [Bullet Physics](https://github.com/bulletphysics/bullet3) 3.25. The engine's architecture follows
 [p_Game_Engine_Cpp_OpenGL](https://github.com/david-g-netlight/p_Game_Engine_Cpp_OpenGL).
@@ -25,7 +24,7 @@ Everything is linked statically: a build needs nothing installed besides the Com
 
 The crosshair turns red when the aim is on a target (a prop, until there are enemies); a ring shows the cooldown.
 Settings (mouse sensitivity, volumes, fullscreen) are in the main menu and the pause menu and are saved to
-`~/Library/Application Support/BuildToScale/settings.cfg`.
+`~/Library/Application Support/BoomerShooter/settings.cfg`.
 
 ## Developer console (development builds)
 
@@ -137,20 +136,20 @@ assets relative to the executable's folder, so the game can be started from anyw
 tools/package_release.sh
 ```
 
-builds the release and writes `dist/BuildToScale/` (the executable and `assets/`) and
-`dist/BuildToScale-macos.zip`. The executable runs on macOS 11 or newer (Apple silicon) and depends on system
+builds the release and writes `dist/BoomerShooter/` (the executable and `assets/`) and
+`dist/BoomerShooter-macos.zip`. The executable runs on macOS 11 or newer (Apple silicon) and depends on system
 frameworks only. It is not signed or notarized: on a Mac that downloaded the zip, right-click the executable and
-choose *Open* the first time, or run `xattr -dr com.apple.quarantine BuildToScale`.
+choose *Open* the first time, or run `xattr -dr com.apple.quarantine BoomerShooter`.
 
 ## Project layout
 
 ```
 ├── CMakeLists.txt        # engine static library + the game executable (my_app)
 ├── src/
-│   ├── main.cpp          # entry point: Engine::SetApplication(new ScaleGame)
+│   ├── main.cpp          # entry point: Engine::SetApplication(new ArenaGame)
 │   ├── engine/           # the engine (namespace eng): core, input, render, audio, physics, fx,
 │   │                     #   level, modes, ui, editor, resources. Public header: eng.h
-│   └── game/             # the game: ScaleGame (Application layer) and state/, player/, props/,
+│   └── game/             # the game: ArenaGame (Application layer) and state/, player/, dev/,
 │                         #   fx/, flow/, ui/, audio/
 ├── assets/               # audio/, levels/, shaders/ (copied next to the executable)
 ├── include/              # third-party headers: raylib/ (raylib, raymath, rlgl, raygui), bullet/
