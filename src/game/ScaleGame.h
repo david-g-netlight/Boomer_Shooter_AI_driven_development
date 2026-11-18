@@ -56,7 +56,7 @@ private:
 	eng::ActorHandle m_player;
 
 	PlayerState		m_playerState;
-	PlayerInput		m_input{ m_playerState };
+	PlayerInput		m_input;
 	GameState		m_gameState;
 	GameplayManager	m_gameplay;
 	RayBeamSpawner	m_beams;

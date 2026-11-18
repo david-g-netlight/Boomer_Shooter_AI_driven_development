@@ -42,7 +42,7 @@ Confirmed:
 
 ### Phase B1 — Remove the scaling mechanic 🟡
 - [x] Delete `game/props/Scalable`, its registration and the editor prop decorator; strip `component Scalable` from the `.lvl` files (+ the gun's crosshair check now means 'any actor on layer Prop' until the `Gun` task; the puzzle levels can no longer be won, they are replaced in B4)
-- [ ] `PlayerState` without scale factors / `ChangeFactor` / `ScaleFactorChangedEvent`; `PlayerInput` without `AltFire`, `Scroll` and the fire sign
+- [x] `PlayerState` without scale factors / `ChangeFactor` / `ScaleFactorChangedEvent`; `PlayerInput` without `AltFire`, `Scroll` and the fire sign (+ `PlayerInput` no longer needs a `PlayerState`; `ConsumeFire()` returns a bool; the factor text / pips in `GunHUD` and the factor shade of the gun light had to go in the same commit to compile)
 - [ ] `ScalingGun` → `Gun` (`ShotFiredEvent`, `GetAimHit`); cooldown and reach become shooter defaults (0.25 s, 100 m)
 - [ ] `RayBeamSpawner` → `ShotFXSpawner`, `RayBeam` → `Tracer` (one colour, 80 m/s), `MuzzleFX` one tint
 - [ ] `SoundFXBank::PlayShot`; remove `sfx_stretch.wav` / `sfx_shrink.wav`, update the audio generator script and `CREDITS.txt`

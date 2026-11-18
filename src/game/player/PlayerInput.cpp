@@ -1,9 +1,6 @@
 #include "PlayerInput.h"
 #include <algorithm>
 #include <eng.h>
-#include "state/PlayerState.h"
-
-PlayerInput::PlayerInput(PlayerState& state) : m_state(state) {}
 
 void PlayerInput::BindDefaults(eng::InputMap& map)
 {
@@ -24,21 +21,15 @@ void PlayerInput::BindDefaults(eng::InputMap& map)
 
 	map.BindAction("Jump",		InputBinding::Key(KEY_SPACE));
 	map.BindAction("Fire",		InputBinding::Mouse(MOUSE_BUTTON_LEFT));
-	map.BindAction("AltFire",	InputBinding::Mouse(MOUSE_BUTTON_RIGHT));
-	map.BindAxis("Scroll",		AxisBinding::Wheel());
 }
 
 void PlayerInput::Update(float deltaTime, const eng::InputMap& map)
 {
-	int fire = 0;
-	if (map.IsActionPressed("Fire"))		fire = +1;
-	else if (map.IsActionPressed("AltFire"))	fire = -1;
-
-	Apply(deltaTime, map.GetAxis2D("Move"), map.GetAxis2D("Look"), map.IsActionPressed("Jump"), fire, map.GetAxis("Scroll"),
+	Apply(deltaTime, map.GetAxis2D("Move"), map.GetAxis2D("Look"), map.IsActionPressed("Jump"), map.IsActionPressed("Fire"),
 		eng::Engine::GetInstance().GetModes().IsSimulating());
 }
 
-void PlayerInput::Apply(float deltaTime, Vector2 direction, Vector2 look, bool jumpPressed, int fire, float scroll, bool isInPlay)
+void PlayerInput::Apply(float deltaTime, Vector2 direction, Vector2 look, bool jumpPressed, bool firePressed, bool isInPlay)
 {
 	m_jumpBuffer = std::max(0.0f, m_jumpBuffer - deltaTime);
 	m_fireBuffer = std::max(0.0f, m_fireBuffer - deltaTime);
@@ -48,7 +39,6 @@ void PlayerInput::Apply(float deltaTime, Vector2 direction, Vector2 look, bool j
 		// Nothing leaks through a win screen or a menu, not even a click made just before it opened
 		m_direction = m_look = { 0.0f, 0.0f };
 		m_jumpBuffer = m_fireBuffer = 0.0f;
-		m_fireSign = 0;
 		return;
 	}
 
@@ -57,13 +47,8 @@ void PlayerInput::Apply(float deltaTime, Vector2 direction, Vector2 look, bool j
 
 	if (jumpPressed)
 		m_jumpBuffer = BUFFER_SECONDS;
-	if (fire != 0)
-	{
-		m_fireSign		= fire > 0 ? +1 : -1;
-		m_fireBuffer	= BUFFER_SECONDS;
-	}
-	if (scroll != 0.0f)
-		m_state.ChangeFactor(scroll > 0.0f ? 1 : -1);
+	if (firePressed)
+		m_fireBuffer = BUFFER_SECONDS;
 }
 
 void PlayerInput::SetControl(bool hasControl)
@@ -73,7 +58,6 @@ void PlayerInput::SetControl(bool hasControl)
 	{
 		m_direction = m_look = { 0.0f, 0.0f };
 		m_jumpBuffer = m_fireBuffer = 0.0f;
-		m_fireSign = 0;
 	}
 }
 
@@ -88,10 +72,9 @@ bool PlayerInput::ConsumeJump()
 	return wanted;
 }
 
-int PlayerInput::ConsumeFire()
+bool PlayerInput::ConsumeFire()
 {
-	const int sign = m_fireBuffer > 0.0f ? m_fireSign : 0;
+	const bool wanted = m_fireBuffer > 0.0f;
 	m_fireBuffer = 0.0f;
-	m_fireSign = 0;
-	return sign;
+	return wanted;
 }

@@ -29,8 +29,8 @@ void ScalingGun::FixedUpdate(float fixedDeltaTime)
 		return;
 
 	m_state->TickCooldown(fixedDeltaTime);
-	if (const int sign = m_input->ConsumeFire())
-		Fire(static_cast<float>(sign));
+	if (m_input->ConsumeFire())
+		Fire(+1.0f);
 }
 
 bool ScalingGun::Fire(float sign)
@@ -45,7 +45,6 @@ bool ScalingGun::Fire(float sign)
 
 	ScalingShotEvent shot;
 	shot.sign		= sign > 0.0f ? +1.0f : -1.0f;
-	shot.factor		= m_state->GetFactor();
 	shot.muzzle		= Vector3Add(origin, Vector3Add(Vector3Scale(m_camera->Right(), MUZZLE_RIGHT),
 					  Vector3Add(Vector3Scale(m_camera->Up(), -MUZZLE_DOWN), Vector3Scale(forward, MUZZLE_FORWARD))));
 	shot.hasHit		= false;

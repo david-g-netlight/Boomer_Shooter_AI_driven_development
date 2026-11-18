@@ -12,7 +12,6 @@ class PlayerState;
 struct ScalingShotEvent
 {
 	float			sign;			// +1 stretch, -1 shrink
-	float			factor;			// PlayerState factor at the moment of the shot
 	bool			hasHit;
 	Vector3			muzzle;			// where the beam starts
 	Vector3			point;			// the hit point, or the end of the reach when nothing was hit
