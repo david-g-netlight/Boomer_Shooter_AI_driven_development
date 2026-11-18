@@ -12,4 +12,9 @@ namespace eng
 	/// True when the editor is compiled in (ENG_EDITOR=1).
 	/// </summary>
 	bool IsEditorBuild();
+
+	/// <summary>
+	/// True when the developer console is compiled in (ENG_DEV_CONSOLE=1).
+	/// </summary>
+	bool IsDevConsoleBuild();
 }

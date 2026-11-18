@@ -44,6 +44,15 @@ else()
     target_compile_definitions(engine PUBLIC $<IF:$<CONFIG:Debug>,ENG_EDITOR=1,ENG_EDITOR=0>)
 endif()
 
+# Developer console: always defined as 0 or 1, so code uses `#if ENG_DEV_CONSOLE`.
+# ON in Debug builds; use -DENG_DEV_CONSOLE_IN_RELEASE=ON to keep it in Release builds.
+option(ENG_DEV_CONSOLE_IN_RELEASE "Compile the developer console into non-Debug builds" OFF)
+if(ENG_DEV_CONSOLE_IN_RELEASE)
+    target_compile_definitions(engine PUBLIC ENG_DEV_CONSOLE=1)
+else()
+    target_compile_definitions(engine PUBLIC $<IF:$<CONFIG:Debug>,ENG_DEV_CONSOLE=1,ENG_DEV_CONSOLE=0>)
+endif()
+
 # Where the editor mirrors saved level files (only used when ENG_EDITOR is 1)
 target_compile_definitions(engine PRIVATE ENG_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 

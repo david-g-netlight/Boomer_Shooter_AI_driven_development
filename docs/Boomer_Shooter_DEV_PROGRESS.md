@@ -34,7 +34,7 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 ### Phase B0 — Baseline 🟡
 - [x] Tag `integration` as `build-to-scale-final` (annotated tag on `2a12cbb`)
 - [x] Developer decides on the uncommitted `assets/levels/level_01.lvl` playtest edits (commit, or discard; the file is deleted in B4) (+ **discarded** by the developer; `CLAUDE.md` edits left uncommitted on purpose)
-- [ ] CMake: `ENG_DEV_CONSOLE` (Debug 1 / Release 0) + `ENG_DEV_CONSOLE_IN_RELEASE` option; `eng::IsDevConsoleBuild()`; startup log shows `console ON/OFF`
+- [x] CMake: `ENG_DEV_CONSOLE` (Debug 1 / Release 0) + `ENG_DEV_CONSOLE_IN_RELEASE` option; `eng::IsDevConsoleBuild()`; startup log shows `console ON/OFF` (+ smoke runs: Debug logs `editor ON | console ON`, Release `editor OFF | console OFF`)
 - [ ] **Done when:** Debug and Release build; the log shows the console flag; the game plays exactly as before
 
 ### Phase B1 — Remove the scaling mechanic ⬜
@@ -131,5 +131,6 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B0 | TASK_04 started: branch `bs_baseline`; tag `build-to-scale-final`; `level_01.lvl` edits discarded; `ENG_DEV_CONSOLE` flag + `IsDevConsoleBuild()` + log line; Debug and Release build and start | Developer runs the B0 **Done when** check | — |
 | 2026-11-18 | — | Developer approved the plan and risks; arena changed to 16×6×16, player size kept (B‑D9, Q1) | Wait for the next task | — |
 | 2026-11-18 | — | TASK_03: Boomer‑Shooter architecture plan and this tracker written (B‑D1–B‑D11, phases B0–B5) | Developer reviews the plan and answers Q1–Q4 | — |
