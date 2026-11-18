@@ -33,7 +33,7 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 
 ### Phase B0 — Baseline 🟡
 - [x] Tag `integration` as `build-to-scale-final` (annotated tag on `2a12cbb`)
-- [ ] Developer decides on the uncommitted `assets/levels/level_01.lvl` playtest edits (commit, or discard; the file is deleted in B4)
+- [x] Developer decides on the uncommitted `assets/levels/level_01.lvl` playtest edits (commit, or discard; the file is deleted in B4) (+ **discarded** by the developer; `CLAUDE.md` edits left uncommitted on purpose)
 - [ ] CMake: `ENG_DEV_CONSOLE` (Debug 1 / Release 0) + `ENG_DEV_CONSOLE_IN_RELEASE` option; `eng::IsDevConsoleBuild()`; startup log shows `console ON/OFF`
 - [ ] **Done when:** Debug and Release build; the log shows the console flag; the game plays exactly as before
 
@@ -107,7 +107,7 @@ Decisions taken while writing the plan (see plan §0 for the reasons).
 |---|---|---|
 | Q1 | ~~Is 8×2×8 the intended arena size?~~ **Answered:** 16×6×16, player unchanged | — |
 | Q2 | Should the console pause the game while open? | Yes (`con_pause 1`), switchable |
-| Q3 | Keep the uncommitted `level_01.lvl` playtest edits? | Discard (file deleted in B4) |
+| Q3 | ~~Keep the uncommitted `level_01.lvl` playtest edits?~~ **Answered:** discard | — |
 | Q4 | Final game name for the title, settings folder and package | "Boomer Shooter" / `BoomerShooter` |
 
 ---
