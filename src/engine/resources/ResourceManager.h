@@ -9,12 +9,14 @@
 namespace eng
 {
 	/// <summary>
-	/// Unit primitives generated once and shared: cube 1x1x1, plane 1x1 (XZ), sphere r=0.5, cylinder r=0.5 h=1.
+	/// Unit primitives generated once and shared: cube 1x1x1, cube seen from inside (inverted winding and normals),
+	/// plane 1x1 (XZ), sphere r=0.5, cylinder r=0.5 h=1.
 	/// All are centered on the origin, except the cylinder and plane which sit on y=0 (raylib's convention).
 	/// </summary>
 	enum class Primitive : uint8_t
 	{
 		Cube,
+		CubeInverted,
 		Plane,
 		Sphere,
 		Cylinder,

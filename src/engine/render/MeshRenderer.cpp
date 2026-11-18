@@ -130,7 +130,7 @@ namespace eng
 
 	namespace
 	{
-		constexpr const char* PRIMITIVE_NAMES[] = { "cube", "plane", "sphere", "cylinder" };
+		constexpr const char* PRIMITIVE_NAMES[] = { "cube", "cube_inverted", "plane", "sphere", "cylinder" };
 	}
 
 	void MeshRenderer::Serialize(PropertyBag& out) const
