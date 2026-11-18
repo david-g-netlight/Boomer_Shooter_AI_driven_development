@@ -17,25 +17,28 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| B0 | Baseline | `bs_baseline` | ⬜ | | | Tag, `ENG_DEV_CONSOLE` flag |
+| B0 | Baseline | `bs_baseline` | ✅ | 2026-11-18 | 2026-11-18 | Tag, `ENG_DEV_CONSOLE` flag |
 | B1 | Remove the scaling mechanic | `bs_remove_scaling` | ⬜ | | | `Scalable` out, `ScalingGun` → `Gun` |
 | B2 | Developer console | `bs_dev_console` | ⬜ | | | Before the GUI goes (B‑D4) |
 | B3 | Remove the editor GUI | `bs_remove_editor_gui` | ⬜ | | | Capabilities stay, through the console |
 | B4 | Arena level | `bs_arena_level` | ⬜ | | | 16×6×16 inverted cube, one level |
 | B5 | Rename, docs and release | `bs_rename_release` | ⬜ | | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B0 (waiting for the developer's review of the plan)
-**Branch:** `integration`
+**Current focus:** B1 Remove the scaling mechanic
+**Branch:** `bs_remove_scaling`
 
 ---
 
 ## Phase checklists
 
-### Phase B0 — Baseline ⬜
-- [ ] Tag `integration` as `build-to-scale-final`
-- [ ] Developer decides on the uncommitted `assets/levels/level_01.lvl` playtest edits (commit, or discard; the file is deleted in B4)
-- [ ] CMake: `ENG_DEV_CONSOLE` (Debug 1 / Release 0) + `ENG_DEV_CONSOLE_IN_RELEASE` option; `eng::IsDevConsoleBuild()`; startup log shows `console ON/OFF`
-- [ ] **Done when:** Debug and Release build; the log shows the console flag; the game plays exactly as before
+### Phase B0 — Baseline ✅
+- [x] Tag `integration` as `build-to-scale-final` (annotated tag on `2a12cbb`)
+- [x] Developer decides on the uncommitted `assets/levels/level_01.lvl` playtest edits (commit, or discard; the file is deleted in B4) (+ **discarded** by the developer; `CLAUDE.md` edits left uncommitted on purpose)
+- [x] CMake: `ENG_DEV_CONSOLE` (Debug 1 / Release 0) + `ENG_DEV_CONSOLE_IN_RELEASE` option; `eng::IsDevConsoleBuild()`; startup log shows `console ON/OFF` (+ smoke runs: Debug logs `editor ON | console ON`, Release `editor OFF | console OFF`)
+- [x] **Done when:** Debug and Release build; the log shows the console flag; the game plays exactly as before. 
+Confirmed: 
+- Ran `cmake -S . -B build/release-dev -DCMAKE_BUILD_TYPE=Release -DENG_EDITOR_IN_RELEASE=ON -DENG_DEV_CONSOLE_IN_RELEASE=ON` `cmake --build build/release-dev -j`, `./build/release-dev/my_app`
+- `INFO: ENG: Raylib Engine 0.0.1 | screen 1280 x 720 | render 1280 x 720 | editor ON | console ON | audio ON`
 
 ### Phase B1 — Remove the scaling mechanic ⬜
 - [ ] Delete `game/props/Scalable`, its registration and the editor prop decorator; strip `component Scalable` from the `.lvl` files
@@ -107,7 +110,7 @@ Decisions taken while writing the plan (see plan §0 for the reasons).
 |---|---|---|
 | Q1 | ~~Is 8×2×8 the intended arena size?~~ **Answered:** 16×6×16, player unchanged | — |
 | Q2 | Should the console pause the game while open? | Yes (`con_pause 1`), switchable |
-| Q3 | Keep the uncommitted `level_01.lvl` playtest edits? | Discard (file deleted in B4) |
+| Q3 | ~~Keep the uncommitted `level_01.lvl` playtest edits?~~ **Answered:** discard | — |
 | Q4 | Final game name for the title, settings folder and package | "Boomer Shooter" / `BoomerShooter` |
 
 ---
@@ -131,5 +134,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B0 | Developer validated B0 (release-dev build: `editor ON | console ON`); README build-flags section added; merged into `integration`, branch renamed `done/bs_baseline` | Start B1 on `bs_remove_scaling` | — |
+| 2026-11-18 | B0 | TASK_04 started: branch `bs_baseline`; tag `build-to-scale-final`; `level_01.lvl` edits discarded; `ENG_DEV_CONSOLE` flag + `IsDevConsoleBuild()` + log line; Debug and Release build and start | Developer runs the B0 **Done when** check | — |
 | 2026-11-18 | — | Developer approved the plan and risks; arena changed to 16×6×16, player size kept (B‑D9, Q1) | Wait for the next task | — |
 | 2026-11-18 | — | TASK_03: Boomer‑Shooter architecture plan and this tracker written (B‑D1–B‑D11, phases B0–B5) | Developer reviews the plan and answers Q1–Q4 | — |

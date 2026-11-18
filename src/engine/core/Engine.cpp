@@ -77,10 +77,10 @@ namespace eng
 		m_activeCamera.SetActiveCamera(m_defaultCamera);
 
 		m_window.Refresh();
-		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s | audio %s",
+		Log::Info("%s %s | screen %d x %d | render %d x %d | editor %s | console %s | audio %s",
 			GetEngineName(), GetEngineVersion(),
 			m_window.screenWidth, m_window.screenHeight, m_window.renderWidth, m_window.renderHeight,
-			IsEditorBuild() ? "ON" : "OFF", m_audio.IsReady() ? "ON" : "OFF");
+			IsEditorBuild() ? "ON" : "OFF", IsDevConsoleBuild() ? "ON" : "OFF", m_audio.IsReady() ? "ON" : "OFF");
 
 		m_isAppInitialized = m_app->Init();
 		if (!m_isAppInitialized)
