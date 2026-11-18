@@ -4,7 +4,7 @@ LevelList::LevelList(std::vector<std::string> paths) : m_paths(std::move(paths))
 
 LevelList LevelList::Default()
 {
-	return LevelList({ "assets/levels/level_01.lvl", "assets/levels/level_02.lvl", "assets/levels/level_03.lvl" });
+	return LevelList({ "assets/levels/arena_01.lvl" });
 }
 
 void LevelList::Add(const std::string& path)	{ m_paths.push_back(path); }
