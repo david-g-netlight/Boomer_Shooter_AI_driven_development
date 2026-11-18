@@ -31,6 +31,7 @@
 #include "console/DevConsole.h"
 #include "console/ConsoleScreen.h"
 #include "console/EngineCommands.h"
+#include "console/EditorCommands.h"
 #include "ui/UIScreen.h"
 #include "ui/UIStack.h"
 #include "ui/UIStyle.h"

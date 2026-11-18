@@ -108,12 +108,18 @@ namespace eng
 			Select(Picker::Pick(m_camera.GetCamera(), input.GetMousePosition(), *m_level, Engine::GetInstance().GetPhysics()));
 
 		if (m_selected && !IsTyping() && input.IsKeyPressed(KEY_F))
-		{
-			const BoundingBox box = Picker::GetActorBounds(*m_selected);
-			const Vector3 center	= { (box.min.x + box.max.x) * 0.5f, (box.min.y + box.max.y) * 0.5f, (box.min.z + box.max.z) * 0.5f };
-			const Vector3 extent	= { box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z };
-			m_camera.FocusOn(center, 0.5f * std::sqrt(extent.x * extent.x + extent.y * extent.y + extent.z * extent.z));
-		}
+			FocusSelected();
+	}
+
+	void Editor::FocusSelected()
+	{
+		if (!m_selected)
+			return;
+
+		const BoundingBox box = Picker::GetActorBounds(*m_selected);
+		const Vector3 center	= { (box.min.x + box.max.x) * 0.5f, (box.min.y + box.max.y) * 0.5f, (box.min.z + box.max.z) * 0.5f };
+		const Vector3 extent	= { box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z };
+		m_camera.FocusOn(center, 0.5f * std::sqrt(extent.x * extent.x + extent.y * extent.y + extent.z * extent.z));
 	}
 
 	void Editor::ValidateSelection()
@@ -137,8 +143,6 @@ namespace eng
 
 		// A drag started over a panel must not keep the gizmo alive: panels only react to the free cursor
 		m_toolbar.Draw(*this);
-		m_hierarchy.Draw(*this, *m_level);
-		m_inspector.Draw(*this);
 	}
 
 	std::string Editor::GetLevelPath() const
@@ -149,23 +153,33 @@ namespace eng
 
 	bool Editor::CanSaveLoad() const	{ return m_level && !GetLevelPath().empty(); }
 
-	void Editor::Save()
+	void Editor::Save(const std::string& path)
 	{
-		if (!CanSaveLoad())
+		if (!m_level)
 			return;
 
-		const std::string path = GetLevelPath();
-		LevelSerializer::Save(*m_level, path);
+		const std::string target = path.empty() ? GetLevelPath() : path;
+		if (target.empty())
+		{
+			Log::Warning("Editor: no level file to save to");
+			return;
+		}
+
+		LevelSerializer::Save(*m_level, target);
 #if ENG_EDITOR && defined(ENG_SOURCE_DIR)
 		// The build copies assets/ over the executable's copy: keep a copy where the developer commits it
-		LevelSerializer::Save(*m_level, std::string(ENG_SOURCE_DIR) + "/" + path);
+		if (path.empty())
+			LevelSerializer::Save(*m_level, std::string(ENG_SOURCE_DIR) + "/" + target);
 #endif
 	}
 
-	void Editor::RequestLoad()
+	void Editor::RequestLoad(const std::string& path)
 	{
-		if (CanSaveLoad())
-			m_isLoadPending = true;
+		if (!m_level || (path.empty() && GetLevelPath().empty()))
+			return;
+
+		m_loadPath = path;
+		m_isLoadPending = true;
 	}
 
 	void Editor::LoadNow()
@@ -174,7 +188,9 @@ namespace eng
 		m_selected = nullptr;
 		m_gizmo.CancelDrag();
 
-		if (!LevelSerializer::Load(*m_level, GetLevelPath()).ok)
+		const std::string path = m_loadPath.empty() ? GetLevelPath() : m_loadPath;
+		m_loadPath.clear();
+		if (!LevelSerializer::Load(*m_level, path).ok)
 			return;
 
 		if (Application* app = Engine::GetInstance().GetApplication())
@@ -221,6 +237,19 @@ namespace eng
 		actor->AddComponent<RigidBody>(settings);
 		if (m_propDecorator)
 			m_propDecorator(*actor);
+
+		Select(actor);
+		return actor;
+	}
+
+	GameActor* Editor::AddEmpty()
+	{
+		if (!m_level)
+			return nullptr;
+
+		const Camera& camera = m_camera.GetCamera();
+		GameActor* actor = m_level->CreateGameActor("Empty " + std::to_string(++m_spawnCounter));
+		actor->SetPosition(Vector3Add(camera.GetPosition(), Vector3Scale(camera.Forward(), 4.0f)));
 
 		Select(actor);
 		return actor;
@@ -278,7 +307,40 @@ namespace eng
 			Log::Info("Editor: selected '%s'", actor->GetName().c_str());
 	}
 
-	GameActor* Editor::GetSelected() const	{ return m_selected; }
+	GameActor* Editor::GetSelected() const
+	{
+		if (!m_selected)
+			return nullptr;
+
+		// Compare pointers only: the actor may already be deleted (level reloaded in Play)
+		const Level* level = ResolveLevel();
+		if (level && !m_selected->IsMarkedForDestroy())
+			for (const auto& owned : level->GetActors())
+				if (owned.get() == m_selected)
+					return m_selected;
+		return nullptr;
+	}
+
+	Level* Editor::ResolveLevel() const
+	{
+		if (m_isActive)
+			return m_level;
+		Application* app = Engine::GetInstance().GetApplication();
+		return app ? app->GetActiveLevel() : nullptr;
+	}
+
+	GameActor* Editor::PickAtScreenCenter() const
+	{
+		const Camera* camera = Engine::GetInstance().GetMainCamera().GetActiveCamera();
+		if (!camera || !ResolveLevel())
+			return nullptr;
+
+		const Vector2 center = { GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f };
+		const Ray ray = GetScreenToWorldRay(center, camera->ToRaylib());
+		const auto hit = Engine::GetInstance().GetPhysics().Raycast(ray.position, ray.direction, Picker::MAX_PICK_DISTANCE,
+			Layer::Ground | Layer::Prop | Layer::Trigger);
+		return hit ? hit->actor : nullptr;
+	}
 
 	void Editor::Draw3D() const
 	{

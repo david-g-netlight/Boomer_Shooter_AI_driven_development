@@ -10,6 +10,7 @@
 #include "render/MeshRenderer.h"
 #include "ui/UIStyle.h"
 #include "console/EngineCommands.h"
+#include "console/EditorCommands.h"
 #include <raylib.h>
 
 namespace eng
@@ -89,6 +90,9 @@ namespace eng
 
 #if ENG_DEV_CONSOLE
 		RegisterEngineCommands(*this, m_console);	// before the game, which adds its own
+#if ENG_EDITOR
+		RegisterEditorCommands(*this, m_console);
+#endif
 #endif
 
 		m_isAppInitialized = m_app->Init();
