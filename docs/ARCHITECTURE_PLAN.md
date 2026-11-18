@@ -1,5 +1,8 @@
 # Architecture Plan — Raylib Engine + "Build to Scale" FPS
 
+> **History.** This plan describes the *Build to Scale* game. The current plan for the Boomer‑Shooter base is
+> [`Boomer_Shooter_ARCHITECTURE_PLAN.md`](Boomer_Shooter_ARCHITECTURE_PLAN.md).
+
 A smaller game engine built on **raylib 5.6 (static `lib/libraylib.a`)** that has the same structure as the
 reference OpenGL engine (`p_Game_Engine_Cpp_OpenGL`, *"The Sleipnir Engine"*). On top of that it adds:
 

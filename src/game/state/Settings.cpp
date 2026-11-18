@@ -20,7 +20,7 @@ std::string Settings::GetPath() const
 	const char* home = std::getenv("HOME");
 	if (!home || !*home)
 		return "settings.cfg";		// next to the executable (the engine changes into its folder)
-	return std::string(home) + "/Library/Application Support/BuildToScale/settings.cfg";
+	return std::string(home) + "/Library/Application Support/BoomerShooter/settings.cfg";
 }
 
 void Settings::SetPath(const std::string& path)	{ m_pathOverride = path; }

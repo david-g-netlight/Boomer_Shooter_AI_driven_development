@@ -5,6 +5,6 @@ Runtime data for the game. The whole folder is copied next to the executable aft
 
 | Folder | Content |
 |---|---|
-| `levels/` | `.lvl` level files (`level_01` .. `level_03`), saved by the editor |
+| `levels/` | `.lvl` level files: `arena_01.lvl`, the only level, saved by the editor |
 | `shaders/` | `.vs` / `.fs` GLSL shaders |
 | `audio/` | Sound effects and music (`.wav`), plus `CREDITS.txt` |

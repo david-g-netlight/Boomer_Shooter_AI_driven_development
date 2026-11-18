@@ -1,11 +1,11 @@
-#include "ScaleGame.h"
+#include "ArenaGame.h"
 #include <cmath>
 #include <raymath.h>
 
 //////////////////////////////////////////
 /// Setup
 //////////////////////////////////////////
-bool ScaleGame::Init()
+bool ArenaGame::Init()
 {
 	eng::Engine& engine = eng::Engine::GetInstance();
 
@@ -34,11 +34,11 @@ bool ScaleGame::Init()
 	m_commands.Register({ &m_gameplay, &m_gameState, &m_playerState, &m_player, &m_level });
 #endif
 
-	eng::Log::Info("ScaleGame initialized");
+	eng::Log::Info("ArenaGame initialized");
 	return true;
 }
 
-void ScaleGame::RegisterComponents()
+void ArenaGame::RegisterComponents()
 {
 	// Level files and the editor's Add Component create these by name
 	eng::ComponentRegistry& registry = eng::Engine::GetInstance().GetComponentRegistry();
@@ -47,7 +47,7 @@ void ScaleGame::RegisterComponents()
 	registry.Register<NextLevelTrigger>("NextLevelTrigger");
 }
 
-void ScaleGame::BindInput()
+void ArenaGame::BindInput()
 {
 	eng::InputMap& map = eng::Engine::GetInstance().GetInputManager().GetMap();
 
@@ -56,7 +56,7 @@ void ScaleGame::BindInput()
 	map.BindAction("TogglePhysicsDebug", eng::InputBinding::Key(KEY_F3));
 }
 
-void ScaleGame::Destroy()
+void ArenaGame::Destroy()
 {
 #if ENG_DEV_CONSOLE
 	m_commands.Unregister();	// the handlers capture the game's members
@@ -72,15 +72,15 @@ void ScaleGame::Destroy()
 	m_level.Clear();
 	SoundFXBank::Instance().Clear();
 	m_music.Shutdown();
-	eng::Log::Info("ScaleGame destroyed");
+	eng::Log::Info("ArenaGame destroyed");
 }
 
-const char* ScaleGame::GetTitle() const
+const char* ArenaGame::GetTitle() const
 {
-	return "Build to Scale";
+	return "Boomer Shooter";
 }
 
-eng::Level* ScaleGame::GetActiveLevel()
+eng::Level* ArenaGame::GetActiveLevel()
 {
 	return &m_level;
 }
@@ -88,48 +88,48 @@ eng::Level* ScaleGame::GetActiveLevel()
 //////////////////////////////////////////
 /// Levels
 //////////////////////////////////////////
-bool ScaleGame::LoadLevelFile(const std::string& path)
+bool ArenaGame::LoadLevelFile(const std::string& path)
 {
 	m_player.Reset();
 	const bool isLoaded = eng::LevelSerializer::Load(m_level, path).ok;
 	if (!isLoaded)
 	{
 		m_level.Clear();
-		eng::Log::Error("ScaleGame: level '%s' could not be loaded, starting in an empty world", path.c_str());
+		eng::Log::Error("ArenaGame: level '%s' could not be loaded, starting in an empty world", path.c_str());
 	}
 
 	SpawnPlayer();
 	return isLoaded;
 }
 
-void ScaleGame::SpawnPlayer()
+void ArenaGame::SpawnPlayer()
 {
 	const eng::SpawnPoint& spawn = m_level.GetSpawn();
 	const Vector3 feet = spawn.isSet ? spawn.position : Vector3{ 0.0f, 1.0f, 0.0f };
 	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera }, feet, spawn.isSet ? spawn.yawDegrees : 0.0f, false);
 }
 
-void ScaleGame::OnSettingsRequested()
+void ArenaGame::OnSettingsRequested()
 {
 	eng::Engine::GetInstance().GetUI().Push<SettingsScreen>();
 }
 
-void ScaleGame::OnStartRequested()
+void ArenaGame::OnStartRequested()
 {
 	m_gameplay.LoadNow(0);		// between frames: safe to clear the level; the mode is Play, so the game starts
 }
 
-void ScaleGame::OnReturnToMainMenu()
+void ArenaGame::OnReturnToMainMenu()
 {
 	m_gameState.Reset();
 }
 
-void ScaleGame::OnRestartRequested()
+void ArenaGame::OnRestartRequested()
 {
 	m_gameplay.LoadNow(m_gameplay.GetLevelIndex());
 }
 
-void ScaleGame::OnLevelLoaded()
+void ArenaGame::OnLevelLoaded()
 {
 	// The editor replaced every actor (an old file may even contain a player): the game spawns its own
 	for (const auto& owned : m_level.GetActors())
@@ -138,7 +138,7 @@ void ScaleGame::OnLevelLoaded()
 	SpawnPlayer();
 }
 
-std::string ScaleGame::GetLevelPath() const
+std::string ArenaGame::GetLevelPath() const
 {
 	return m_gameplay.GetCurrentPath();
 }
@@ -146,7 +146,7 @@ std::string ScaleGame::GetLevelPath() const
 //////////////////////////////////////////
 /// Frame
 //////////////////////////////////////////
-void ScaleGame::Update(float deltaTime)
+void ArenaGame::Update(float deltaTime)
 {
 	m_gameplay.Update();	// a requested level load (next level trigger, retry) happens here, between frames
 
@@ -166,7 +166,7 @@ void ScaleGame::Update(float deltaTime)
 	UpdateMenuCamera(deltaTime);
 }
 
-void ScaleGame::UpdateMenuCamera(float deltaTime)
+void ArenaGame::UpdateMenuCamera(float deltaTime)
 {
 	// Play: the FirstPersonLook on the player owns the camera
 	if (eng::Engine::GetInstance().GetModes().GetMode() != eng::EngineMode::MainMenu)
@@ -178,12 +178,12 @@ void ScaleGame::UpdateMenuCamera(float deltaTime)
 	m_camera.LookAt({ 0.0f, 1.0f, 0.0f });
 }
 
-void ScaleGame::DrawViewModel()
+void ArenaGame::DrawViewModel()
 {
 	m_gunView.Draw();
 }
 
-void ScaleGame::DrawHUD()
+void ArenaGame::DrawHUD()
 {
 	const eng::EngineMode mode = eng::Engine::GetInstance().GetModes().GetMode();
 	if (mode != eng::EngineMode::Play && mode != eng::EngineMode::Paused)

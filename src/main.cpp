@@ -1,10 +1,10 @@
 #include <eng.h>
-#include "ScaleGame.h"
+#include "ArenaGame.h"
 
 int main()
 {
 	eng::Engine& engine = eng::Engine::GetInstance();
-	engine.SetApplication(new ScaleGame()); // Ownership transfer: the Engine deletes the game
+	engine.SetApplication(new ArenaGame()); // Ownership transfer: the Engine deletes the game
 
 	if (engine.Init())
 	{
