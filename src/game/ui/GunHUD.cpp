@@ -12,10 +12,10 @@ void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) cons
 
 	const Gun* gun				= player ? player->GetComponent<Gun>() : nullptr;
 	const bool isCoolingDown	= !state.IsReadyToShoot();
-	const bool onScalable		= gun && gun->GetAimHit().isTarget;
+	const bool onTarget			= gun && gun->GetAimHit().isTarget;
 
 	// Crosshair
-	Color color = onScalable ? Color{ 90, 255, 140, 255 } : RAYWHITE;
+	Color color = onTarget ? Color{ 255, 70, 60, 255 } : RAYWHITE;
 	if (isCoolingDown)
 		color = Fade(color, 0.45f);
 	const float fx = static_cast<float>(cx), fy = static_cast<float>(cy);

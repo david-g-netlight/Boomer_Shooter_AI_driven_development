@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <rlgl.h>
+#include "fx/MuzzleFX.h"
 #include "player/Gun.h"
 #include "state/PlayerState.h"
 
@@ -60,7 +61,7 @@ void GunView::Draw() const
 
 	const bool isReady		= m_state->IsReadyToShoot();
 	const Color light		= Fade(Color{ 80, 190, 255, 255 }, isReady ? 1.0f : 0.35f);
-	const Color tipColor	= m_sign > 0.0f ? Color{ 60, 170, 255, 255 } : Color{ 255, 210, 50, 255 };
+	const Color tipColor	= MuzzleFX::START_COLOR;
 
 	m_camera.Begin3D();
 	rlDrawRenderBatchActive();
