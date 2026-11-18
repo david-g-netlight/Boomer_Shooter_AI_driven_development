@@ -134,6 +134,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B1 | All 6 B1 tasks committed on `bs_remove_scaling` (Scalable out, PlayerState / PlayerInput trimmed, `Gun` + `ShotFiredEvent`, `ShotFXSpawner` / `Tracer`, `PlayShot`, HUD and gun view); clean Debug and Release builds without warnings; smoke run loads `level_01` with 0 warnings. The puzzle levels can't be won any more (no scaling); replaced in B4 | Developer runs the B1 **Done when** check | — |
 | 2026-11-18 | B0 | Developer validated B0 (release-dev build: `editor ON | console ON`); README build-flags section added; merged into `integration`, branch renamed `done/bs_baseline` | Start B1 on `bs_remove_scaling` | — |
 | 2026-11-18 | B0 | TASK_04 started: branch `bs_baseline`; tag `build-to-scale-final`; `level_01.lvl` edits discarded; `ENG_DEV_CONSOLE` flag + `IsDevConsoleBuild()` + log line; Debug and Release build and start | Developer runs the B0 **Done when** check | — |
 | 2026-11-18 | — | Developer approved the plan and risks; arena changed to 16×6×16, player size kept (B‑D9, Q1) | Wait for the next task | — |
