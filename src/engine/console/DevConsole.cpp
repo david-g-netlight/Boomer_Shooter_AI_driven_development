@@ -1,6 +1,9 @@
 #if ENG_DEV_CONSOLE
 
 #include "DevConsole.h"
+#include "ConsoleScreen.h"
+#include "core/Engine.h"
+#include "input/InputManager.h"
 #include <cstdarg>
 #include <cstdio>
 
@@ -45,6 +48,44 @@ namespace eng
 		Log::SetSink(nullptr);
 		g_instance = nullptr;
 		m_installed = false;
+	}
+
+	void DevConsole::Open()
+	{
+		if (!m_screen)
+			m_screen = Engine::GetInstance().GetUI().Push<ConsoleScreen>(*this);
+	}
+
+	void DevConsole::Close()
+	{
+		if (m_screen)
+			Engine::GetInstance().GetUI().Remove(m_screen);	// OnPop -> NotifyScreenGone
+	}
+
+	void DevConsole::Toggle()
+	{
+		if (IsOpen())	Close();
+		else			Open();
+	}
+
+	void DevConsole::HandleToggle(const InputManager& input)
+	{
+		if (input.IsKeyPressed(KEY_GRAVE))
+			Toggle();
+	}
+
+	void DevConsole::KeepOnTop()
+	{
+		if (!m_screen || Engine::GetInstance().GetUI().Top() == m_screen)
+			return;
+		Close();
+		Open();
+	}
+
+	void DevConsole::NotifyScreenGone(const ConsoleScreen* screen)
+	{
+		if (m_screen == screen)
+			m_screen = nullptr;
 	}
 
 	void DevConsole::OnLog(LogLevel level, const char* message)

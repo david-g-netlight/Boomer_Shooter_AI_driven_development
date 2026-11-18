@@ -13,6 +13,9 @@ namespace eng
 	/// The developer console: command table, scroll-back and history. Owned by the Engine.
 	/// Every Log line is mirrored into the scroll-back while the console is installed.
 	/// </summary>
+	class ConsoleScreen;
+	class InputManager;
+
 	class DevConsole
 	{
 	public:
@@ -34,6 +37,27 @@ namespace eng
 		/// <summary>Installs the Log sink</summary>
 		void Init();
 		void Shutdown();
+
+		//////////////////////////////////////////////////////////////
+		// Open / close: the ConsoleScreen goes on the UIStack while the console is open
+		//////////////////////////////////////////////////////////////
+		bool	IsOpen() const { return m_screen != nullptr; }
+		void	Open();
+		void	Close();
+		void	Toggle();
+		/// <summary>Grave key, once per frame (Engine)</summary>
+		void	HandleToggle(const InputManager& input);
+		/// <summary>After a mode change pushed its own screen: the console goes back on top</summary>
+		void	KeepOnTop();
+		/// <summary>Called by the ConsoleScreen when it leaves the stack</summary>
+		void	NotifyScreenGone(const ConsoleScreen* screen);
+
+		/// <summary>True while the console is open and the simulation is frozen (cvar con_pause)</summary>
+		bool	IsPausingSimulation() const { return IsOpen() && m_pauseWhileOpen; }
+		bool*	GetPauseWhileOpenVar() { return &m_pauseWhileOpen; }
+
+		std::string&	GetInput()		{ return m_input; }	// the line being typed, kept while the screen is re-pushed
+		int&			GetScroll()		{ return m_scroll; }	// lines scrolled back from the newest
 
 		/// <summary>Runs one line: finds the command and calls its handler. The line goes into the history.</summary>
 		void Execute(const std::string& line);
@@ -69,6 +93,10 @@ namespace eng
 		std::deque<std::string>	m_history;
 		int						m_historyCursor = 0;	// == history size when not navigating
 		bool					m_installed		= false;
+		ConsoleScreen*			m_screen		= nullptr;	// non-owning: the UIStack owns it while open
+		bool					m_pauseWhileOpen = true;
+		std::string				m_input;
+		int						m_scroll		= 0;
 	};
 }
 

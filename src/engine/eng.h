@@ -29,6 +29,7 @@
 #include "console/ConVar.h"
 #include "console/ConsoleCommands.h"
 #include "console/DevConsole.h"
+#include "console/ConsoleScreen.h"
 #include "ui/UIScreen.h"
 #include "ui/UIStack.h"
 #include "ui/UIStyle.h"

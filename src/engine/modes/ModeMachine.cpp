@@ -137,6 +137,9 @@ namespace eng
 
 		// 2 + 3 + 4. Cursor, audio, mode screen
 		ApplyModeEffects(to);
+#if ENG_DEV_CONSOLE
+		Engine::GetInstance().GetConsole().KeepOnTop();	// the mode's new screen must not cover an open console
+#endif
 
 		// 5. Event
 		Engine::GetInstance().GetEvents().Publish(ModeChangedEvent{ from, to, isRestart });

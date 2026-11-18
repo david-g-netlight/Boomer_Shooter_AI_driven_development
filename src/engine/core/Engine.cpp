@@ -110,6 +110,10 @@ namespace eng
 			m_window.Refresh();
 			m_inputManager.Poll(); // State polled by the previous EndDrawing()
 
+#if ENG_DEV_CONSOLE
+			m_console.HandleToggle(m_inputManager);	// grave opens / closes in every mode
+#endif
+
 			// Mode changes requested last frame (menus) or by ESC / TAB now take effect before anything updates
 			m_modes.HandleInput(m_inputManager);
 			m_modes.HandleFocus(m_window.isFocused);
