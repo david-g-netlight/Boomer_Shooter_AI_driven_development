@@ -371,8 +371,7 @@ namespace eng
 		out.SetFloat("restitution", m_settings.restitution);
 		out.SetFloat("linearDamping", m_settings.linearDamping);
 		out.SetFloat("angularDamping", m_settings.angularDamping);
-		if (m_settings.lockRotation)
-			out.SetBool("lockRotation", true);
+		out.SetBool("lockRotation", m_settings.lockRotation);	// always written: the console can only set keys that exist
 		out.SetString("ccd", CCD[static_cast<int>(m_settings.ccd)]);
 	}
 

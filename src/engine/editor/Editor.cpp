@@ -1,5 +1,6 @@
 #include "Editor.h"
 #include <cmath>
+#include <cstdlib>
 #include <string>
 #include <raymath.h>
 #include "core/Engine.h"
@@ -11,7 +12,9 @@
 #include "editor/ActorEdit.h"
 #include "editor/EditorUI.h"
 #include "level/LevelSerializer.h"
+#include "level/PropertyBag.h"
 #include "editor/Picker.h"
+#include "physics/CharacterMotor.h"
 #include "physics/Collider.h"
 #include "physics/RigidBody.h"
 #include "physics/TriggerVolume.h"
@@ -108,12 +111,18 @@ namespace eng
 			Select(Picker::Pick(m_camera.GetCamera(), input.GetMousePosition(), *m_level, Engine::GetInstance().GetPhysics()));
 
 		if (m_selected && !IsTyping() && input.IsKeyPressed(KEY_F))
-		{
-			const BoundingBox box = Picker::GetActorBounds(*m_selected);
-			const Vector3 center	= { (box.min.x + box.max.x) * 0.5f, (box.min.y + box.max.y) * 0.5f, (box.min.z + box.max.z) * 0.5f };
-			const Vector3 extent	= { box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z };
-			m_camera.FocusOn(center, 0.5f * std::sqrt(extent.x * extent.x + extent.y * extent.y + extent.z * extent.z));
-		}
+			FocusSelected();
+	}
+
+	void Editor::FocusSelected()
+	{
+		if (!m_selected)
+			return;
+
+		const BoundingBox box = Picker::GetActorBounds(*m_selected);
+		const Vector3 center	= { (box.min.x + box.max.x) * 0.5f, (box.min.y + box.max.y) * 0.5f, (box.min.z + box.max.z) * 0.5f };
+		const Vector3 extent	= { box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z };
+		m_camera.FocusOn(center, 0.5f * std::sqrt(extent.x * extent.x + extent.y * extent.y + extent.z * extent.z));
 	}
 
 	void Editor::ValidateSelection()
@@ -137,8 +146,6 @@ namespace eng
 
 		// A drag started over a panel must not keep the gizmo alive: panels only react to the free cursor
 		m_toolbar.Draw(*this);
-		m_hierarchy.Draw(*this, *m_level);
-		m_inspector.Draw(*this);
 	}
 
 	std::string Editor::GetLevelPath() const
@@ -149,23 +156,33 @@ namespace eng
 
 	bool Editor::CanSaveLoad() const	{ return m_level && !GetLevelPath().empty(); }
 
-	void Editor::Save()
+	void Editor::Save(const std::string& path)
 	{
-		if (!CanSaveLoad())
+		if (!m_level)
 			return;
 
-		const std::string path = GetLevelPath();
-		LevelSerializer::Save(*m_level, path);
+		const std::string target = path.empty() ? GetLevelPath() : path;
+		if (target.empty())
+		{
+			Log::Warning("Editor: no level file to save to");
+			return;
+		}
+
+		LevelSerializer::Save(*m_level, target);
 #if ENG_EDITOR && defined(ENG_SOURCE_DIR)
 		// The build copies assets/ over the executable's copy: keep a copy where the developer commits it
-		LevelSerializer::Save(*m_level, std::string(ENG_SOURCE_DIR) + "/" + path);
+		if (path.empty())
+			LevelSerializer::Save(*m_level, std::string(ENG_SOURCE_DIR) + "/" + target);
 #endif
 	}
 
-	void Editor::RequestLoad()
+	void Editor::RequestLoad(const std::string& path)
 	{
-		if (CanSaveLoad())
-			m_isLoadPending = true;
+		if (!m_level || (path.empty() && GetLevelPath().empty()))
+			return;
+
+		m_loadPath = path;
+		m_isLoadPending = true;
 	}
 
 	void Editor::LoadNow()
@@ -174,12 +191,107 @@ namespace eng
 		m_selected = nullptr;
 		m_gizmo.CancelDrag();
 
-		if (!LevelSerializer::Load(*m_level, GetLevelPath()).ok)
+		const std::string path = m_loadPath.empty() ? GetLevelPath() : m_loadPath;
+		m_loadPath.clear();
+		if (!LevelSerializer::Load(*m_level, path).ok)
 			return;
 
 		if (Application* app = Engine::GetInstance().GetApplication())
 			app->OnLevelLoaded();
 		m_snapshot.Capture(*m_level);
+	}
+
+	namespace
+	{
+		Component* FindComponent(GameActor& actor, const std::string& type)
+		{
+			for (const auto& component : actor.GetComponents())
+				if (type == component->TypeName())
+					return component.get();
+			return nullptr;
+		}
+
+		bool IsNumber(const std::string& text)
+		{
+			char* end = nullptr;
+			std::strtof(text.c_str(), &end);
+			return !text.empty() && *end == '\0';
+		}
+	}
+
+	bool Editor::SetComponentFields(GameActor& actor, const std::string& type,
+									const std::vector<std::pair<std::string, std::string>>& fields, std::string& error)
+	{
+		Component* component = FindComponent(actor, type);
+		if (!component)
+		{
+			error = "'" + actor.GetName() + "' has no " + type;
+			return false;
+		}
+
+		PropertyBag bag;
+		component->Serialize(bag);
+
+		// Check everything first so a typo in the second pair doesn't leave the first one applied
+		for (const auto& [key, value] : fields)
+		{
+			if (!bag.Has(key))
+			{
+				error = "unknown field '" + key + "' (fields:";
+				for (const auto& item : bag.Items())
+					error += " " + item.first;
+				error += ")";
+				return false;
+			}
+			if (IsNumber(bag.GetString(key)) && !IsNumber(value))
+			{
+				error = "'" + key + "' expects a number, got '" + value + "'";
+				return false;
+			}
+		}
+
+		for (const auto& [key, value] : fields)
+			bag.SetString(key, value);
+		component->Deserialize(bag);
+		component->OnFieldsChanged();
+		return true;
+	}
+
+	Component* Editor::AddComponent(GameActor& actor, const std::string& type, std::string& error)
+	{
+		ComponentRegistry& registry = Engine::GetInstance().GetComponentRegistry();
+		if (!registry.IsRegistered(type))
+		{
+			error = "unknown component type '" + type + "' (see comp_types)";
+			return nullptr;
+		}
+		if (FindComponent(actor, type))
+		{
+			error = "'" + actor.GetName() + "' already has a " + type;
+			return nullptr;
+		}
+
+		Log::Info("Editor: added %s to '%s'", type.c_str(), actor.GetName().c_str());
+		return registry.Create(type, actor);
+	}
+
+	bool Editor::RemoveComponent(GameActor& actor, const std::string& type, std::string& error)
+	{
+		Component* component = FindComponent(actor, type);
+		if (!component)
+		{
+			error = "'" + actor.GetName() + "' has no " + type;
+			return false;
+		}
+		if (type == "Collider" && (actor.GetComponent<RigidBody>() || actor.GetComponent<TriggerVolume>() || actor.GetComponent<CharacterMotor>()))
+		{
+			error = "Collider is used by a RigidBody / TriggerVolume / CharacterMotor: remove those first";
+			return false;
+		}
+
+		actor.RemoveComponent(component);
+		Log::Info("Editor: removed %s from '%s'", type.c_str(), actor.GetName().c_str());
+		return true;
 	}
 
 	GameActor* Editor::DuplicateSelected()
@@ -221,6 +333,19 @@ namespace eng
 		actor->AddComponent<RigidBody>(settings);
 		if (m_propDecorator)
 			m_propDecorator(*actor);
+
+		Select(actor);
+		return actor;
+	}
+
+	GameActor* Editor::AddEmpty()
+	{
+		if (!m_level)
+			return nullptr;
+
+		const Camera& camera = m_camera.GetCamera();
+		GameActor* actor = m_level->CreateGameActor("Empty " + std::to_string(++m_spawnCounter));
+		actor->SetPosition(Vector3Add(camera.GetPosition(), Vector3Scale(camera.Forward(), 4.0f)));
 
 		Select(actor);
 		return actor;
@@ -278,7 +403,40 @@ namespace eng
 			Log::Info("Editor: selected '%s'", actor->GetName().c_str());
 	}
 
-	GameActor* Editor::GetSelected() const	{ return m_selected; }
+	GameActor* Editor::GetSelected() const
+	{
+		if (!m_selected)
+			return nullptr;
+
+		// Compare pointers only: the actor may already be deleted (level reloaded in Play)
+		const Level* level = ResolveLevel();
+		if (level && !m_selected->IsMarkedForDestroy())
+			for (const auto& owned : level->GetActors())
+				if (owned.get() == m_selected)
+					return m_selected;
+		return nullptr;
+	}
+
+	Level* Editor::ResolveLevel() const
+	{
+		if (m_isActive)
+			return m_level;
+		Application* app = Engine::GetInstance().GetApplication();
+		return app ? app->GetActiveLevel() : nullptr;
+	}
+
+	GameActor* Editor::PickAtScreenCenter() const
+	{
+		const Camera* camera = Engine::GetInstance().GetMainCamera().GetActiveCamera();
+		if (!camera || !ResolveLevel())
+			return nullptr;
+
+		const Vector2 center = { GetScreenWidth() * 0.5f, GetScreenHeight() * 0.5f };
+		const Ray ray = GetScreenToWorldRay(center, camera->ToRaylib());
+		const auto hit = Engine::GetInstance().GetPhysics().Raycast(ray.position, ray.direction, Picker::MAX_PICK_DISTANCE,
+			Layer::Ground | Layer::Prop | Layer::Trigger);
+		return hit ? hit->actor : nullptr;
+	}
 
 	void Editor::Draw3D() const
 	{

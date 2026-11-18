@@ -26,7 +26,8 @@ namespace eng
 	{
 	public:
 		EngineMode	GetMode() const;
-		bool		IsSimulating() const;		// true only in Play
+		bool		IsSimulating() const;		// Play, and not frozen by an open console (con_pause)
+		bool		AcceptsGameInput() const;	// Play and no console open: the player's keys and mouse
 
 		bool		CanTransition(EngineMode from, EngineMode to) const;
 
@@ -46,7 +47,7 @@ namespace eng
 		/// Called by the Engine
 		//////////////////////////////////////////
 		void		Begin(EngineMode initial);				// after Application::Init
-		void		HandleInput(const InputManager& input);	// ESC / TAB
+		void		HandleInput(const InputManager& input);	// ESC / TAB (both belong to the console while it is open)
 		void		HandleFocus(bool isFocused);			// Play -> Paused on the frame the window loses focus
 		void		ApplyPendingTransition();
 

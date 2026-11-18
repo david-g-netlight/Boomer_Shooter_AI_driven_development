@@ -111,6 +111,12 @@ namespace eng
 			return nullptr;
 		}
 
+		/// <summary>
+		/// OnDisable (if enabled) + OnDestroy, then deletes it. False if it isn't one of this actor's components.
+		/// Call between updates (editor, console), not from the component's own hooks.
+		/// </summary>
+		bool				RemoveComponent(Component* component);
+
 		size_t				GetComponentCount() const;
 		const std::vector<std::unique_ptr<Component>>& GetComponents() const;	// editor: the inspector lists them
 

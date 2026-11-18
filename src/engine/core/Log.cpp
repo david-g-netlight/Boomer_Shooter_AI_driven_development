@@ -9,6 +9,8 @@ namespace eng
 	{
 		constexpr int LOG_BUFFER_SIZE = 1024;
 
+		Log::Sink g_sink = nullptr;
+
 		int ToRaylibLevel(LogLevel level)
 		{
 			switch (level)
@@ -27,12 +29,19 @@ namespace eng
 			char buffer[LOG_BUFFER_SIZE];
 			std::vsnprintf(buffer, sizeof(buffer), format, args);
 			TraceLog(ToRaylibLevel(level), "ENG: %s", buffer);
+			if (g_sink)
+				g_sink(level, buffer);
 		}
 	}
 
 	void Log::SetLevel(LogLevel level)
 	{
 		SetTraceLogLevel(ToRaylibLevel(level));
+	}
+
+	void Log::SetSink(Sink sink)
+	{
+		g_sink = sink;
 	}
 
 	void Log::Debug(const char* format, ...)

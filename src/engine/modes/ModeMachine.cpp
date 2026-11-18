@@ -10,7 +10,24 @@
 namespace eng
 {
 	EngineMode ModeMachine::GetMode() const		{ return m_mode; }
-	bool ModeMachine::IsSimulating() const		{ return m_mode == EngineMode::Play; }
+	bool ModeMachine::IsSimulating() const
+	{
+#if ENG_DEV_CONSOLE
+		if (Engine::GetInstance().GetConsole().IsPausingSimulation())
+			return false;
+#endif
+		return m_mode == EngineMode::Play;
+	}
+
+	bool ModeMachine::AcceptsGameInput() const
+	{
+#if ENG_DEV_CONSOLE
+		if (Engine::GetInstance().GetConsole().IsOpen())
+			return false;
+#endif
+		return m_mode == EngineMode::Play;
+	}
+
 	bool ModeMachine::HasPendingRequest() const	{ return m_pending.has_value(); }
 
 	bool ModeMachine::CanTransition(EngineMode from, EngineMode to) const
@@ -67,6 +84,11 @@ namespace eng
 
 	void ModeMachine::HandleInput(const InputManager& input)
 	{
+#if ENG_DEV_CONSOLE
+		if (Engine::GetInstance().GetConsole().IsOpen())
+			return;		// the console owns the keyboard: no pause, no editor toggle while typing
+#endif
+
 		// ESC belongs to a dialog that is on top of the mode's own screen (settings, win / lose)
 		const UIScreen* top = Engine::GetInstance().GetUI().Top();
 		const bool isDialogOnTop = top != nullptr && top != m_modeScreen;
@@ -137,6 +159,9 @@ namespace eng
 
 		// 2 + 3 + 4. Cursor, audio, mode screen
 		ApplyModeEffects(to);
+#if ENG_DEV_CONSOLE
+		Engine::GetInstance().GetConsole().KeepOnTop();	// the mode's new screen must not cover an open console
+#endif
 
 		// 5. Event
 		Engine::GetInstance().GetEvents().Publish(ModeChangedEvent{ from, to, isRestart });

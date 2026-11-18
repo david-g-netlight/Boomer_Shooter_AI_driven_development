@@ -15,6 +15,7 @@
 #include "editor/Editor.h"
 #include "level/ComponentRegistry.h"
 #include "ui/UIStack.h"
+#include "console/DevConsole.h"
 
 /////////////////////////////////////////////////////////
 // Engine class
@@ -97,6 +98,9 @@ namespace eng
 		Editor&				GetEditor();
 		ComponentRegistry&	GetComponentRegistry();
 		UIStack&			GetUI();
+#if ENG_DEV_CONSOLE
+		DevConsole&			GetConsole();
+#endif
 		Time&				GetTime();
 		const WindowInfo&	GetWindow() const;
 		const World&		GetWorld() const;
@@ -126,6 +130,9 @@ namespace eng
 		Editor			m_editor;
 		ComponentRegistry m_componentRegistry;
 		UIStack			m_ui;
+#if ENG_DEV_CONSOLE
+		DevConsole		m_console;
+#endif
 
 		Time			m_time;
 		WindowInfo		m_window;

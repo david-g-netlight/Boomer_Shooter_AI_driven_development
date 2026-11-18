@@ -48,6 +48,12 @@ namespace eng
 		/// right after the component was created and enabled, so use setters that apply immediately.
 		/// </summary>
 		virtual void		Serialize(PropertyBag& /*out*/) const {}
+
+		/// <summary>
+		/// A tool (the console's `set`, the inspector) changed fields through Deserialize(). Rebuild whatever the
+		/// setters don't already apply, e.g. a Collider re-creates the body / ghost that uses its shape.
+		/// </summary>
+		virtual void		OnFieldsChanged() {}
 		virtual void		Deserialize(const PropertyBag& /*in*/) {}
 
 		virtual const char*	TypeName() const = 0;

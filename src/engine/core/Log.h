@@ -24,7 +24,11 @@ namespace eng
 	class Log
 	{
 	public:
+		/// Receives every message (after formatting, without the "ENG:" prefix); one sink at most, nullptr removes it.
+		using Sink = void (*)(LogLevel level, const char* message);
+
 		static void SetLevel(LogLevel level);
+		static void SetSink(Sink sink);
 
 		static void Debug	(const char* format, ...) ENG_PRINTF_FORMAT(1, 2);
 		static void Info	(const char* format, ...) ENG_PRINTF_FORMAT(1, 2);

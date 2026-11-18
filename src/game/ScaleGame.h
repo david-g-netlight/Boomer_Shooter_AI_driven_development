@@ -16,6 +16,7 @@
 #include "state/Settings.h"
 #include "player/GunView.h"
 #include "audio/MusicManager.h"
+#include "dev/GameCommands.h"
 
 /// <summary>
 /// "Build to Scale": an FPS puzzle game where the gun scales props up and down.
@@ -64,6 +65,9 @@ private:
 	GunHUD			m_gunHUD;
 	GunView			m_gunView;
 	MusicManager	m_music;
+#if ENG_DEV_CONSOLE
+	GameCommands	m_commands;
+#endif
 
 	// Main menu backdrop: a slow orbit around the level
 	static constexpr float	ORBIT_SPEED		= 10.0f;	// degrees/s

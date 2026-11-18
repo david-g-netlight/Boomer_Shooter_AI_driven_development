@@ -148,8 +148,7 @@ namespace eng
 			Log::Warning("MeshRenderer: only primitive meshes are saved in level files ('%s')",
 				GetOwner() ? GetOwner()->GetName().c_str() : "?");
 
-		if (!m_isVisible)
-			out.SetBool("visible", false);
+		out.SetBool("visible", m_isVisible);	// always written: the console can only set keys that exist
 
 		if (m_ownMaterial)
 		{

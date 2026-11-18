@@ -11,6 +11,9 @@ void PlayerState::SetReach(float meters)		{ m_reach = std::max(0.1f, meters); }
 float PlayerState::GetCooldown() const			{ return m_cooldown; }
 void PlayerState::SetCooldown(float seconds)	{ m_cooldown = std::max(0.01f, seconds); }
 
+bool PlayerState::IsGod() const				{ return m_god; }
+bool* PlayerState::GetGodFlag()				{ return &m_god; }
+
 bool PlayerState::IsReadyToShoot() const	{ return m_cooldownLeft <= 0.0f; }
 void PlayerState::StartCooldown()			{ m_cooldownLeft = m_cooldown; }
 float PlayerState::GetCooldownLeft() const	{ return m_cooldownLeft; }

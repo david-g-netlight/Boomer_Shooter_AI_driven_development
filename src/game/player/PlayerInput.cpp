@@ -26,7 +26,7 @@ void PlayerInput::BindDefaults(eng::InputMap& map)
 void PlayerInput::Update(float deltaTime, const eng::InputMap& map)
 {
 	Apply(deltaTime, map.GetAxis2D("Move"), map.GetAxis2D("Look"), map.IsActionPressed("Jump"), map.IsActionPressed("Fire"),
-		eng::Engine::GetInstance().GetModes().IsSimulating());
+		eng::Engine::GetInstance().GetModes().AcceptsGameInput());
 }
 
 void PlayerInput::Apply(float deltaTime, Vector2 direction, Vector2 look, bool jumpPressed, bool firePressed, bool isInPlay)

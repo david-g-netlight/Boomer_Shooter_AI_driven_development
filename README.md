@@ -27,6 +27,32 @@ The crosshair turns red when the aim is on a target (a prop, until there are ene
 Settings (mouse sensitivity, volumes, fullscreen) are in the main menu and the pause menu and are saved to
 `~/Library/Application Support/BuildToScale/settings.cfg`.
 
+## Developer console (development builds)
+
+Debug builds include a drop-down console (`ENG_DEV_CONSOLE=1`); release builds do not.
+Press **`** (grave) in any mode. While it is open the cursor is free, the keyboard belongs to the console and the
+game is frozen (`con_pause 0` keeps it running). **ESC** or **`** closes it without pausing the game.
+
+| Key | Action |
+|---|---|
+| **Enter** | Run the line |
+| **UP / DOWN** | History |
+| **TAB** | Complete a command or an argument |
+| **PAGE UP / PAGE DOWN**, wheel | Scroll back |
+
+Type `help` for the full list. Variables print with `name` and set with `name value`.
+
+| Group | Commands |
+|---|---|
+| Engine | `help [prefix]` `clear` `echo` `quit` `mode [menu\|play\|pause\|editor]` `timescale` `con_pause` `phys_debug` `grid` `fps` `exec <file>` |
+| Editor (editor builds) | `editor` `play` `ls` `select` `pick` `deselect` `info` `rename` `pos` `move` `rot` `scale` `active` `parent` `add cube\|trigger\|empty` `dup` `del` `focus` `spawn_here` `spawn` `reset` `save` `load` |
+| Components | `comp_types` `comp_add <Type>` `comp_rm <Type>` `get <Type>` `set <Type> key=value ...` |
+| Game | `restart` `level_list` `level_load` `level_next` `win` `lose` `tp x y z` `tp_spawn` `god` `gun_cooldown` `gun_reach` `sens` |
+
+Example: `pick`, `scale 2`, `set RigidBody mass=5`, `comp_add TriggerVolume`, `save`.
+`exec <file>` runs a text file of commands, one per line (`#` starts a comment); `assets/dev/<file>.cfg` is searched too.
+`tools/check_release_console.sh` checks that a release binary has no console strings.
+
 ## Editor shortcuts (development builds)
 
 Debug builds include a level editor (`ENG_EDITOR=1`); release builds do not.

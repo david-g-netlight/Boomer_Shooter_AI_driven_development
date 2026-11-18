@@ -9,6 +9,8 @@
 #include "physics/CharacterMotor.h"
 #include "render/MeshRenderer.h"
 #include "ui/UIStyle.h"
+#include "console/EngineCommands.h"
+#include "console/EditorCommands.h"
 #include <raylib.h>
 
 namespace eng
@@ -41,6 +43,10 @@ namespace eng
 
 		// Window hints must be set before the window exists
 		SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
+
+#if ENG_DEV_CONSOLE
+		m_console.Init();	// before the window, so the startup log lines reach the scroll-back
+#endif
 
 		InitWindow(width, height, m_app->GetTitle());
 		if (!IsWindowReady())
@@ -82,6 +88,13 @@ namespace eng
 			m_window.screenWidth, m_window.screenHeight, m_window.renderWidth, m_window.renderHeight,
 			IsEditorBuild() ? "ON" : "OFF", IsDevConsoleBuild() ? "ON" : "OFF", m_audio.IsReady() ? "ON" : "OFF");
 
+#if ENG_DEV_CONSOLE
+		RegisterEngineCommands(*this, m_console);	// before the game, which adds its own
+#if ENG_EDITOR
+		RegisterEditorCommands(*this, m_console);
+#endif
+#endif
+
 		m_isAppInitialized = m_app->Init();
 		if (!m_isAppInitialized)
 			Log::Error("Application::Init() failed");
@@ -106,6 +119,10 @@ namespace eng
 			m_window.Refresh();
 			m_inputManager.Poll(); // State polled by the previous EndDrawing()
 
+#if ENG_DEV_CONSOLE
+			m_console.HandleToggle(m_inputManager);	// grave opens / closes in every mode
+#endif
+
 			// Mode changes requested last frame (menus) or by ESC / TAB now take effect before anything updates
 			m_modes.HandleInput(m_inputManager);
 			m_modes.HandleFocus(m_window.isFocused);
@@ -113,6 +130,11 @@ namespace eng
 
 			// 2. Fixed step (physics rate), then variable step. The level runs before the game
 			Level* level = m_app->GetActiveLevel();
+
+			bool isConsoleOpen = false;
+#if ENG_DEV_CONSOLE
+			isConsoleOpen = m_console.IsOpen();	// it owns the keyboard and the mouse: the editor's hotkeys stay quiet
+#endif
 
 			// Only Play simulates: in menus, Paused and the editor the world stays exactly as it was
 			const bool isSimulating = m_modes.IsSimulating();
@@ -130,7 +152,7 @@ namespace eng
 				if (level) level->Update(m_time.GetDeltaTime());
 				m_particles.Update(m_time.GetDeltaTime());
 			}
-			if (m_modes.GetMode() == EngineMode::Editor)
+			if (m_modes.GetMode() == EngineMode::Editor && !isConsoleOpen)
 				m_editor.Update(m_inputManager, m_time.GetUnscaledDeltaTime());
 			m_app->Update(m_time.GetDeltaTime());	// always runs: menu backdrop, editor camera, input
 
@@ -164,6 +186,9 @@ namespace eng
 				m_app->DrawHUD();
 				if (m_modes.GetMode() == EngineMode::Editor)
 					m_editor.DrawPanels();
+#if ENG_DEV_CONSOLE
+				m_console.DrawOverlay();
+#endif
 				m_ui.Draw();	// menus and dialogs on top of everything
 			EndDrawing(); // Swaps buffers and polls input events
 
@@ -200,6 +225,10 @@ namespace eng
 			m_isWindowOpen = false;
 			Log::Info("Engine shut down");
 		}
+
+#if ENG_DEV_CONSOLE
+		m_console.Shutdown();
+#endif
 	}
 
 	void Engine::SetApplication(Application* app)
@@ -285,6 +314,13 @@ namespace eng
 	{
 		return m_ui;
 	}
+
+#if ENG_DEV_CONSOLE
+	DevConsole& Engine::GetConsole()
+	{
+		return m_console;
+	}
+#endif
 
 	Time& Engine::GetTime()
 	{

@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <utility>
+#include <vector>
 #include "editor/EditorCamera.h"
 #include "editor/EditorToolbar.h"
 #include "editor/HierarchyPanel.h"
@@ -10,6 +12,7 @@
 
 namespace eng
 {
+	class Component;
 	class GameActor;
 	class Level;
 	class InputManager;
@@ -52,7 +55,24 @@ namespace eng
 		/// Selection (one actor; never dangles: dropped as soon as the actor is marked or gone)
 		//////////////////////////////////////////
 		void				Select(GameActor* actor);
-		GameActor*			GetSelected() const;
+		GameActor*			GetSelected() const;	// nullptr when the selected actor is gone (level reloaded, deleted)
+
+		/// <summary>
+		/// The level the editor works on: its own while active, otherwise the Application's active level (the
+		/// console's ls / select / pick / info also work in Play).
+		/// </summary>
+		Level*				ResolveLevel() const;
+
+		/// <summary>
+		/// What is under the middle of the screen, seen from the active camera (works in any mode). Ground, Prop
+		/// and Trigger layers only, so the player's own capsule is never picked. nullptr when nothing is hit.
+		/// </summary>
+		GameActor*			PickAtScreenCenter() const;
+
+		/// <summary>
+		/// Editor camera to the selection (F).
+		/// </summary>
+		void				FocusSelected();
 
 		/// <summary>
 		/// Editor panels (raygui, 2D). Call in the HUD pass while the editor is active.
@@ -63,6 +83,7 @@ namespace eng
 		/// Editing commands (hierarchy buttons, hotkeys)
 		//////////////////////////////////////////
 		GameActor*			AddCube();			// dynamic prop 4 m in front of the editor camera
+		GameActor*			AddEmpty();			// bare actor 4 m in front of the editor camera
 		GameActor*			AddTrigger();		// translucent trigger volume 4 m in front of the editor camera
 		void				DeleteSelected();
 
@@ -71,6 +92,18 @@ namespace eng
 		/// facing the way the camera looks.
 		/// </summary>
 		void				SetSpawnHere();
+
+		/// <summary>
+		/// Components by registered type name (what the inspector's fields and Add Component did).
+		/// SetComponentFields: every key must already be written by the component's Serialize(); nothing changes
+		/// when one is unknown. The component is read back through Deserialize(), then OnFieldsChanged().
+		/// RemoveComponent refuses a Collider while a RigidBody / TriggerVolume / CharacterMotor still needs it.
+		/// Failures return false / nullptr and say why in `error`.
+		/// </summary>
+		bool				SetComponentFields(GameActor& actor, const std::string& type,
+												const std::vector<std::pair<std::string, std::string>>& fields, std::string& error);
+		Component*			AddComponent(GameActor& actor, const std::string& type, std::string& error);
+		bool				RemoveComponent(GameActor& actor, const std::string& type, std::string& error);
 
 		/// <summary>
 		/// Copies the selection (with children) next to it and selects the copy. Needs every component registered.
@@ -84,8 +117,11 @@ namespace eng
 		/// and the loaded state becomes the new Reset point.
 		/// </summary>
 		bool				CanSaveLoad() const;
-		void				Save();
-		void				RequestLoad();
+		/// <summary>
+		/// An empty path means the Application's level file; an explicit path is written / read as given.
+		/// </summary>
+		void				Save(const std::string& path = {});
+		void				RequestLoad(const std::string& path = {});
 
 		/// <summary>
 		/// Called on every prop the editor creates (Add Cube): the game adds its own components (none by default).
@@ -118,6 +154,7 @@ namespace eng
 		InspectorPanel	m_inspector;
 		EditorToolbar	m_toolbar;
 		bool			m_isLoadPending	= false;
+		std::string		m_loadPath;					// empty = the Application's level file
 		std::function<void(GameActor&)>	m_propDecorator;
 		int				m_spawnCounter	= 0;
 		bool			m_isActive	= false;
