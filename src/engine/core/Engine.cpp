@@ -122,6 +122,11 @@ namespace eng
 			// 2. Fixed step (physics rate), then variable step. The level runs before the game
 			Level* level = m_app->GetActiveLevel();
 
+			bool isConsoleOpen = false;
+#if ENG_DEV_CONSOLE
+			isConsoleOpen = m_console.IsOpen();	// it owns the keyboard and the mouse: the editor's hotkeys stay quiet
+#endif
+
 			// Only Play simulates: in menus, Paused and the editor the world stays exactly as it was
 			const bool isSimulating = m_modes.IsSimulating();
 			if (isSimulating)
@@ -138,7 +143,7 @@ namespace eng
 				if (level) level->Update(m_time.GetDeltaTime());
 				m_particles.Update(m_time.GetDeltaTime());
 			}
-			if (m_modes.GetMode() == EngineMode::Editor)
+			if (m_modes.GetMode() == EngineMode::Editor && !isConsoleOpen)
 				m_editor.Update(m_inputManager, m_time.GetUnscaledDeltaTime());
 			m_app->Update(m_time.GetDeltaTime());	// always runs: menu backdrop, editor camera, input
 
