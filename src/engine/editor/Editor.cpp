@@ -94,23 +94,20 @@ namespace eng
 		}
 
 		const bool overPanels = EditorUI::IsOverPanels(input.GetMousePosition());
-		if (!IsTyping())
-		{
-			if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
-			if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
-			if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
-			if (input.IsKeyPressed(KEY_D) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
-				DuplicateSelected();
-			if (input.IsKeyPressed(KEY_S) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
-				Save();
-		}
+		if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
+		if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
+		if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
+		if (input.IsKeyPressed(KEY_D) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
+			DuplicateSelected();
+		if (input.IsKeyPressed(KEY_S) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
+			Save();
 
 		const bool gizmoHasMouse = !overPanels && m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
 			input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT), input.IsMouseButtonDown(MOUSE_BUTTON_LEFT), m_selected);
 		if (m_level && !overPanels && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			Select(Picker::Pick(m_camera.GetCamera(), input.GetMousePosition(), *m_level, Engine::GetInstance().GetPhysics()));
 
-		if (m_selected && !IsTyping() && input.IsKeyPressed(KEY_F))
+		if (m_selected && input.IsKeyPressed(KEY_F))
 			FocusSelected();
 	}
 
@@ -312,8 +309,6 @@ namespace eng
 	}
 
 	void Editor::SetPropDecorator(std::function<void(GameActor&)> decorator) { m_propDecorator = std::move(decorator); }
-
-	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText() || m_inspector.IsEditingText(); }
 
 	GameActor* Editor::AddCube()
 	{

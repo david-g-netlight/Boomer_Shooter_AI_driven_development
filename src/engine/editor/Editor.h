@@ -5,8 +5,6 @@
 #include <vector>
 #include "editor/EditorCamera.h"
 #include "editor/EditorToolbar.h"
-#include "editor/HierarchyPanel.h"
-#include "editor/InspectorPanel.h"
 #include "editor/LevelSnapshot.h"
 #include "editor/TransformGizmo.h"
 
@@ -80,7 +78,7 @@ namespace eng
 		void				DrawPanels();
 
 		//////////////////////////////////////////
-		/// Editing commands (hierarchy buttons, hotkeys)
+		/// Editing commands (hotkeys, console)
 		//////////////////////////////////////////
 		GameActor*			AddCube();			// dynamic prop 4 m in front of the editor camera
 		GameActor*			AddEmpty();			// bare actor 4 m in front of the editor camera
@@ -128,11 +126,6 @@ namespace eng
 		/// </summary>
 		void				SetPropDecorator(std::function<void(GameActor&)> decorator);
 
-		/// <summary>
-		/// True while a text box has the keyboard: hotkeys stay quiet.
-		/// </summary>
-		bool				IsTyping() const;
-
 		bool				IsActive() const;
 		EditorCamera&		GetCamera();
 		TransformGizmo&		GetGizmo();
@@ -150,8 +143,6 @@ namespace eng
 		EditorCamera	m_camera;
 		TransformGizmo	m_gizmo;
 		bool			m_physicsDebugWasOn = false;	// restored on Exit()
-		HierarchyPanel	m_hierarchy;
-		InspectorPanel	m_inspector;
 		EditorToolbar	m_toolbar;
 		bool			m_isLoadPending	= false;
 		std::string		m_loadPath;					// empty = the Application's level file

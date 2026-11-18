@@ -79,7 +79,6 @@ namespace eng
 		/// </summary>
 		btCollisionShape*	GetNativeShape();
 
-		void			DrawInspector(InspectorLayout& ui) override;
 		void			Serialize(PropertyBag& out) const override;
 		void			OnFieldsChanged() override;		// the body / ghost on this actor picks up the new shape or filter
 		void			Deserialize(const PropertyBag& in) override;

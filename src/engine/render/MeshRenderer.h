@@ -36,7 +36,6 @@ namespace eng
 		BoundingBox		GetWorldBounds() const;
 
 		void			SubmitRenderables(RenderQueue& queue) const override;
-		void			DrawInspector(InspectorLayout& ui) override;
 		void			Serialize(PropertyBag& out) const override;
 		void			Deserialize(const PropertyBag& in) override;
 		const char*		TypeName() const override { return "MeshRenderer"; }
