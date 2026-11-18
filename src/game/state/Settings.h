@@ -4,7 +4,7 @@
 /// <summary>
 /// The player's options: mouse sensitivity, three volumes and fullscreen. One instance for the game.
 /// Stored as `key=value` lines in the user's application-support folder
-/// (~/Library/Application Support/BuildToScale/settings.cfg on macOS), so it survives updates of the game folder.
+/// (~/Library/Application Support/BoomerShooter/settings.cfg on macOS), so it survives updates of the game folder.
 /// A missing or damaged file gives the defaults.
 /// </summary>
 class Settings

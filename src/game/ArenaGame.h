@@ -19,14 +19,14 @@
 #include "dev/GameCommands.h"
 
 /// <summary>
-/// "Build to Scale": an FPS puzzle game where the gun scales props up and down.
+/// Boomer Shooter (placeholder name): an arena FPS. Owns the level, camera and systems of the game.
 /// The Application layer: wires the engine to the game systems and owns them.
 ///   PlayerState / PlayerInput   the player's numbers and what the player asks for
 ///   GameState / GameplayManager the rules of a run and the level sequence
 ///   ShotFXSpawner / GameUI / GunHUD / MusicManager   what the player sees and hears
 /// Levels are .lvl files (assets/levels); the player is spawned by the game at the level's spawn point.
 /// </summary>
-class ScaleGame : public eng::Application
+class ArenaGame : public eng::Application
 {
 public:
 	bool		Init()							override;
