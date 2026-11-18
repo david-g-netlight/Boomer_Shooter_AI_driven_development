@@ -42,6 +42,10 @@ namespace eng
 		// Window hints must be set before the window exists
 		SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT | FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI);
 
+#if ENG_DEV_CONSOLE
+		m_console.Init();	// before the window, so the startup log lines reach the scroll-back
+#endif
+
 		InitWindow(width, height, m_app->GetTitle());
 		if (!IsWindowReady())
 		{
@@ -200,6 +204,10 @@ namespace eng
 			m_isWindowOpen = false;
 			Log::Info("Engine shut down");
 		}
+
+#if ENG_DEV_CONSOLE
+		m_console.Shutdown();
+#endif
 	}
 
 	void Engine::SetApplication(Application* app)
@@ -285,6 +293,13 @@ namespace eng
 	{
 		return m_ui;
 	}
+
+#if ENG_DEV_CONSOLE
+	DevConsole& Engine::GetConsole()
+	{
+		return m_console;
+	}
+#endif
 
 	Time& Engine::GetTime()
 	{
