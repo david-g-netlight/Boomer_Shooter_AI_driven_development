@@ -17,22 +17,22 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| B0 | Baseline | `bs_baseline` | ⬜ | | | Tag, `ENG_DEV_CONSOLE` flag |
+| B0 | Baseline | `bs_baseline` | 🟡 | 2026-11-18 | | Tag, `ENG_DEV_CONSOLE` flag |
 | B1 | Remove the scaling mechanic | `bs_remove_scaling` | ⬜ | | | `Scalable` out, `ScalingGun` → `Gun` |
 | B2 | Developer console | `bs_dev_console` | ⬜ | | | Before the GUI goes (B‑D4) |
 | B3 | Remove the editor GUI | `bs_remove_editor_gui` | ⬜ | | | Capabilities stay, through the console |
 | B4 | Arena level | `bs_arena_level` | ⬜ | | | 16×6×16 inverted cube, one level |
 | B5 | Rename, docs and release | `bs_rename_release` | ⬜ | | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B0 (waiting for the developer's review of the plan)
-**Branch:** `integration`
+**Current focus:** B0 Baseline
+**Branch:** `bs_baseline`
 
 ---
 
 ## Phase checklists
 
-### Phase B0 — Baseline ⬜
-- [ ] Tag `integration` as `build-to-scale-final`
+### Phase B0 — Baseline 🟡
+- [x] Tag `integration` as `build-to-scale-final` (annotated tag on `2a12cbb`)
 - [ ] Developer decides on the uncommitted `assets/levels/level_01.lvl` playtest edits (commit, or discard; the file is deleted in B4)
 - [ ] CMake: `ENG_DEV_CONSOLE` (Debug 1 / Release 0) + `ENG_DEV_CONSOLE_IN_RELEASE` option; `eng::IsDevConsoleBuild()`; startup log shows `console ON/OFF`
 - [ ] **Done when:** Debug and Release build; the log shows the console flag; the game plays exactly as before
