@@ -141,8 +141,21 @@ namespace eng
 		if (!m_isActive || !m_level)
 			return;
 
-		// A drag started over a panel must not keep the gizmo alive: panels only react to the free cursor
+		DrawStatus();
 		m_toolbar.Draw(*this);
+	}
+
+	void Editor::DrawStatus()
+	{
+		DrawRectangle(0, 0, GetScreenWidth(), static_cast<int>(EditorUI::TOP_BAR_HEIGHT), Fade(DARKBLUE, 0.85f));
+
+		std::string selection = "nothing selected";
+		if (m_selected)
+			selection = "\"" + m_selected->GetName() + "\" #" + std::to_string(m_selected->GetId());
+
+		const std::string line = "EDITOR  -  " + selection
+			+ "  -  W move  R scale  F focus  Del  Ctrl+D  Ctrl+S  -  ` console";
+		DrawText(line.c_str(), 12, 10, EditorUI::TEXT_SIZE, RAYWHITE);
 	}
 
 	std::string Editor::GetLevelPath() const

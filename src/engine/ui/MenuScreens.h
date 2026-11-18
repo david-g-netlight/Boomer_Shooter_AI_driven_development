@@ -54,14 +54,4 @@ namespace eng
 		std::string			m_message;
 		std::vector<Button>	m_buttons;
 	};
-
-	/// <summary>
-	/// Top bar of the editor: the controls at a glance (the panels are drawn by the Editor itself).
-	/// </summary>
-	class EditorBannerScreen : public UIScreen
-	{
-	public:
-		void		Draw() override;
-		const char*	GetName() const override { return "EditorBanner"; }
-	};
 }

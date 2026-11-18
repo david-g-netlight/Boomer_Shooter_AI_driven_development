@@ -134,6 +134,7 @@ namespace eng
 
 	private:
 		void				ValidateSelection();
+		void				DrawStatus();
 		void				LoadNow();
 		std::string			GetLevelPath() const;
 

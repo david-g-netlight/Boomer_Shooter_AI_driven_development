@@ -181,8 +181,8 @@ namespace eng
 		{
 			case EngineMode::MainMenu:	m_modeScreen = ui.Push<MainMenuScreen>();		break;
 			case EngineMode::Paused:	m_modeScreen = ui.Push<PauseMenuScreen>();		break;
-			case EngineMode::Editor:	m_modeScreen = ui.Push<EditorBannerScreen>();	break;	// TODO(Phase 9)
 			case EngineMode::Play:		break;
+			case EngineMode::Editor:	break;		// no screen: the Editor draws its status line itself
 		}
 
 		engine.GetInputManager().SetCursorLocked(mode == EngineMode::Play);
