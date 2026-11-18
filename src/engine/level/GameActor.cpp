@@ -110,6 +110,22 @@ namespace eng
 		return m_components;
 	}
 
+	bool GameActor::RemoveComponent(Component* component)
+	{
+		for (auto it = m_components.begin(); it != m_components.end(); ++it)
+		{
+			if (it->get() != component)
+				continue;
+
+			if (component->IsEnabled())
+				component->OnDisable();
+			component->OnDestroy();
+			m_components.erase(it);
+			return true;
+		}
+		return false;
+	}
+
 	void GameActor::DestroyComponents()
 	{
 		// Reverse creation order, like destructors: later components may depend on earlier ones

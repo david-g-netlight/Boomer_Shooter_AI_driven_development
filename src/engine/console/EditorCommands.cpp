@@ -96,6 +96,21 @@ namespace eng
 			return match;
 		}
 
+		std::vector<std::string> TypePrefix(std::vector<std::string> names, const std::string& prefix)
+		{
+			names.erase(std::remove_if(names.begin(), names.end(), [&](const std::string& n) { return n.compare(0, prefix.size(), prefix) != 0; }), names.end());
+			return names;
+		}
+
+		std::vector<std::string> SelectedComponentTypes(Editor& editor, const std::string& prefix)
+		{
+			std::vector<std::string> names;
+			if (const GameActor* actor = editor.GetSelected())
+				for (const auto& component : actor->GetComponents())
+					names.push_back(component->TypeName());
+			return TypePrefix(names, prefix);
+		}
+
 		std::vector<std::string> ActorNames(Editor& editor, const std::string& prefix)
 		{
 			std::vector<std::string> names;
@@ -443,6 +458,100 @@ namespace eng
 			editor.Save(args.GetString(0));
 			con.Print("saved %s", args.Count() ? args.GetString(0).c_str() : "the level file");
 		});
+
+		//////////////////////////////////////////
+		// Components
+		//////////////////////////////////////////
+		commands.Register("comp_types", "comp_types", "Lists the component types that can be added", [&engine](const ConsoleArgs&, DevConsole& con)
+		{
+			for (const std::string& name : engine.GetComponentRegistry().GetTypeNames())
+				con.Print("  %s", name.c_str());
+		});
+
+		commands.Register("comp_add", "comp_add <Type>", "Adds a component to the selection (a Collider goes before a RigidBody / TriggerVolume)",
+			[&editor](const ConsoleArgs& args, DevConsole& con)
+			{
+				GameActor* actor = RequireSelection(editor, con);
+				if (!actor)
+					return;
+				std::string error;
+				if (args.Count() == 0)
+					con.PrintError("usage: comp_add <Type>");
+				else if (editor.AddComponent(*actor, args.GetString(0), error))
+					con.Print("added %s to '%s'", args.GetString(0).c_str(), actor->GetName().c_str());
+				else
+					con.PrintError("comp_add: %s", error.c_str());
+			},
+			[&engine](int argIndex, const std::string& prefix) { return argIndex == 0 ? TypePrefix(engine.GetComponentRegistry().GetTypeNames(), prefix) : std::vector<std::string>{}; });
+
+		commands.Register("comp_rm", "comp_rm <Type>", "Removes a component from the selection",
+			[&editor](const ConsoleArgs& args, DevConsole& con)
+			{
+				GameActor* actor = RequireSelection(editor, con);
+				if (!actor)
+					return;
+				std::string error;
+				if (args.Count() == 0)
+					con.PrintError("usage: comp_rm <Type>");
+				else if (editor.RemoveComponent(*actor, args.GetString(0), error))
+					con.Print("removed %s from '%s'", args.GetString(0).c_str(), actor->GetName().c_str());
+				else
+					con.PrintError("comp_rm: %s", error.c_str());
+			},
+			[&editor](int argIndex, const std::string& prefix) { return argIndex == 0 ? SelectedComponentTypes(editor, prefix) : std::vector<std::string>{}; });
+
+		commands.Register("get", "get <Component>", "Prints the fields of a component of the selection",
+			[&editor](const ConsoleArgs& args, DevConsole& con)
+			{
+				GameActor* actor = RequireSelection(editor, con);
+				if (!actor)
+					return;
+				for (const auto& component : actor->GetComponents())
+				{
+					if (args.GetString(0) != component->TypeName())
+						continue;
+					PropertyBag bag;
+					component->Serialize(bag);
+					for (const auto& [key, value] : bag.Items())
+						con.Print("  %s = %s", key.c_str(), value.c_str());
+					return;
+				}
+				con.PrintError("'%s' has no component '%s' (usage: get <Component>)", actor->GetName().c_str(), args.GetString(0).c_str());
+			},
+			[&editor](int argIndex, const std::string& prefix) { return argIndex == 0 ? SelectedComponentTypes(editor, prefix) : std::vector<std::string>{}; });
+
+		commands.Register("set", "set <Component> key=value [key=value ...]", "Edits component fields of the selection (see get)",
+			[&editor](const ConsoleArgs& args, DevConsole& con)
+			{
+				GameActor* actor = RequireSelection(editor, con);
+				if (!actor)
+					return;
+				if (args.Count() < 2)
+				{
+					con.PrintError("usage: set <Component> key=value [key=value ...]");
+					return;
+				}
+
+				std::vector<std::pair<std::string, std::string>> fields;
+				for (int i = 1; i < args.Count(); ++i)
+				{
+					const std::string& pair = args.GetString(i);
+					const size_t equals = pair.find('=');
+					if (equals == std::string::npos || equals == 0)
+					{
+						con.PrintError("set: '%s' is not key=value", pair.c_str());
+						return;
+					}
+					fields.emplace_back(pair.substr(0, equals), pair.substr(equals + 1));
+				}
+
+				std::string error;
+				if (editor.SetComponentFields(*actor, args.GetString(0), fields, error))
+					con.Print("set %s on '%s'", args.GetString(0).c_str(), actor->GetName().c_str());
+				else
+					con.PrintError("set: %s", error.c_str());
+			},
+			[&editor](int argIndex, const std::string& prefix) { return argIndex == 0 ? SelectedComponentTypes(editor, prefix) : std::vector<std::string>{}; });
 
 		commands.Register("load", "load [path]", "Loads the level file at the start of the next editor frame", [&editor](const ConsoleArgs& args, DevConsole& con)
 		{

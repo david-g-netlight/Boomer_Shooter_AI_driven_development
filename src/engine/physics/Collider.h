@@ -81,6 +81,7 @@ namespace eng
 
 		void			DrawInspector(InspectorLayout& ui) override;
 		void			Serialize(PropertyBag& out) const override;
+		void			OnFieldsChanged() override;		// the body / ghost on this actor picks up the new shape or filter
 		void			Deserialize(const PropertyBag& in) override;
 		const char*		TypeName() const override { return "Collider"; }
 

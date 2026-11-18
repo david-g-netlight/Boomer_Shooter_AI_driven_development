@@ -275,14 +275,17 @@ namespace eng
 			shapeChanged = true;
 		}
 
-		// The body / ghost picks up a new shape or filter when it is re-created
 		if (shapeChanged)
+			OnFieldsChanged();
+	}
+
+	void Collider::OnFieldsChanged()
+	{
+		// The body / ghost picks up a new shape or filter when it is re-created
+		if (GameActor* owner = GetOwner())
 		{
-			if (GameActor* owner = GetOwner())
-			{
-				if (RigidBody* body = owner->GetComponent<RigidBody>())			{ body->SetEnabled(false); body->SetEnabled(true); }
-				if (TriggerVolume* trigger = owner->GetComponent<TriggerVolume>())	{ trigger->SetEnabled(false); trigger->SetEnabled(true); }
-			}
+			if (RigidBody* body = owner->GetComponent<RigidBody>())			{ body->SetEnabled(false); body->SetEnabled(true); }
+			if (TriggerVolume* trigger = owner->GetComponent<TriggerVolume>())	{ trigger->SetEnabled(false); trigger->SetEnabled(true); }
 		}
 	}
 

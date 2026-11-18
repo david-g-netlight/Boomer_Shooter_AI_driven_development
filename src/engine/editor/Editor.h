@@ -1,6 +1,8 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <utility>
+#include <vector>
 #include "editor/EditorCamera.h"
 #include "editor/EditorToolbar.h"
 #include "editor/HierarchyPanel.h"
@@ -10,6 +12,7 @@
 
 namespace eng
 {
+	class Component;
 	class GameActor;
 	class Level;
 	class InputManager;
@@ -89,6 +92,18 @@ namespace eng
 		/// facing the way the camera looks.
 		/// </summary>
 		void				SetSpawnHere();
+
+		/// <summary>
+		/// Components by registered type name (what the inspector's fields and Add Component did).
+		/// SetComponentFields: every key must already be written by the component's Serialize(); nothing changes
+		/// when one is unknown. The component is read back through Deserialize(), then OnFieldsChanged().
+		/// RemoveComponent refuses a Collider while a RigidBody / TriggerVolume / CharacterMotor still needs it.
+		/// Failures return false / nullptr and say why in `error`.
+		/// </summary>
+		bool				SetComponentFields(GameActor& actor, const std::string& type,
+												const std::vector<std::pair<std::string, std::string>>& fields, std::string& error);
+		Component*			AddComponent(GameActor& actor, const std::string& type, std::string& error);
+		bool				RemoveComponent(GameActor& actor, const std::string& type, std::string& error);
 
 		/// <summary>
 		/// Copies the selection (with children) next to it and selects the copy. Needs every component registered.

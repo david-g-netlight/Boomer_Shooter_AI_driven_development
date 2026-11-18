@@ -1,5 +1,6 @@
 #include "Editor.h"
 #include <cmath>
+#include <cstdlib>
 #include <string>
 #include <raymath.h>
 #include "core/Engine.h"
@@ -11,7 +12,9 @@
 #include "editor/ActorEdit.h"
 #include "editor/EditorUI.h"
 #include "level/LevelSerializer.h"
+#include "level/PropertyBag.h"
 #include "editor/Picker.h"
+#include "physics/CharacterMotor.h"
 #include "physics/Collider.h"
 #include "physics/RigidBody.h"
 #include "physics/TriggerVolume.h"
@@ -196,6 +199,99 @@ namespace eng
 		if (Application* app = Engine::GetInstance().GetApplication())
 			app->OnLevelLoaded();
 		m_snapshot.Capture(*m_level);
+	}
+
+	namespace
+	{
+		Component* FindComponent(GameActor& actor, const std::string& type)
+		{
+			for (const auto& component : actor.GetComponents())
+				if (type == component->TypeName())
+					return component.get();
+			return nullptr;
+		}
+
+		bool IsNumber(const std::string& text)
+		{
+			char* end = nullptr;
+			std::strtof(text.c_str(), &end);
+			return !text.empty() && *end == '\0';
+		}
+	}
+
+	bool Editor::SetComponentFields(GameActor& actor, const std::string& type,
+									const std::vector<std::pair<std::string, std::string>>& fields, std::string& error)
+	{
+		Component* component = FindComponent(actor, type);
+		if (!component)
+		{
+			error = "'" + actor.GetName() + "' has no " + type;
+			return false;
+		}
+
+		PropertyBag bag;
+		component->Serialize(bag);
+
+		// Check everything first so a typo in the second pair doesn't leave the first one applied
+		for (const auto& [key, value] : fields)
+		{
+			if (!bag.Has(key))
+			{
+				error = "unknown field '" + key + "' (fields:";
+				for (const auto& item : bag.Items())
+					error += " " + item.first;
+				error += ")";
+				return false;
+			}
+			if (IsNumber(bag.GetString(key)) && !IsNumber(value))
+			{
+				error = "'" + key + "' expects a number, got '" + value + "'";
+				return false;
+			}
+		}
+
+		for (const auto& [key, value] : fields)
+			bag.SetString(key, value);
+		component->Deserialize(bag);
+		component->OnFieldsChanged();
+		return true;
+	}
+
+	Component* Editor::AddComponent(GameActor& actor, const std::string& type, std::string& error)
+	{
+		ComponentRegistry& registry = Engine::GetInstance().GetComponentRegistry();
+		if (!registry.IsRegistered(type))
+		{
+			error = "unknown component type '" + type + "' (see comp_types)";
+			return nullptr;
+		}
+		if (FindComponent(actor, type))
+		{
+			error = "'" + actor.GetName() + "' already has a " + type;
+			return nullptr;
+		}
+
+		Log::Info("Editor: added %s to '%s'", type.c_str(), actor.GetName().c_str());
+		return registry.Create(type, actor);
+	}
+
+	bool Editor::RemoveComponent(GameActor& actor, const std::string& type, std::string& error)
+	{
+		Component* component = FindComponent(actor, type);
+		if (!component)
+		{
+			error = "'" + actor.GetName() + "' has no " + type;
+			return false;
+		}
+		if (type == "Collider" && (actor.GetComponent<RigidBody>() || actor.GetComponent<TriggerVolume>() || actor.GetComponent<CharacterMotor>()))
+		{
+			error = "Collider is used by a RigidBody / TriggerVolume / CharacterMotor: remove those first";
+			return false;
+		}
+
+		actor.RemoveComponent(component);
+		Log::Info("Editor: removed %s from '%s'", type.c_str(), actor.GetName().c_str());
+		return true;
 	}
 
 	GameActor* Editor::DuplicateSelected()
