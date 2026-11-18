@@ -27,7 +27,6 @@ namespace eng
 
 		void		OnEnable() override;
 		void		OnDisable() override;
-		void			DrawInspector(InspectorLayout& ui) override;
 		const char*	TypeName() const override { return "TriggerVolume"; }
 
 	private:

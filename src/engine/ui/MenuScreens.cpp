@@ -119,13 +119,4 @@ namespace eng
 			break;
 		}
 	}
-
-	//////////////////////////////////////////
-	/// Editor placeholder
-	//////////////////////////////////////////
-	void EditorBannerScreen::Draw()
-	{
-		DrawRectangle(0, 0, GetScreenWidth(), 36, Fade(DARKBLUE, 0.85f));
-		CenteredText("EDITOR  -  RMB + WASD/QE fly  -  LMB select  -  W move / R scale  -  F focus  -  Del delete  -  TAB back to the game", 10.0f, 16, RAYWHITE);
-	}
 }

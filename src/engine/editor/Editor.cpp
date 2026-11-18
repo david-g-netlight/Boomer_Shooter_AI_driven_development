@@ -93,24 +93,21 @@ namespace eng
 			return;
 		}
 
-		const bool overPanels = EditorUI::IsOverPanels(input.GetMousePosition());
-		if (!IsTyping())
-		{
-			if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
-			if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
-			if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
-			if (input.IsKeyPressed(KEY_D) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
-				DuplicateSelected();
-			if (input.IsKeyPressed(KEY_S) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
-				Save();
-		}
+		const bool overToolbar = EditorUI::IsOverToolbar(input.GetMousePosition());
+		if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
+		if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
+		if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
+		if (input.IsKeyPressed(KEY_D) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
+			DuplicateSelected();
+		if (input.IsKeyPressed(KEY_S) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
+			Save();
 
-		const bool gizmoHasMouse = !overPanels && m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
+		const bool gizmoHasMouse = !overToolbar && m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
 			input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT), input.IsMouseButtonDown(MOUSE_BUTTON_LEFT), m_selected);
-		if (m_level && !overPanels && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+		if (m_level && !overToolbar && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			Select(Picker::Pick(m_camera.GetCamera(), input.GetMousePosition(), *m_level, Engine::GetInstance().GetPhysics()));
 
-		if (m_selected && !IsTyping() && input.IsKeyPressed(KEY_F))
+		if (m_selected && input.IsKeyPressed(KEY_F))
 			FocusSelected();
 	}
 
@@ -144,8 +141,21 @@ namespace eng
 		if (!m_isActive || !m_level)
 			return;
 
-		// A drag started over a panel must not keep the gizmo alive: panels only react to the free cursor
+		DrawStatus();
 		m_toolbar.Draw(*this);
+	}
+
+	void Editor::DrawStatus()
+	{
+		DrawRectangle(0, 0, GetScreenWidth(), static_cast<int>(EditorUI::TOP_BAR_HEIGHT), Fade(DARKBLUE, 0.85f));
+
+		std::string selection = "nothing selected";
+		if (m_selected)
+			selection = "\"" + m_selected->GetName() + "\" #" + std::to_string(m_selected->GetId());
+
+		const std::string line = "EDITOR  -  " + selection
+			+ "  -  W move  R scale  F focus  Del  Ctrl+D  Ctrl+S  -  ` console";
+		DrawText(line.c_str(), 12, 10, EditorUI::TEXT_SIZE, RAYWHITE);
 	}
 
 	std::string Editor::GetLevelPath() const
@@ -312,8 +322,6 @@ namespace eng
 	}
 
 	void Editor::SetPropDecorator(std::function<void(GameActor&)> decorator) { m_propDecorator = std::move(decorator); }
-
-	bool Editor::IsTyping() const { return m_hierarchy.IsEditingText() || m_inspector.IsEditingText(); }
 
 	GameActor* Editor::AddCube()
 	{

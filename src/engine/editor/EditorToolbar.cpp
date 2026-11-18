@@ -13,7 +13,7 @@ namespace eng
 		DrawRectangleLinesEx(area, 1.0f, Fade(DARKGRAY, 0.6f));
 
 		constexpr float	GAP		= 6.0f;
-		constexpr int	BUTTONS	= 7;
+		constexpr int	BUTTONS	= 6;
 		const float w = (area.width - GAP * (BUTTONS + 1)) / BUTTONS;
 		auto slot = [&](int i) { return Rectangle{ area.x + GAP + i * (w + GAP), area.y + 4.0f, w, area.height - 8.0f }; };
 
@@ -37,7 +37,6 @@ namespace eng
 
 		GuiSetState(editor.CanSaveLoad() ? STATE_NORMAL : STATE_DISABLED);
 		if (GuiButton(slot(5), "Save"))	editor.Save();
-		if (GuiButton(slot(6), "Load"))	editor.RequestLoad();
 		GuiSetState(STATE_NORMAL);
 	}
 }
