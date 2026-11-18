@@ -71,6 +71,7 @@ private:
 
 	// Main menu backdrop: a slow orbit around the level
 	static constexpr float	ORBIT_SPEED		= 10.0f;	// degrees/s
-	static constexpr float	ORBIT_RADIUS	= 20.0f;
+	static constexpr float	ORBIT_RADIUS	= 6.0f;		// inside the arena (16 m wide)
+	static constexpr float	ORBIT_HEIGHT	= 4.0f;
 	float			m_orbitAngle	= 40.0f;
 };
