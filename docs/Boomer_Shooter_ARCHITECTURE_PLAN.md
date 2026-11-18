@@ -1,7 +1,7 @@
 # Architecture Plan — From "Build to Scale" to a Boomer‑Shooter base
 
 This plan changes the engine and game described in [`ARCHITECTURE_PLAN.md`](ARCHITECTURE_PLAN.md) (all 14 phases
-built, status 2026-11-08). It removes the *Build to Scale* rules and the editor's GUI, and adds an in‑game developer
+built, status 2026-11-08). It removes the *Build to Scale* rules and the editor's hierarchy and inspector panels, and adds an in‑game developer
 console and a placeholder arena. When it is done, the development team has a clean base to build the
 Boomer‑Shooter on.
 
@@ -23,10 +23,10 @@ reads them like this:
 
 | # | Decision | Choice | Why |
 |---|---|---|---|
-| B‑D1 | Editor GUI vs editor capabilities | **Remove every raygui panel, the toolbar, the banner and the gizmo. Keep everything the editor *can do*** (enter/exit, free camera, pick, select, add, duplicate, delete, transform, components and their fields, spawn point, snapshot reset, save, load). These are reached through the **developer console** and a few hotkeys | The console replaces the GUI as the editor's front end. No editing feature is lost |
+| B‑D1 | Editor GUI vs editor capabilities | **Remove the Unity‑style hierarchy tree and component inspector (and the banner). Keep a light editor:** free camera, click‑select, transform gizmo (W move / R scale), a small toolbar (Play · Reset · Move · Scale · Physics · Save, no Load) and a one‑line status. Keep everything the editor *can do* (enter/exit, pick, select, add, duplicate, delete, transform, components and their fields, spawn point, snapshot reset, save, load): component, hierarchy and file work goes through the **developer console** | The editor feels lighter without the tree and the inspector, and the viewport tools (gizmo, click) stay where they are fastest. No editing feature is lost (revised by the developer, B‑D12) |
 | B‑D2 | Console build flag | New compile definition **`ENG_DEV_CONSOLE`** (0/1, same pattern as `ENG_EDITOR`): 1 in Debug, 0 in Release, `-DENG_DEV_CONSOLE_IN_RELEASE=ON` forces 1 | The task asks for a precompile directive so the release build has no console |
 | B‑D3 | Console vs editor flags | They are independent. Editor commands are registered only when `ENG_EDITOR` is 1. Game commands (`restart`, `win`, …) only need `ENG_DEV_CONSOLE` | A debug build can have the console without the editor (e.g. for playtests) |
-| B‑D4 | Order of work | Console **before** removing the editor GUI | No step leaves the developer without a way to edit a level |
+| B‑D4 | Order of work | Console **before** slimming the editor GUI (B‑D12 puts the editor phase after the arena) | No step leaves the developer without a way to edit a level |
 | B‑D5 | Gun | `ScalingGun` becomes a generic **hitscan `Gun`**: cooldown, centre ray, `ShotFiredEvent`. No damage yet: it reports what it hit | "Keep the gun and the shoot interaction". Damage needs enemies, which is the team's next step (§9) |
 | B‑D6 | Shot visuals | Keep the beam as a short **tracer** (one colour) plus the muzzle and impact bursts | They already exist and read well. The stretch/shrink colours go |
 | B‑D7 | Levels | Keep `LevelList`, `GameplayManager`, `NextLevelTrigger` and `LevelProgressedEvent`. The list has **one** entry: the arena. `level_02.lvl` and `level_03.lvl` are deleted | "Only one level, but keep the functionality to add more levels and transitions" |
@@ -34,6 +34,7 @@ reads them like this:
 | B‑D9 | Arena size vs player size | The arena is **16×6×16** (developer decision; the task's first draft said 8×2×8, which a 2 m player could not stand in). The player keeps its current size: 2 m capsule (radius 0.5, cylinder 1.0), eye 1.7 m, 1 m jump. The size is level data, so changing it later is an edit of `arena_01.lvl` | A 6 m ceiling leaves room for the current controller and for jumping enemies |
 | B‑D10 | Game class name | `ScaleGame` → **`ArenaGame`**. Window title, settings folder and package name: **"Boomer Shooter"** / `BoomerShooter` (placeholder until the team names the game) | The old name describes the removed mechanic |
 | B‑D11 | Win / lose triggers | Keep `TriggerZone`, `WinTrigger`, `LoseTrigger`, `NextLevelTrigger` registered. The arena uses none of them | They are generic flow tools that future levels will need. Removing them would remove "transitions" |
+| B‑D12 | Editor phase scope and order | The editor phase **slims** the editor (B‑D1), it does not remove its GUI. It runs **after** the arena (order B3 arena, B4 slim editor, B5 release). Load is console only (`load [path]`): no toolbar button, no Ctrl+L. No Ctrl+R (toolbar Reset and `reset` stay) | Developer review of the first B3 draft: its "Done when" was too aggressive and editor capabilities are still useful; the goal is only to move away from a Unity‑like tree and inspector |
 
 ---
 
@@ -53,7 +54,7 @@ reads them like this:
 | Stretch/shrink sounds, `PlayScaling` | `game/state/SoundFXBank`, `assets/audio/sfx_stretch.wav`, `sfx_shrink.wav` | Bank keeps a `PlayShot()` with the existing ping (placeholder) |
 | The editor's prop decorator use (`Add Cube` adds `Scalable`) | `ArenaGame::RegisterComponents` | `Editor::SetPropDecorator` itself stays (generic) |
 | `level_02.lvl`, `level_03.lvl`; puzzle content of `level_01.lvl` | `assets/levels/` | Replaced by `arena_01.lvl` (B‑D7, B‑D8) |
-| **Editor GUI:** `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, `EditorToolbar`, `EditorUI`, `TransformGizmo`, `EditorBannerScreen` | `engine/editor/`, `engine/ui/MenuScreens` | B‑D1. `Editor::DrawPanels()` goes. A one‑line status text replaces the banner |
+| **Editor GUI (part):** `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, `EditorBannerScreen`, the toolbar's **Load** button | `engine/editor/`, `engine/ui/MenuScreens` | B‑D1. The gizmo, the toolbar and click‑select stay; `EditorUI.h` keeps only the toolbar / status layout. A one‑line status text replaces the banner |
 | `Component::DrawInspector(InspectorLayout&)` and its 6 overrides | `engine/level/Component.h`, `MeshRenderer`, `Collider`, `RigidBody`, `TriggerVolume`, `CharacterMotor`, (`Scalable`) | Fields are edited through `PropertyBag` instead (§5.4) |
 | "Build to Scale" names | `ScaleGame`, title, `Settings` path, `tools/package_release.sh`, README, `assets/README.md` | B‑D10 |
 
@@ -69,7 +70,8 @@ reads them like this:
   `SettingsScreen`, `MusicManager`, main and pause menus.
 - **Level flow:** `GameState` (Idle / Playing / Won / Lost), `GameplayManager`, `LevelList`, triggers, `GameContext`.
 - **Editor capabilities** (B‑D1): `Editor` (enter/exit, selection, add/duplicate/delete, spawn, save/load),
-  `EditorCamera`, `Picker`, `ActorEdit`, `LevelSnapshot`, selection highlight, Bullet wireframes, grid.
+  `EditorCamera`, `Picker` (click‑select), `ActorEdit`, `LevelSnapshot`, `TransformGizmo` (W / R),
+  `EditorToolbar` (without Load), selection highlight, Bullet wireframes, grid.
 
 ### 1.3 Add
 
@@ -110,9 +112,9 @@ Only the parts that change are shown. `-` removed, `+` added, `~` changed.
     │   ├── resources/              ~ + Primitive::CubeInverted
     │   ├── modes/ModeMachine       ~ console open: TAB / ESC belong to the console; no EditorBannerScreen
     │   ├── ui/MenuScreens          ~ - EditorBannerScreen
-    │   └── editor/                 ~ keeps Editor, EditorCamera, Picker, ActorEdit, LevelSnapshot
-    │                               - HierarchyPanel, InspectorPanel, InspectorLayout, EditorToolbar, EditorUI,
-    │                               - TransformGizmo
+    │   └── editor/                 ~ keeps Editor, EditorCamera, Picker, ActorEdit, LevelSnapshot, TransformGizmo,
+    │                               ~   EditorToolbar (no Load), EditorUI (toolbar + status layout only)
+    │                               - HierarchyPanel, InspectorPanel, InspectorLayout
     └── game/
         ├── ArenaGame.h/.cpp        ~ was ScaleGame
         ├── dev/GameCommands.cpp    + (whole file inside #if ENG_DEV_CONSOLE)
@@ -156,10 +158,10 @@ Only the parts that change are shown. `-` removed, `+` added, `~` changed.
 |   Input · Resources (+ cube_inverted) · Render · Level · Physics · Audio · FX · UI    |
 |                                                                                     |
 |   +-------------------------------------+   +-----------------------------------+   |
-|   | Editor (ENG_EDITOR=1)  NO GUI        |   | DevConsole (ENG_DEV_CONSOLE=1)    |   |
+|   | Editor (ENG_EDITOR=1)  NO PANELS     |   | DevConsole (ENG_DEV_CONSOLE=1)    |   |
 |   | EditorCamera · Picker · ActorEdit ·  |<--| ConsoleScreen (UIStack overlay)   |   |
-|   | LevelSnapshot · selection · hotkeys  |   | ConsoleCommands · ConVar · Log    |   |
-|   | status line                          |   | sink · EngineCommands ·           |   |
+|   | LevelSnapshot · gizmo · toolbar ·    |   | ConsoleCommands · ConVar · Log    |   |
+|   | selection · hotkeys · status line    |   | sink · EngineCommands ·           |   |
 |   +-------------------------------------+   | EditorCommands (ENG_EDITOR=1)     |   |
 |                                             +-----------------------------------+   |
 +=====================================================================================+
@@ -177,7 +179,7 @@ except inside `#if ENG_DEV_CONSOLE` blocks (§5.6).
 Engine
   ├─ ... (unchanged subsystems)
   ├─ Editor          (by value, always compiled; only reachable with ENG_EDITOR=1)
-  │                    owns EditorCamera, LevelSnapshot           (- TransformGizmo, - panels, - toolbar)
+  │                    owns EditorCamera, LevelSnapshot, TransformGizmo, EditorToolbar   (- hierarchy, - inspector)
   └─ DevConsole      (by value, only when ENG_DEV_CONSOLE=1)
                        owns the command table, the ConVar table, the scroll-back, the input history
                        NON-owning: the ConsoleScreen on the UIStack (the UIStack owns it while open)
@@ -211,7 +213,7 @@ The four modes stay. The console is **not** a mode. It is an overlay screen on t
                   ^        │ TAB (editor builds)
                   │ TAB    v
                  +------------+
-                 |   Editor   |   frozen, free camera, NO panels: status line + console commands + hotkeys
+                 |   Editor   |   frozen, free camera, gizmo, toolbar, status line; NO tree / inspector (console instead)
                  +------------+
 
    ` (grave)  in ANY mode ──> ConsoleScreen pushed on the UIStack   (ENG_DEV_CONSOLE builds)
@@ -224,7 +226,7 @@ The four modes stay. The console is **not** a mode. It is an overlay screen on t
 | MainMenu | The **Editor** button stays (editor builds). No other change |
 | Play | Console may be open on top. While it is open the `PlayerInput` control gate is off |
 | Paused | No change |
-| Editor | No panels, no toolbar, no banner, no gizmo. The `Editor` draws one status line (mode, selection, hotkeys) with `DrawText`. Hotkeys that stay: LMB pick, RMB+WASD/QE fly, F focus, Del delete, Ctrl+D duplicate, Ctrl+S save, Ctrl+L load, Ctrl+R reset, F3 wireframes |
+| Editor | No hierarchy, no inspector, no banner. Kept: the gizmo, the toolbar (Play · Reset · Move · Scale · Physics · Save; no Load) and click‑select. The `Editor` draws one status line (mode, selection, hotkeys) with `DrawText`. Hotkeys: LMB pick / gizmo drag, RMB+WASD/QE fly, W move, R scale, F focus, Del delete, Ctrl+D duplicate, Ctrl+S save, F3 wireframes. Load is console only (`load`) |
 
 `ModeMachine::IsSimulating()` becomes `mode == Play && !(console open && con_pause)`. The fixed‑step accumulator
 already advances only while simulating, so nothing builds up while the console is open.
@@ -243,12 +245,12 @@ Engine::Run()
 │  ├─ 3. SIMULATE      isSimulating = Play && !(console open && con_pause)
 │  │                   level.FixedUpdate -> FirstPersonController (walk, jump), Gun (cooldown, shot)
 │  │                   ...
-│  │                   if EDITOR: editor.Update()        fly, pick, hotkeys, pending load   (no gizmo, no panels)
+│  │                   if EDITOR: editor.Update()        fly, gizmo, pick, hotkeys, pending load   (no tree / inspector)
 │  │                   app->Update()
 │  │                   ui.Update()                        ConsoleScreen: text input, history, autocomplete,
 │  │                                                      runs the submitted line -> DevConsole::Execute
 │  ├─ 5. RENDER        ... app->DrawViewModel(); app->DrawHUD()
-│  │                   if EDITOR: editor.DrawStatus()     one text line   (was editor.DrawPanels())
+│  │                   if EDITOR: editor.DrawPanels()     toolbar only;  editor.DrawStatus()  one text line (was the banner)
 │  │                   ui.Draw()                          menus, dialogs, ConsoleScreen on top
 │  └─ 6. FRAME END     events.Dispatch()  ShotFiredEvent / GameWon / GameLost / NextLevelRequested ...
 ```
@@ -297,7 +299,8 @@ register commands by name. **The whole feature is compiled out in release builds
 ### 5.4 Editor capabilities as commands (`ENG_EDITOR` builds)
 
 Everything the panels did, one command each. The selection is the editor's selection (one actor), set by click,
-by `pick` (screen centre, works in Play too) or by name / id.
+by `pick` (screen centre, works in Play too) or by name / id. The gizmo and the toolbar stay (B‑D1), so transform,
+Play, Reset and Save work both ways; the tree, the inspector and Load are console only.
 
 | Old GUI | Command | Notes |
 |---|---|---|
@@ -427,9 +430,11 @@ The player keeps today's size: a 2.0 m capsule (radius 0.5, cylinder 1.0), eye a
 | Class | Status | Notes |
 |---|---|---|
 | `DevConsole`, `ConsoleCommands`, `ConsoleArgs`, `ConVar`, `ConsoleScreen` | **new** (`ENG_DEV_CONSOLE`) | §5.2 |
-| `Editor` | changed | − `DrawPanels`, gizmo, panels, toolbar; + `DrawStatus`, `PickCenter`, `SetComponentField`, `AddComponent`, `RemoveComponent`, `Rename`, `SetParent`, `Ctrl+L / Ctrl+R` hotkeys |
-| `EditorCamera`, `Picker`, `ActorEdit`, `LevelSnapshot` | kept | |
-| `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, `EditorToolbar`, `EditorUI`, `TransformGizmo` | **removed** | B‑D1 |
+| `Editor` | changed | − hierarchy and inspector members; `DrawPanels` draws the toolbar only; + `DrawStatus`, `PickCenter`, `SetComponentField`, `AddComponent`, `RemoveComponent`, `Rename`, `SetParent` |
+| `EditorCamera`, `Picker`, `ActorEdit`, `LevelSnapshot`, `TransformGizmo` | kept | |
+| `EditorToolbar` | changed | − Load button (B‑D12) |
+| `EditorUI` | changed | Toolbar + status layout only; `IsOverPanels` → `IsOverToolbar` |
+| `HierarchyPanel`, `InspectorPanel`, `InspectorLayout` | **removed** | B‑D1 |
 | `EditorBannerScreen` | **removed** | Replaced by `Editor::DrawStatus` |
 | `Component` | changed | − `DrawInspector`; + `OnFieldsChanged` |
 | `MeshRenderer`, `Collider`, `RigidBody`, `TriggerVolume`, `CharacterMotor` | changed | − `DrawInspector`; + `OnFieldsChanged` (rebuild code moved from the inspector) |
@@ -478,7 +483,7 @@ Events defined by the game after the change: `GameStartedEvent`, `GameWonEvent`,
 | ESC | Pause / Resume (closes a dialog or the console) |
 | `` ` `` (grave) | Developer console (`ENG_DEV_CONSOLE` builds) |
 | TAB | Editor (editor builds); autocomplete while the console is open |
-| Editor: LMB · RMB+WASD/QE · F · Del · Ctrl+D · Ctrl+S · Ctrl+L · Ctrl+R | Pick · fly · focus · delete · duplicate · save · load · reset |
+| Editor: LMB · RMB+WASD/QE · W / R · F · Del · Ctrl+D · Ctrl+S | Pick / gizmo drag · fly · gizmo move / scale · focus · delete · duplicate · save (load: console `load`) |
 | F2 / F3 | Grid / Bullet wireframes (also `grid`, `phys_debug`) |
 
 ---
@@ -516,21 +521,26 @@ Phases are numbered **B0–B5** so they never mix with phases 0–13.
 
 **Done when:** in a Debug build the grave key opens the console in every mode; `help` lists the commands; `pick`, `scale 2`, `set RigidBody mass=5`, `comp_add TriggerVolume`, `save`, `load` change the level and survive a reload; `restart`, `win`, `tp 0 0 0` work; ESC closes the console without pausing; the Release binary has no console strings and the grave key does nothing.
 
-### Phase B3 — Remove the editor GUI (`bs_remove_editor_gui`)
-- Delete `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, `EditorToolbar`, `EditorUI`, `TransformGizmo`, `EditorBannerScreen`, `Editor::DrawPanels` and the `eng.h` includes.
-- Remove `Component::DrawInspector` and the overrides (their rebuild code already lives in `OnFieldsChanged` since B2).
-- `Editor::DrawStatus` (one line: `EDITOR · selected "Crate A" #12 · Ctrl+S save · `` ` `` console`), the new hotkeys (Ctrl+L, Ctrl+R), selection highlight kept.
-- README / plan: editor section rewritten around the console.
-
-**Done when:** TAB enters the editor with no panel, toolbar, banner or gizmo; every row of §5.4 works from the console; click‑pick, F, Del, Ctrl+D, Ctrl+S, Ctrl+L, Ctrl+R work; `grep -rn "raygui\|Gui[A-Z]" src/engine/editor` finds nothing.
-
-### Phase B4 — Arena level (`bs_arena_level`)
+### Phase B3 — Arena level (`bs_arena_level`)
 - `Primitive::CubeInverted` (`mesh=cube_inverted`).
 - `assets/levels/arena_01.lvl` (§6.2); `LevelList` with one entry; delete `level_01–03.lvl`.
 - Player size stays the same (§6.3); menu orbit around the arena.
 - Level transitions still testable: `level_load` of a second throw‑away file, `NextLevelTrigger` added from the console (no file committed).
 
 **Done when:** Start spawns the player inside a 16×6×16 room whose inner faces are lit and visible; the player walks, jumps without hitting the ceiling, cannot leave the room, and the gun's tracer stops on walls, floor and ceiling; the editor shows the six slabs as wireframes; `level_next` with one level shows the last‑level dialog.
+
+### Phase B4 — Slim the editor (`bs_slim_editor`)
+B‑D1 / B‑D12: the editor stays (TAB, free camera, click‑select, gizmo, toolbar); only the Unity‑style tree and
+inspector go. The hierarchy and inspector are already not drawn (`Editor::DrawPanels` draws only the toolbar), so
+most of this phase deletes dead code.
+- Delete `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, the `Editor` members that own them and their `eng.h` includes.
+- Remove `Component::DrawInspector` and the overrides in `MeshRenderer`, `Collider`, `RigidBody`, `TriggerVolume`, `CharacterMotor` (their rebuild code already lives in `OnFieldsChanged` since B2).
+- `EditorToolbar` without the **Load** button (Play · Reset · Move · Scale · Physics · Save); `EditorUI.h` trimmed to the toolbar and status layout (`IsOverPanels` → `IsOverToolbar`).
+- Delete `EditorBannerScreen`; `ModeMachine` pushes no screen for Editor. `Editor::DrawStatus` draws one line instead: `EDITOR · "Crate A" #12 · W move  R scale  F focus  Del  Ctrl+D  Ctrl+S · `` ` `` console` (`nothing selected` when empty).
+- Gizmo (W / R), click‑select, selection highlight and the existing hotkeys stay unchanged. Load stays reachable through the console `load [path]` only.
+- README / plan: editor section rewritten around the light editor + console.
+
+**Done when:** TAB enters the editor showing only the toolbar (no Load button), the status line and the gizmo, with no hierarchy or inspector; click‑select, gizmo move / scale (W / R), F, Del, Ctrl+D and Ctrl+S work and the status line names the selection; from the console `select` → `info` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` still round‑trips; `grep -rn "HierarchyPanel\|InspectorPanel\|InspectorLayout\|DrawInspector" src` finds nothing; Debug and Release build clean.
 
 ### Phase B5 — Rename, docs and release (`bs_rename_release`)
 - `ScaleGame` → `ArenaGame`; title, `Settings` folder, `tools/package_release.sh` (`dist/BoomerShooter/`), README, `assets/README.md`.
@@ -564,7 +574,7 @@ Not part of this plan. Listed so the base is shaped for it.
 | # | Risk | Mitigation |
 |---|---|---|
 | R1 | **Arena height vs player size** (the first 8×2×8 draft could not fit the 2 m player) | Resolved: the arena is 16×6×16 and the player keeps its size (B‑D9, §6.3). Revisit only if the room gets lower than ~3.5 m |
-| R2 | Removing `DrawInspector` loses the rebuild logic for colliders and bodies | Moved to `OnFieldsChanged` in B2, while the inspector still exists, so both paths can be compared before B3 deletes the GUI |
+| R2 | Removing `DrawInspector` loses the rebuild logic for colliders and bodies | Moved to `OnFieldsChanged` in B2, while the inspector still exists, so both paths can be compared before B4 deletes the inspector |
 | R3 | Console text input fights other input (WASD moves the player, TAB toggles the editor, ESC pauses) | The console owns the keyboard while open: `PlayerInput` gate off, `ModeMachine` ignores TAB / ESC, editor hotkeys quiet (`Editor::IsTyping` already exists) |
 | R4 | Console code leaks into release (a call site without `#if`) | Headers are guarded too, so a stray use fails to compile in Release; the `strings` check in B2 and B5 |
 | R5 | Commands that clear the level from inside `ui.Update` | Rule 10: commands make requests only |
@@ -572,7 +582,7 @@ Not part of this plan. Listed so the base is shaped for it.
 | R7 | Fast player against thin walls: tunnelling through slabs at high speed | Slabs are 0.5 m thick, player CCD is on; the vertical speed clamp stays |
 | R8 | Old `.lvl` files with `component Scalable` | The loader warns and skips unknown components; B1 strips them anyway |
 | R9 | Settings folder rename loses saved settings | Acceptable (new game); noted in the README |
-| R10 | Losing editor features while the GUI goes | B‑D4 order + the §5.4 table is the B3 checklist |
+| R10 | Losing editor features while the tree and inspector go | B‑D4 order (console first, validated in B2); B4 keeps the gizmo, the toolbar and click‑select, and its Done when re‑runs a console round trip |
 
 Open from the previous plan and **still open**: editor Reset cannot bring back a deleted actor (`LevelSnapshot`);
 mesh colliders are not saved in level files; audio assets are placeholders; the binary is unsigned.
