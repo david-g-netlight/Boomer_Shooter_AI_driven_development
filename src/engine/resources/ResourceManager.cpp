@@ -1,5 +1,52 @@
 #include "ResourceManager.h"
+#include <algorithm>
+#include <rlgl.h>
 #include "core/Log.h"
+
+namespace
+{
+	/// Swaps vertices a and b of an attribute array with `stride` floats per vertex.
+	void SwapVertices(float* data, int stride, int a, int b)
+	{
+		if (!data)
+			return;
+
+		for (int k = 0; k < stride; ++k)
+			std::swap(data[a * stride + k], data[b * stride + k]);
+	}
+
+	/// The cube seen from inside: every triangle's winding is reversed and every normal negated.
+	/// GenMeshCube has already uploaded the outward faces, so the GPU buffers are overwritten with the flipped data.
+	::Mesh MakeInvertedCube()
+	{
+		::Mesh mesh = GenMeshCube(1.0f, 1.0f, 1.0f);
+
+		for (int t = 0; t < mesh.triangleCount; ++t)
+		{
+			if (mesh.indices)
+			{
+				std::swap(mesh.indices[t * 3 + 1], mesh.indices[t * 3 + 2]);
+			}
+			else
+			{
+				SwapVertices(mesh.vertices, 3, t * 3 + 1, t * 3 + 2);
+				SwapVertices(mesh.texcoords, 2, t * 3 + 1, t * 3 + 2);
+				SwapVertices(mesh.normals, 3, t * 3 + 1, t * 3 + 2);
+			}
+		}
+
+		for (int i = 0; i < mesh.vertexCount * 3; ++i)
+			mesh.normals[i] = -mesh.normals[i];
+
+		rlUpdateVertexBuffer(mesh.vboId[0], mesh.vertices, mesh.vertexCount * 3 * sizeof(float), 0);
+		rlUpdateVertexBuffer(mesh.vboId[1], mesh.texcoords, mesh.vertexCount * 2 * sizeof(float), 0);
+		rlUpdateVertexBuffer(mesh.vboId[2], mesh.normals, mesh.vertexCount * 3 * sizeof(float), 0);
+		if (mesh.indices)
+			rlUpdateVertexBufferElements(mesh.vboId[6], mesh.indices, mesh.triangleCount * 3 * sizeof(unsigned short), 0);
+
+		return mesh;
+	}
+}
 
 namespace eng
 {
@@ -118,6 +165,7 @@ namespace eng
 			switch (primitive)
 			{
 				case Primitive::Cube:		m_primitives[index] = GenMeshCube(1.0f, 1.0f, 1.0f);	break;
+				case Primitive::CubeInverted:	m_primitives[index] = MakeInvertedCube();			break;
 				case Primitive::Plane:		m_primitives[index] = GenMeshPlane(1.0f, 1.0f, 1, 1);	break;
 				case Primitive::Sphere:		m_primitives[index] = GenMeshSphere(0.5f, 16, 24);		break;
 				case Primitive::Cylinder:	m_primitives[index] = GenMeshCylinder(0.5f, 1.0f, 24);	break;

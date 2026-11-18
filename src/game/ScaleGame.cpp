@@ -174,8 +174,8 @@ void ScaleGame::UpdateMenuCamera(float deltaTime)
 
 	m_orbitAngle += ORBIT_SPEED * deltaTime;
 	const float angle = m_orbitAngle * DEG2RAD;
-	m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, 10.0f, std::cos(angle) * ORBIT_RADIUS });
-	m_camera.LookAt({ 0.0f, 1.0f, -1.0f });
+	m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, ORBIT_HEIGHT, std::cos(angle) * ORBIT_RADIUS });
+	m_camera.LookAt({ 0.0f, 1.0f, 0.0f });
 }
 
 void ScaleGame::DrawViewModel()

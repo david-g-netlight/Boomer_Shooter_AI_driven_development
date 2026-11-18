@@ -12,7 +12,7 @@ public:
 	explicit LevelList(std::vector<std::string> paths);
 
 	/// <summary>
-	/// level_01 .. level_03 in assets/levels (authored in Phase 12).
+	/// The arena (assets/levels/arena_01.lvl), the only level for now.
 	/// </summary>
 	static LevelList Default();
 
