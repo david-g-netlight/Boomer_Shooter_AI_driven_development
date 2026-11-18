@@ -6,8 +6,8 @@ class PlayerInput;
 
 /// <summary>
 /// The game's dialogs (Unity GUIManager). Listens to the GameState events:
-///   GameWon  -> "Level Complete" with Next Level (or Play Again after the last one) and Main Menu
-///   GameLost -> "You fell!" with Retry and Main Menu
+///   GameWon  -> "Arena cleared" with Next Level (only when the LevelList has one, else Play Again) and Main Menu
+///   GameLost -> "You died" with Retry and Main Menu
 /// While a dialog is up the player has no control (PlayerInput::SetControl(false)) and the cursor is free; the
 /// next GameStarted gives control back. Buttons only send requests to the GameplayManager / ModeMachine.
 /// </summary>
@@ -20,8 +20,8 @@ public:
 	void	Shutdown();
 
 private:
-	void	ShowWon(int level);
-	void	ShowLost(int level);
+	void	ShowWon();
+	void	ShowLost();
 
 	PlayerInput*			m_input		= nullptr;
 	GameplayManager*		m_gameplay	= nullptr;
