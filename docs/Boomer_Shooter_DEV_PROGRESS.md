@@ -19,13 +19,13 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 |---|---|---|---|---|---|---|
 | B0 | Baseline | `bs_baseline` | ✅ | 2026-11-18 | 2026-11-18 | Tag, `ENG_DEV_CONSOLE` flag |
 | B1 | Remove the scaling mechanic | `bs_remove_scaling` | ✅ | 2026-11-18 | 2026-11-18 | `Scalable` out, `ScalingGun` → `Gun` |
-| B2 | Developer console | `bs_dev_console` | ⬜ | | | Before the GUI goes (B‑D4) |
+| B2 | Developer console | `bs_dev_console` | 🟡 | 2026-11-18 | | Before the GUI goes (B‑D4) |
 | B3 | Remove the editor GUI | `bs_remove_editor_gui` | ⬜ | | | Capabilities stay, through the console |
 | B4 | Arena level | `bs_arena_level` | ⬜ | | | 16×6×16 inverted cube, one level |
 | B5 | Rename, docs and release | `bs_rename_release` | ⬜ | | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B2 Developer console (waiting for the developer's go)
-**Branch:** `integration`
+**Current focus:** B2 Developer console (waiting for the developer's test)
+**Branch:** `bs_dev_console`
 
 ---
 
@@ -49,15 +49,15 @@ Confirmed:
 - [x] `GunView` without the factor light; `GunHUD` = crosshair (red on a hit actor in reach) + cooldown ring (+ muzzle tip uses the shot colour; README controls: LMB fires, RMB / wheel gone (the intro text is rewritten in B5))
 - [x] **Done when:** LMB fires tracer + muzzle + impact + sound; RMB and wheel do nothing; crosshair turns red on a crate; no scaling code left in `src/game`; levels load without warnings
 
-### Phase B2 — Developer console ⬜
-- [ ] `DevConsole` (owned by `Engine`), `ConsoleCommands` (register / unregister tokens, completion), `ConsoleArgs`, `ConVar`; `Log` sink into the scroll‑back
-- [ ] `ConsoleScreen` on the `UIStack`: grave toggle, input line, scroll‑back, history ↑/↓, TAB autocomplete; cursor free while open
-- [ ] `ModeMachine`: TAB / ESC belong to the console while open; `IsSimulating` honours `con_pause`; `PlayerInput` gated
-- [ ] Engine commands: `help`, `clear`, `echo`, `quit`, `mode`, `timescale`, `con_pause`, `phys_debug`, `grid`, `fps`, `exec`
-- [ ] Editor commands (selection and actors): `editor`, `play`, `ls`, `select`, `pick`, `deselect`, `info`, `rename`, `pos`, `move`, `rot`, `scale`, `active`, `parent`, `add`, `dup`, `del`, `focus`, `spawn_here`, `spawn`, `reset`, `save`, `load`
-- [ ] `Component::OnFieldsChanged` (rebuild code shared with the inspector), `Editor::SetComponentField / AddComponent / RemoveComponent`; commands `set`, `get`, `comp_add`, `comp_rm`, `comp_types`
-- [ ] Game commands in `game/dev/GameCommands.cpp`: `restart`, `level_list`, `level_load`, `level_next`, `win`, `lose`, `tp`, `tp_spawn`, `god`, `gun_cooldown`, `gun_reach`, `sens` (`noclip` optional); unregistered in `Destroy`
-- [ ] Compile‑out check: every console `.cpp`/`.h` guarded; Release `strings` check finds no command names
+### Phase B2 — Developer console 🟡
+- [x] `DevConsole` (owned by `Engine`), `ConsoleCommands` (register / unregister tokens, completion), `ConsoleArgs`, `ConVar`; `Log` sink into the scroll‑back (+ `Log::SetSink` is the hook for the scroll-back; cvars register as commands (`RegisterVar`); the sink skips Debug lines)
+- [x] `ConsoleScreen` on the `UIStack`: grave toggle, input line, scroll‑back, history ↑/↓, TAB autocomplete; cursor free while open (+ the screen re-pushes itself on top when a mode change pushes its own screen (`KeepOnTop`); the typed line and the scroll survive that)
+- [x] `ModeMachine`: TAB / ESC belong to the console while open; `IsSimulating` honours `con_pause`; `PlayerInput` gated (+ `ModeMachine::AcceptsGameInput()` = Play and no console: `PlayerInput` reads it; `IsSimulating()` honours `con_pause`; editor hotkeys are quiet while the console is open)
+- [x] Engine commands: `help`, `clear`, `echo`, `quit`, `mode`, `timescale`, `con_pause`, `phys_debug`, `grid`, `fps`, `exec` (+ `phys_debug`, `grid`, `fps` toggle with no argument; `timescale` is a command that clamps to 0–4; `con_pause` is a real cvar; `exec` searches `name`, `name.cfg`, `assets/dev/name[.cfg]`, nesting ≤ 8)
+- [x] Editor commands (selection and actors): `editor`, `play`, `ls`, `select`, `pick`, `deselect`, `info`, `rename`, `pos`, `move`, `rot`, `scale`, `active`, `parent`, `add`, `dup`, `del`, `focus`, `spawn_here`, `spawn`, `reset`, `save`, `load` (+ `ls` / `select` / `pick` / `info` work in any mode, the rest need the editor; `pick` ignores the player layer; `save [path]` / `load [path]`; `Reset` no longer redraws the panels)
+- [x] `Component::OnFieldsChanged` (rebuild code shared with the inspector), `Editor::SetComponentField / AddComponent / RemoveComponent`; commands `set`, `get`, `comp_add`, `comp_rm`, `comp_types` (+ `set` takes several `key=value` pairs and checks them all before applying; only keys the component serializes can be set, so `RigidBody lockRotation` and `MeshRenderer visible` are now always written; the API is `SetComponentFields`; `GameActor::RemoveComponent` is new; `comp_rm Collider` is refused while a body / trigger / motor needs it; `comp_add` refuses a second component of a type)
+- [x] Game commands in `game/dev/GameCommands.cpp`: `restart`, `level_list`, `level_load`, `level_next`, `win`, `lose`, `tp`, `tp_spawn`, `god`, `gun_cooldown`, `gun_reach`, `sens` (`noclip` optional); unregistered in `Destroy` (+ `GameCommands` class registered in `ScaleGame::Init`; `noclip` left out (optional); `level_next` on the last level only prints a message: the last-level dialog is B4's check; `god` is `PlayerState::GetGodFlag()`)
+- [x] Compile‑out check: every console `.cpp`/`.h` guarded; Release `strings` check finds no command names (+ `tools/check_release_console.sh`: Release has no command names, release-dev has them; clean Release build from scratch, no warnings)
 - [ ] **Done when:** grave opens the console in every mode; `help` lists everything; `pick` → `scale 2` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` round‑trips; `restart`, `win`, `tp 0 0 0` work; ESC closes the console without pausing; Release has no console
 
 ### Phase B3 — Remove the editor GUI ⬜
@@ -120,9 +120,9 @@ Decisions taken while writing the plan (see plan §0 for the reasons).
 | Issue | Phase | Status | Notes |
 |---|---|---|---|
 | R1 — arena height vs player size | B4 | resolved | 16×6×16 (B‑D9) |
-| R2 — rebuild logic lost with `DrawInspector` | B2 / B3 | open | Moved to `OnFieldsChanged` in B2, before B3 |
-| R3 — console input vs game / mode / editor keys | B2 | open | Console owns the keyboard while open |
-| R4 — console code in release | B2 / B5 | open | Guarded headers + `strings` check |
+| R2 — rebuild logic lost with `DrawInspector` | B2 / B3 | resolved in B2 | `Collider::OnFieldsChanged`; the other setters apply in `Deserialize`; `DrawInspector` goes in B3 |
+| R3 — console input vs game / mode / editor keys | B2 | resolved in B2 | Console owns the keyboard while open; waiting for the developer's playtest |
+| R4 — console code in release | B2 / B5 | B2 checked | Guarded headers + `tools/check_release_console.sh`; the package check is B5 |
 | Editor Reset can't restore a deleted actor | carried over | open | From the *Build to Scale* plan |
 | Placeholder audio, unsigned binary | carried over | open | |
 
@@ -134,6 +134,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B2 | All 8 B2 tasks committed on `bs_dev_console`; Debug, Release (from scratch) and release-dev build without warnings; the Release binary has no console strings; smoke run loads `level_01` with 0 warnings. Interactive checks (typing, the `pick` → `save` → `load` round trip) not done by me | Developer runs the B2 **Done when** check | — |
 | 2026-11-18 | B1 | Developer validated B1 (pass); merged into `integration`, branch renamed `done/bs_remove_scaling` | Start B2 on `bs_dev_console` when the developer says so | — |
 | 2026-11-18 | B1 | All 6 B1 tasks committed on `bs_remove_scaling` (Scalable out, PlayerState / PlayerInput trimmed, `Gun` + `ShotFiredEvent`, `ShotFXSpawner` / `Tracer`, `PlayShot`, HUD and gun view); clean Debug and Release builds without warnings; smoke run loads `level_01` with 0 warnings. The puzzle levels can't be won any more (no scaling); replaced in B4 | Developer runs the B1 **Done when** check | — |
 | 2026-11-18 | B0 | Developer validated B0 (release-dev build: `editor ON | console ON`); README build-flags section added; merged into `integration`, branch renamed `done/bs_baseline` | Start B1 on `bs_remove_scaling` | — |
