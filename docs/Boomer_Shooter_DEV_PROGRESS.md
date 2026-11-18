@@ -18,7 +18,7 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
 | B0 | Baseline | `bs_baseline` | ✅ | 2026-11-18 | 2026-11-18 | Tag, `ENG_DEV_CONSOLE` flag |
-| B1 | Remove the scaling mechanic | `bs_remove_scaling` | ⬜ | | | `Scalable` out, `ScalingGun` → `Gun` |
+| B1 | Remove the scaling mechanic | `bs_remove_scaling` | 🟡 | 2026-11-18 | | `Scalable` out, `ScalingGun` → `Gun` |
 | B2 | Developer console | `bs_dev_console` | ⬜ | | | Before the GUI goes (B‑D4) |
 | B3 | Remove the editor GUI | `bs_remove_editor_gui` | ⬜ | | | Capabilities stay, through the console |
 | B4 | Arena level | `bs_arena_level` | ⬜ | | | 16×6×16 inverted cube, one level |
@@ -40,8 +40,8 @@ Confirmed:
 - Ran `cmake -S . -B build/release-dev -DCMAKE_BUILD_TYPE=Release -DENG_EDITOR_IN_RELEASE=ON -DENG_DEV_CONSOLE_IN_RELEASE=ON` `cmake --build build/release-dev -j`, `./build/release-dev/my_app`
 - `INFO: ENG: Raylib Engine 0.0.1 | screen 1280 x 720 | render 1280 x 720 | editor ON | console ON | audio ON`
 
-### Phase B1 — Remove the scaling mechanic ⬜
-- [ ] Delete `game/props/Scalable`, its registration and the editor prop decorator; strip `component Scalable` from the `.lvl` files
+### Phase B1 — Remove the scaling mechanic 🟡
+- [x] Delete `game/props/Scalable`, its registration and the editor prop decorator; strip `component Scalable` from the `.lvl` files (+ the gun's crosshair check now means 'any actor on layer Prop' until the `Gun` task; the puzzle levels can no longer be won, they are replaced in B4)
 - [ ] `PlayerState` without scale factors / `ChangeFactor` / `ScaleFactorChangedEvent`; `PlayerInput` without `AltFire`, `Scroll` and the fire sign
 - [ ] `ScalingGun` → `Gun` (`ShotFiredEvent`, `GetAimHit`); cooldown and reach become shooter defaults (0.25 s, 100 m)
 - [ ] `RayBeamSpawner` → `ShotFXSpawner`, `RayBeam` → `Tracer` (one colour, 80 m/s), `MuzzleFX` one tint

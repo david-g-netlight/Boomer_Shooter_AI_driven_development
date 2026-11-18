@@ -38,12 +38,9 @@ void ScaleGame::RegisterComponents()
 {
 	// Level files and the editor's Add Component create these by name
 	eng::ComponentRegistry& registry = eng::Engine::GetInstance().GetComponentRegistry();
-	registry.Register<Scalable>("Scalable");
 	registry.Register<WinTrigger>("WinTrigger");
 	registry.Register<LoseTrigger>("LoseTrigger");
 	registry.Register<NextLevelTrigger>("NextLevelTrigger");
-
-	eng::Engine::GetInstance().GetEditor().SetPropDecorator([](eng::GameActor& prop) { prop.AddComponent<Scalable>(); });
 }
 
 void ScaleGame::BindInput()

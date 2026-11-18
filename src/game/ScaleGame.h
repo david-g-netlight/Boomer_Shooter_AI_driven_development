@@ -6,7 +6,6 @@
 #include "player/PlayerInput.h"
 #include "player/PlayerActor.h"
 #include "player/ScalingGun.h"
-#include "props/Scalable.h"
 #include "fx/RayBeamSpawner.h"
 #include "flow/GameContext.h"
 #include "flow/GameplayManager.h"

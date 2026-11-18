@@ -88,7 +88,7 @@ namespace eng
 		void				RequestLoad();
 
 		/// <summary>
-		/// Called on every prop the editor creates (Add Cube): the game adds its own components, e.g. Scalable.
+		/// Called on every prop the editor creates (Add Cube): the game adds its own components (none by default).
 		/// </summary>
 		void				SetPropDecorator(std::function<void(GameActor&)> decorator);
 
