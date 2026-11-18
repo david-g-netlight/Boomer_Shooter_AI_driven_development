@@ -17,15 +17,16 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
+| 2026-11-18 | B2 | Developer validated B2 (pass); merged into `integration`, branch renamed `done/bs_dev_console` | Start B3 on `bs_remove_editor_gui` | — |
 | B0 | Baseline | `bs_baseline` | ✅ | 2026-11-18 | 2026-11-18 | Tag, `ENG_DEV_CONSOLE` flag |
 | B1 | Remove the scaling mechanic | `bs_remove_scaling` | ✅ | 2026-11-18 | 2026-11-18 | `Scalable` out, `ScalingGun` → `Gun` |
-| B2 | Developer console | `bs_dev_console` | 🟡 | 2026-11-18 | | Before the GUI goes (B‑D4) |
+| B2 | Developer console | `bs_dev_console` | ✅ | 2026-11-18 | 2026-11-18 | Before the GUI goes (B‑D4) |
 | B3 | Remove the editor GUI | `bs_remove_editor_gui` | ⬜ | | | Capabilities stay, through the console |
 | B4 | Arena level | `bs_arena_level` | ⬜ | | | 16×6×16 inverted cube, one level |
 | B5 | Rename, docs and release | `bs_rename_release` | ⬜ | | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B2 Developer console (waiting for the developer's test)
-**Branch:** `bs_dev_console`
+**Current focus:** B3 Remove the editor GUI
+**Branch:** `bs_remove_editor_gui`
 
 ---
 
@@ -49,7 +50,7 @@ Confirmed:
 - [x] `GunView` without the factor light; `GunHUD` = crosshair (red on a hit actor in reach) + cooldown ring (+ muzzle tip uses the shot colour; README controls: LMB fires, RMB / wheel gone (the intro text is rewritten in B5))
 - [x] **Done when:** LMB fires tracer + muzzle + impact + sound; RMB and wheel do nothing; crosshair turns red on a crate; no scaling code left in `src/game`; levels load without warnings
 
-### Phase B2 — Developer console 🟡
+### Phase B2 — Developer console ✅
 - [x] `DevConsole` (owned by `Engine`), `ConsoleCommands` (register / unregister tokens, completion), `ConsoleArgs`, `ConVar`; `Log` sink into the scroll‑back (+ `Log::SetSink` is the hook for the scroll-back; cvars register as commands (`RegisterVar`); the sink skips Debug lines)
 - [x] `ConsoleScreen` on the `UIStack`: grave toggle, input line, scroll‑back, history ↑/↓, TAB autocomplete; cursor free while open (+ the screen re-pushes itself on top when a mode change pushes its own screen (`KeepOnTop`); the typed line and the scroll survive that)
 - [x] `ModeMachine`: TAB / ESC belong to the console while open; `IsSimulating` honours `con_pause`; `PlayerInput` gated (+ `ModeMachine::AcceptsGameInput()` = Play and no console: `PlayerInput` reads it; `IsSimulating()` honours `con_pause`; editor hotkeys are quiet while the console is open)
@@ -58,7 +59,7 @@ Confirmed:
 - [x] `Component::OnFieldsChanged` (rebuild code shared with the inspector), `Editor::SetComponentField / AddComponent / RemoveComponent`; commands `set`, `get`, `comp_add`, `comp_rm`, `comp_types` (+ `set` takes several `key=value` pairs and checks them all before applying; only keys the component serializes can be set, so `RigidBody lockRotation` and `MeshRenderer visible` are now always written; the API is `SetComponentFields`; `GameActor::RemoveComponent` is new; `comp_rm Collider` is refused while a body / trigger / motor needs it; `comp_add` refuses a second component of a type)
 - [x] Game commands in `game/dev/GameCommands.cpp`: `restart`, `level_list`, `level_load`, `level_next`, `win`, `lose`, `tp`, `tp_spawn`, `god`, `gun_cooldown`, `gun_reach`, `sens` (`noclip` optional); unregistered in `Destroy` (+ `GameCommands` class registered in `ScaleGame::Init`; `noclip` left out (optional); `level_next` on the last level only prints a message: the last-level dialog is B4's check; `god` is `PlayerState::GetGodFlag()`)
 - [x] Compile‑out check: every console `.cpp`/`.h` guarded; Release `strings` check finds no command names (+ `tools/check_release_console.sh`: Release has no command names, release-dev has them; clean Release build from scratch, no warnings)
-- [ ] **Done when:** grave opens the console in every mode; `help` lists everything; `pick` → `scale 2` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` round‑trips; `restart`, `win`, `tp 0 0 0` work; ESC closes the console without pausing; Release has no console
+- [x] **Done when:** grave opens the console in every mode; `help` lists everything; `pick` → `scale 2` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` round‑trips; `restart`, `win`, `tp 0 0 0` work; ESC closes the console without pausing; Release has no console
 
 ### Phase B3 — Remove the editor GUI ⬜
 - [ ] Delete `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, `EditorToolbar`, `EditorUI`, `TransformGizmo`, `Editor::DrawPanels`, their `eng.h` includes
@@ -121,7 +122,7 @@ Decisions taken while writing the plan (see plan §0 for the reasons).
 |---|---|---|---|
 | R1 — arena height vs player size | B4 | resolved | 16×6×16 (B‑D9) |
 | R2 — rebuild logic lost with `DrawInspector` | B2 / B3 | resolved in B2 | `Collider::OnFieldsChanged`; the other setters apply in `Deserialize`; `DrawInspector` goes in B3 |
-| R3 — console input vs game / mode / editor keys | B2 | resolved in B2 | Console owns the keyboard while open; waiting for the developer's playtest |
+| R3 — console input vs game / mode / editor keys | B2 | resolved | Console owns the keyboard while open; validated by the developer |
 | R4 — console code in release | B2 / B5 | B2 checked | Guarded headers + `tools/check_release_console.sh`; the package check is B5 |
 | Editor Reset can't restore a deleted actor | carried over | open | From the *Build to Scale* plan |
 | Placeholder audio, unsigned binary | carried over | open | |
