@@ -21,11 +21,11 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 | B1 | Remove the scaling mechanic | `bs_remove_scaling` | ✅ | 2026-11-18 | 2026-11-18 | `Scalable` out, `ScalingGun` → `Gun` |
 | B2 | Developer console | `bs_dev_console` | ✅ | 2026-11-18 | 2026-11-18 | Before the GUI goes (B‑D4) |
 | B3 | Arena level | `done/bs_arena_level` | ✅ | 2026-11-18 | 2026-11-18 | 16×6×16 inverted cube, one level |
-| B4 | Slim the editor | `bs_slim_editor` | 🟡 | 2026-11-18 | | | Tree + inspector out; gizmo, click, toolbar (no Load) stay (B‑D12) |
-| B5 | Rename, docs and release | `bs_rename_release` | ⬜ | | | `ArenaGame`, "Boomer Shooter" |
+| B4 | Slim the editor | `done/bs_slim_editor` | ✅ | 2026-11-18 | 2026-11-18 | | Tree + inspector out; gizmo, click, toolbar (no Load) stay (B‑D12) |
+| B5 | Rename, docs and release | `bs_rename_release` | 🟡 | 2026-11-18 | | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B4 Slim the editor
-**Branch:** `bs_slim_editor`
+**Current focus:** B5 Rename, docs and release
+**Branch:** `bs_rename_release`
 
 ---
 
@@ -67,15 +67,15 @@ Confirmed:
 - [x] Menu orbit inside the arena (radius 6, height 4) (+ `ORBIT_RADIUS` 6, `ORBIT_HEIGHT` 4, looks at (0, 1, 0))
 - [x] **Done when:** Start spawns the player in a lit 16×6×16 room seen from inside; walk and jump without touching the ceiling; can't leave the room; tracers stop on every face; editor shows six slab wireframes; `level_next` with one level shows the last‑level dialog
 
-### Phase B4 — Slim the editor 🟡
+### Phase B4 — Slim the editor ✅
 - [x] Delete `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, the `Editor` members that own them, their `eng.h` includes (+ done in one commit with the next line: the component overrides need `InspectorLayout`, and the panels are its only caller; `Editor::IsTyping()` went with the panels' text boxes, so the hotkeys no longer check it; the hierarchy's Add / Delete buttons are gone, the console has `add` / `dup` / `del`)
 - [x] Remove `Component::DrawInspector` and the overrides in `MeshRenderer`, `Collider`, `RigidBody`, `TriggerVolume`, `CharacterMotor` (+ done with the line above; the now-unused `<cstdio>` includes went too)
 - [x] `EditorToolbar` without the Load button; `EditorUI.h` trimmed to the toolbar / status layout (`IsOverToolbar`) (+ `ToolbarRect` spans the window under the status line; `IsOverToolbar` also covers the status line; Load is console `load [path]`)
 - [x] Delete `EditorBannerScreen` (`ModeMachine` pushes no screen for Editor); `Editor::DrawStatus` one line with the selection name / id and the hotkeys (+ `Editor::DrawStatus` draws `EDITOR  -  "name" #id  -  W move  R scale  F focus  Del  Ctrl+D  Ctrl+S  -  ` console`, ASCII separators because raylib's default font has no `·`)
 - [x] README editor section rewritten around the light editor (gizmo, click, toolbar) + console (+ README editor section rewritten, Ctrl+S names `arena_01.lvl`)
-- [ ] **Done when:** TAB → editor with only the toolbar (no Load), the status line and the gizmo, no hierarchy / inspector; click‑select, W / R gizmo, F, Del, Ctrl+D, Ctrl+S work and the status line names the selection; console `select` → `info` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` round‑trips; `grep -rn "HierarchyPanel\|InspectorPanel\|InspectorLayout\|DrawInspector" src` finds nothing; Debug and Release build clean
+- [x] **Done when:** TAB → editor with only the toolbar (no Load), the status line and the gizmo, no hierarchy / inspector; click‑select, W / R gizmo, F, Del, Ctrl+D, Ctrl+S work and the status line names the selection; console `select` → `info` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` round‑trips; `grep -rn "HierarchyPanel\|InspectorPanel\|InspectorLayout\|DrawInspector" src` finds nothing; Debug and Release build clean
 
-### Phase B5 — Rename, docs and release ⬜
+### Phase B5 — Rename, docs and release 🟡
 - [ ] `ScaleGame` → `ArenaGame`; title "Boomer Shooter"; `Settings` folder `BoomerShooter`
 - [ ] `GameUI` placeholder texts ("Arena cleared" / "You died"); Next Level only when `LevelList::HasNext`
 - [ ] `tools/package_release.sh` → `dist/BoomerShooter/`; README and `assets/README.md`; `ARCHITECTURE_PLAN.md` header points to the new plan
@@ -135,6 +135,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B4 | Developer validated B4 (Done when pass); merged into `integration`, branch renamed `done/bs_slim_editor` | Start B5 on `bs_rename_release` | — |
 | 2026-11-18 | B4 | All 5 B4 tasks committed on `bs_slim_editor`: hierarchy and inspector deleted with `DrawInspector` (one commit, they depend on each other), toolbar without Load, `EditorBannerScreen` gone with a one-line status (`Editor::DrawStatus`), README editor section. Clean from-scratch Debug and Release builds of HEAD: no warnings; the grep finds nothing; Debug smoke run loads `arena_01.lvl` with 0 warnings. The editor round trip (`select` → `info` → `set` → `comp_add` → `save` → `load`) and the TAB / gizmo checks are not run by me | Developer runs the B4 **Done when** check | — |
 | 2026-11-18 | B3 | Developer validated B3 (Done when pass); `Log.h` typo fixed by the developer; merged into `integration`, branch renamed `done/bs_arena_level` | Start B4 on `bs_slim_editor` | — |
 | 2026-11-18 | B3 | Four B3 checkboxes done on `bs_arena_level`: three commits (`CubeInverted`, `arena_01.lvl` + `LevelList` + `level_01–03.lvl` deleted, menu orbit in the arena) and the player-size check (no change needed). A clean copy of HEAD with these changes builds Debug with no errors or warnings; the app starts with no warnings. The level load and the room are not exercised yet (they need Start in the game). The working tree has a typo in `src/engine/core/Log.h` (`{1.` in `enum class LogLevel`) that stops the build; left untouched | Developer fixes `Log.h`, runs the B3 **Done when** check (Start, walk, jump, tracers on the faces, `level_next` shows the last-level dialog) | `Log.h` typo blocks building the working tree |
