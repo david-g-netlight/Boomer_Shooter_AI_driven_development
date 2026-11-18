@@ -22,10 +22,10 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 | B2 | Developer console | `bs_dev_console` | ✅ | 2026-11-18 | 2026-11-18 | Before the GUI goes (B‑D4) |
 | B3 | Arena level | `done/bs_arena_level` | ✅ | 2026-11-18 | 2026-11-18 | 16×6×16 inverted cube, one level |
 | B4 | Slim the editor | `done/bs_slim_editor` | ✅ | 2026-11-18 | 2026-11-18 | | Tree + inspector out; gizmo, click, toolbar (no Load) stay (B‑D12) |
-| B5 | Rename, docs and release | `bs_rename_release` | 🟡 | 2026-11-18 | | | `ArenaGame`, "Boomer Shooter" |
+| B5 | Rename, docs and release | `done/bs_rename_release` | ✅ | 2026-11-18 | 2026-11-18 | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B5 Rename, docs and release
-**Branch:** `bs_rename_release`
+**Current focus:** none, B0–B5 done
+**Branch:** `integration`
 
 ---
 
@@ -75,12 +75,12 @@ Confirmed:
 - [x] README editor section rewritten around the light editor (gizmo, click, toolbar) + console (+ README editor section rewritten, Ctrl+S names `arena_01.lvl`)
 - [x] **Done when:** TAB → editor with only the toolbar (no Load), the status line and the gizmo, no hierarchy / inspector; click‑select, W / R gizmo, F, Del, Ctrl+D, Ctrl+S work and the status line names the selection; console `select` → `info` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` round‑trips; `grep -rn "HierarchyPanel\|InspectorPanel\|InspectorLayout\|DrawInspector" src` finds nothing; Debug and Release build clean
 
-### Phase B5 — Rename, docs and release 🟡
+### Phase B5 — Rename, docs and release ✅
 - [x] `ScaleGame` → `ArenaGame`; title "Boomer Shooter"; `Settings` folder `BoomerShooter` (+ `ScaleGame.h/.cpp` → `ArenaGame.h/.cpp` (`git mv`); window title "Boomer Shooter"; settings in `~/Library/Application Support/BoomerShooter/` (a `BuildToScale` folder from older builds is not migrated))
 - [x] `GameUI` placeholder texts ("Arena cleared" / "You died"); Next Level only when `LevelList::HasNext` (+ dialogs "Arena cleared" (Next Level only when `HasNext`, else Play Again) and "You died" (Retry); the placeholder texts say so)
 - [x] `tools/package_release.sh` → `dist/BoomerShooter/`; README and `assets/README.md`; `ARCHITECTURE_PLAN.md` header points to the new plan (+ `tools/package_release.sh` writes `dist/BoomerShooter/` and `BoomerShooter-macos.zip`; README rewritten for the Boomer Shooter and its paths; `assets/README.md` names `arena_01.lvl`; the old plan's header links to the new one)
 - [x] Release package checked: no console, no editor, starts from another folder; Debug has both (+ release package: `check_release_console.sh` OK, starts from `/private/tmp`, log `editor OFF | console OFF`, loads the arena with 0 warnings; Debug log `editor ON | console ON`. The scripted Start → `win` dialog run is not done yet)
-- [ ] **Done when:** the release package plays the arena with no console or editor; a Debug build has both
+- [x] **Done when:** the release package plays the arena with no console or editor; a Debug build has both
 
 ---
 
@@ -135,6 +135,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B5 | Developer validated B5 (Done when pass: package plays the arena, no console or editor; Debug has both); merged into `integration`, branch renamed `done/bs_rename_release` | Wait for the next task | — |
 | 2026-11-18 | B5 | All B5 tasks except the Done-when committed on `bs_rename_release`: `ArenaGame` (files too), title "Boomer Shooter", `BoomerShooter` settings folder, placeholder dialogs, packaging to `dist/BoomerShooter/`, READMEs. Release package: console and editor OFF, runs from another folder, arena loads. Debug: editor ON, console ON. Not run by me: the scripted Start → arena → `win` dialog in Debug | Developer runs the B5 **Done when** check (package starts, plays the arena, no console or editor; Debug has both), then the phase is merged | — |
 | 2026-11-18 | B4 | Developer validated B4 (Done when pass); merged into `integration`, branch renamed `done/bs_slim_editor` | Start B5 on `bs_rename_release` | — |
 | 2026-11-18 | B4 | All 5 B4 tasks committed on `bs_slim_editor`: hierarchy and inspector deleted with `DrawInspector` (one commit, they depend on each other), toolbar without Load, `EditorBannerScreen` gone with a one-line status (`Editor::DrawStatus`), README editor section. Clean from-scratch Debug and Release builds of HEAD: no warnings; the grep finds nothing; Debug smoke run loads `arena_01.lvl` with 0 warnings. The editor round trip (`select` → `info` → `set` → `comp_add` → `save` → `load`) and the TAB / gizmo checks are not run by me | Developer runs the B4 **Done when** check | — |
