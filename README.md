@@ -65,15 +65,15 @@ Debug builds include a level editor (`ENG_EDITOR=1`); release builds do not.
 | **W** / **R** | Gizmo: move / scale |
 | **F** | Focus the camera on the selection |
 | **Delete**, **Ctrl/Cmd + D** | Delete, duplicate the selection |
-| **Ctrl/Cmd + S** | Save the level (`assets/levels/level_0N.lvl`, also copied into the source tree) |
+| **Ctrl/Cmd + S** | Save the level (`assets/levels/arena_01.lvl`, also copied into the source tree) |
 | **F2** / **F3** | Debug grid / Bullet wireframes (while playing) |
 
-The panels: *Hierarchy* (add cube / trigger, delete, duplicate, rename, set the spawn at the camera), *Inspector*
-(transform and component fields, **Add Component** from the registry: `WinTrigger`, `LoseTrigger`,
-`NextLevelTrigger`, ...) and the toolbar (Play, Reset to the state at entry, gizmo mode, Physics view, Save, Load).
+The status line at the top shows the selection (name and id) and the hotkeys. The toolbar under it has Play,
+Reset to the state at entry, the gizmo mode, Physics view and Save. There are no tree or inspector panels: the
+selection and its components are edited from the console (`select`, `info`, `set`, `comp_add`, `comp_rm`, ...)
+and Load is the console's `load [path]`.
 
 A level is a text file; see `src/engine/level/LevelSerializer.h` for the format.
-The first three levels are drafts meant to be tuned in the editor.
 
 ## Build and run
 
