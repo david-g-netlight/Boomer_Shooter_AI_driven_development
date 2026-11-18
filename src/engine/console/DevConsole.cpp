@@ -6,6 +6,7 @@
 #include "input/InputManager.h"
 #include <cstdarg>
 #include <cstdio>
+#include <raylib.h>
 
 namespace eng
 {
@@ -86,6 +87,14 @@ namespace eng
 	{
 		if (m_screen == screen)
 			m_screen = nullptr;
+	}
+
+	void DevConsole::DrawOverlay() const
+	{
+		if (!m_showFps)
+			return;
+		const char* text = TextFormat("%d FPS  %.2f ms", GetFPS(), GetFrameTime() * 1000.0f);
+		DrawText(text, GetScreenWidth() - MeasureText(text, 18) - 12, GetScreenHeight() - 28, 18, { 120, 255, 120, 255 });
 	}
 
 	void DevConsole::OnLog(LogLevel level, const char* message)

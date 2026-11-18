@@ -9,6 +9,7 @@
 #include "physics/CharacterMotor.h"
 #include "render/MeshRenderer.h"
 #include "ui/UIStyle.h"
+#include "console/EngineCommands.h"
 #include <raylib.h>
 
 namespace eng
@@ -85,6 +86,10 @@ namespace eng
 			GetEngineName(), GetEngineVersion(),
 			m_window.screenWidth, m_window.screenHeight, m_window.renderWidth, m_window.renderHeight,
 			IsEditorBuild() ? "ON" : "OFF", IsDevConsoleBuild() ? "ON" : "OFF", m_audio.IsReady() ? "ON" : "OFF");
+
+#if ENG_DEV_CONSOLE
+		RegisterEngineCommands(*this, m_console);	// before the game, which adds its own
+#endif
 
 		m_isAppInitialized = m_app->Init();
 		if (!m_isAppInitialized)
@@ -177,6 +182,9 @@ namespace eng
 				m_app->DrawHUD();
 				if (m_modes.GetMode() == EngineMode::Editor)
 					m_editor.DrawPanels();
+#if ENG_DEV_CONSOLE
+				m_console.DrawOverlay();
+#endif
 				m_ui.Draw();	// menus and dialogs on top of everything
 			EndDrawing(); // Swaps buffers and polls input events
 

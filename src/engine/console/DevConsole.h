@@ -56,6 +56,10 @@ namespace eng
 		bool	IsPausingSimulation() const { return IsOpen() && m_pauseWhileOpen; }
 		bool*	GetPauseWhileOpenVar() { return &m_pauseWhileOpen; }
 
+		/// <summary>FPS / frame-time line, drawn every frame even with the console closed (command fps)</summary>
+		bool&	GetShowFps()	{ return m_showFps; }
+		void	DrawOverlay() const;
+
 		std::string&	GetInput()		{ return m_input; }	// the line being typed, kept while the screen is re-pushed
 		int&			GetScroll()		{ return m_scroll; }	// lines scrolled back from the newest
 
@@ -95,6 +99,7 @@ namespace eng
 		bool					m_installed		= false;
 		ConsoleScreen*			m_screen		= nullptr;	// non-owning: the UIStack owns it while open
 		bool					m_pauseWhileOpen = true;
+		bool					m_showFps		= false;
 		std::string				m_input;
 		int						m_scroll		= 0;
 	};
