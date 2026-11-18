@@ -5,16 +5,16 @@ struct ShotFiredEvent;
 
 /// <summary>
 /// Turns every ShotFiredEvent into what the player sees and hears (Unity RayBeamProvider): the muzzle burst,
-/// a RayBeam actor from the muzzle to the hit point, the impact burst where it hit, and the beam sound.
+/// a Tracer actor from the muzzle to the hit point, the impact burst where it hit, and the shot sound.
 /// Subscribes to the EventBus in Init(); the shot is delivered at the end of the frame it was fired in.
 /// </summary>
-class RayBeamSpawner
+class ShotFXSpawner
 {
 public:
-	~RayBeamSpawner();
+	~ShotFXSpawner();
 
 	/// <summary>
-	/// Beams are created in `level` (which must outlive the spawner, or Shutdown() first).
+	/// Tracers are created in `level` (which must outlive the spawner, or Shutdown() first).
 	/// </summary>
 	void	Init(eng::Level* level);
 	void	Shutdown();

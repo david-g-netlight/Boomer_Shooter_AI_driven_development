@@ -6,7 +6,7 @@
 #include "player/PlayerInput.h"
 #include "player/PlayerActor.h"
 #include "player/Gun.h"
-#include "fx/RayBeamSpawner.h"
+#include "fx/ShotFXSpawner.h"
 #include "flow/GameContext.h"
 #include "flow/GameplayManager.h"
 #include "flow/TriggerZone.h"
@@ -22,7 +22,7 @@
 /// The Application layer: wires the engine to the game systems and owns them.
 ///   PlayerState / PlayerInput   the player's numbers and what the player asks for
 ///   GameState / GameplayManager the rules of a run and the level sequence
-///   RayBeamSpawner / GameUI / GunHUD / MusicManager   what the player sees and hears
+///   ShotFXSpawner / GameUI / GunHUD / MusicManager   what the player sees and hears
 /// Levels are .lvl files (assets/levels); the player is spawned by the game at the level's spawn point.
 /// </summary>
 class ScaleGame : public eng::Application
@@ -59,7 +59,7 @@ private:
 	PlayerInput		m_input;
 	GameState		m_gameState;
 	GameplayManager	m_gameplay;
-	RayBeamSpawner	m_beams;
+	ShotFXSpawner	m_shotFX;
 	GameUI			m_gameUI;
 	GunHUD			m_gunHUD;
 	GunView			m_gunView;

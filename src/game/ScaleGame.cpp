@@ -26,7 +26,7 @@ bool ScaleGame::Init()
 
 	m_gameplay.Init(m_gameState, m_playerState, LevelList::Default(), [this](const std::string& path) { return LoadLevelFile(path); });
 	m_gameplay.LoadNow(0);			// the menu's backdrop
-	m_beams.Init(&m_level);			// every gun shot: muzzle burst, beam, impact, sound
+	m_shotFX.Init(&m_level);		// every gun shot: muzzle burst, tracer, impact, sound
 	m_gameUI.Init(m_input, m_gameplay);
 	m_gunView.Init(m_playerState);
 
@@ -57,7 +57,7 @@ void ScaleGame::Destroy()
 	// Actors first: their bodies leave the physics world before it shuts down
 	m_gunView.Shutdown();
 	m_gameUI.Shutdown();
-	m_beams.Shutdown();
+	m_shotFX.Shutdown();
 	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
 	m_player.Reset();
