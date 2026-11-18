@@ -1,6 +1,6 @@
 #include "GunHUD.h"
 #include <algorithm>
-#include "player/ScalingGun.h"
+#include "player/Gun.h"
 #include "state/PlayerState.h"
 
 void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) const
@@ -10,9 +10,9 @@ void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) cons
 	const int cx		= width / 2;
 	const int cy		= height / 2;
 
-	const ScalingGun* gun		= player ? player->GetComponent<ScalingGun>() : nullptr;
+	const Gun* gun				= player ? player->GetComponent<Gun>() : nullptr;
 	const bool isCoolingDown	= !state.IsReadyToShoot();
-	const bool onScalable		= gun && gun->IsAimingAtScalable();
+	const bool onScalable		= gun && gun->GetAimHit().isTarget;
 
 	// Crosshair
 	Color color = onScalable ? Color{ 90, 255, 140, 255 } : RAYWHITE;

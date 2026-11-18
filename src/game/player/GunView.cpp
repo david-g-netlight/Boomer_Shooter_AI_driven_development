@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <rlgl.h>
-#include "player/ScalingGun.h"
+#include "player/Gun.h"
 #include "state/PlayerState.h"
 
 namespace
@@ -27,11 +27,10 @@ void GunView::Init(const PlayerState& state)
 	m_camera.SetYawPitch(0.0f, 0.0f);
 	m_camera.SetPerspective({ 50.0f, 0.02f, 10.0f });
 
-	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<ScalingShotEvent>([this](const ScalingShotEvent& shot)
+	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& /*shot*/)
 	{
 		m_kick = 1.0f;
 		m_flash = 1.0f;
-		m_sign = shot.sign;
 	});
 }
 

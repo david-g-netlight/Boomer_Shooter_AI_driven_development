@@ -2,7 +2,7 @@
 #include <raymath.h>
 #include "fx/MuzzleFX.h"
 #include "fx/RayBeam.h"
-#include "player/ScalingGun.h"
+#include "player/Gun.h"
 #include "state/SoundFXBank.h"
 
 RayBeamSpawner::~RayBeamSpawner()
@@ -14,7 +14,7 @@ void RayBeamSpawner::Init(eng::Level* level)
 {
 	Shutdown();
 	m_level	= level;
-	m_token	= eng::Engine::GetInstance().GetEvents().Subscribe<ScalingShotEvent>([this](const ScalingShotEvent& shot) { Spawn(shot); });
+	m_token	= eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& shot) { Spawn(shot); });
 }
 
 void RayBeamSpawner::Shutdown()
@@ -25,20 +25,20 @@ void RayBeamSpawner::Shutdown()
 	m_level = nullptr;
 }
 
-void RayBeamSpawner::Spawn(const ScalingShotEvent& shot)
+void RayBeamSpawner::Spawn(const ShotFiredEvent& shot)
 {
 	if (!m_level)
 		return;
 
 	const Vector3 direction = Vector3Normalize(Vector3Subtract(shot.point, shot.muzzle));
-	MuzzleFX::Burst(shot.sign, shot.muzzle, direction);
+	MuzzleFX::Burst(1.0f, shot.muzzle, direction);
 
 	eng::GameActor* beam = m_level->CreateGameActor("RayBeam");
 	beam->AddComponent<eng::LineRenderer>();
-	beam->AddComponent<RayBeam>()->Launch(shot.sign, shot.muzzle, shot.point);
+	beam->AddComponent<RayBeam>()->Launch(1.0f, shot.muzzle, shot.point);
 
 	if (shot.hasHit)
-		RayBeam::EmitImpact(shot.sign, shot.point, shot.normal);
+		RayBeam::EmitImpact(1.0f, shot.point, shot.normal);
 
-	SoundFXBank::Instance().Play(Sfx::Beam, 0.3f, shot.sign > 0.0f ? 1.0f : 0.8f);
+	SoundFXBank::Instance().Play(Sfx::Beam, 0.3f, 1.0f > 0.0f ? 1.0f : 0.8f);
 }

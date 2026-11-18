@@ -1,10 +1,10 @@
 #pragma once
 #include <eng.h>
 
-struct ScalingShotEvent;
+struct ShotFiredEvent;
 
 /// <summary>
-/// Turns every ScalingShotEvent into what the player sees and hears (Unity RayBeamProvider): the muzzle burst,
+/// Turns every ShotFiredEvent into what the player sees and hears (Unity RayBeamProvider): the muzzle burst,
 /// a RayBeam actor from the muzzle to the hit point, the impact burst where it hit, and the beam sound.
 /// Subscribes to the EventBus in Init(); the shot is delivered at the end of the frame it was fired in.
 /// </summary>
@@ -19,7 +19,7 @@ public:
 	void	Init(eng::Level* level);
 	void	Shutdown();
 
-	void	Spawn(const ScalingShotEvent& shot);
+	void	Spawn(const ShotFiredEvent& shot);
 
 private:
 	eng::Level*				m_level	= nullptr;
