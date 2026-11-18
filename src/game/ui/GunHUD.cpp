@@ -1,6 +1,6 @@
 #include "GunHUD.h"
 #include <algorithm>
-#include "player/ScalingGun.h"
+#include "player/Gun.h"
 #include "state/PlayerState.h"
 
 void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) const
@@ -10,12 +10,12 @@ void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) cons
 	const int cx		= width / 2;
 	const int cy		= height / 2;
 
-	const ScalingGun* gun		= player ? player->GetComponent<ScalingGun>() : nullptr;
+	const Gun* gun				= player ? player->GetComponent<Gun>() : nullptr;
 	const bool isCoolingDown	= !state.IsReadyToShoot();
-	const bool onScalable		= gun && gun->IsAimingAtScalable();
+	const bool onTarget			= gun && gun->GetAimHit().isTarget;
 
 	// Crosshair
-	Color color = onScalable ? Color{ 90, 255, 140, 255 } : RAYWHITE;
+	Color color = onTarget ? Color{ 255, 70, 60, 255 } : RAYWHITE;
 	if (isCoolingDown)
 		color = Fade(color, 0.45f);
 	const float fx = static_cast<float>(cx), fy = static_cast<float>(cy);
@@ -31,21 +31,4 @@ void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) cons
 		const float left = state.GetCooldownFraction();
 		DrawRing({ static_cast<float>(cx), static_cast<float>(cy) }, 16.0f, 18.0f, -90.0f, -90.0f + 360.0f * left, 32, Fade(RAYWHITE, 0.8f));
 	}
-
-	// Factor: text and one pip per step, bottom center
-	const int baseY = height - 70;
-	const char* text = TextFormat("x%.2f", static_cast<double>(state.GetFactor()));
-	const int textWidth = MeasureText(text, 28);
-	DrawText(text, cx - textWidth / 2 + 1, baseY + 1, 28, Fade(BLACK, 0.6f));
-	DrawText(text, cx - textWidth / 2, baseY, 28, RAYWHITE);
-
-	for (int i = 0; i < PlayerState::FACTOR_COUNT; ++i)
-	{
-		const int x = cx + (i - PlayerState::FACTOR_COUNT / 2) * 22;
-		const bool isOn = i <= state.GetFactorIndex();
-		DrawRectangle(x - 8, baseY + 36, 16, 6, isOn ? Color{ 90, 190, 255, 255 } : Fade(RAYWHITE, 0.3f));
-	}
-
-	const char* hints = "LMB stretch    RMB shrink    wheel: factor";
-	DrawText(hints, cx - MeasureText(hints, 14) / 2, baseY + 50, 14, Fade(RAYWHITE, 0.75f));
 }

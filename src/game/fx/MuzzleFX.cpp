@@ -1,11 +1,10 @@
 #include "MuzzleFX.h"
 #include <eng.h>
 
-void MuzzleFX::Burst(float sign, const Vector3& position, const Vector3& direction)
+void MuzzleFX::Burst(const Vector3& position, const Vector3& direction)
 {
-	const bool stretch	= sign > 0.0f;
-	const Color start	= stretch ? Color{ 40, 120, 255, 255 } : Color{ 255, 220, 40, 255 };
-	const Color end		= stretch ? Color{ 40, 255, 120, 0 }   : Color{ 255, 60, 20, 0 };
+	const Color start	= START_COLOR;
+	const Color end		= END_COLOR;
 	eng::ParticleSystem& particles = eng::Engine::GetInstance().GetParticles();
 
 	// Sparks: a narrow fast cone along the beam

@@ -5,21 +5,19 @@ namespace eng { class ResourceManager; }
 
 enum class Sfx
 {
-	Stretch,
-	Shrink,
-	Beam,
+	Shot,
 	Count,
 };
 
 /// <summary>
-/// The game's sound effects, loaded once through the ResourceManager and played by name (Unity ScalingAudioFX).
+/// The game's sound effects, loaded once through the ResourceManager and played by name. More come with enemies.
 /// A sound that failed to load is skipped silently after the loader's warning.
 /// </summary>
 class SoundFXBank
 {
 public:
 	/// <summary>
-	/// The game's one bank (ScaleGame loads and clears it); props play through it without holding a pointer.
+	/// The game's one bank (the Application loads and clears it); anything plays through it without holding a pointer.
 	/// </summary>
 	static SoundFXBank&	Instance();
 
@@ -32,10 +30,9 @@ public:
 	bool	Play(Sfx sfx, float volume = 0.8f, float pitch = 1.0f) const;
 
 	/// <summary>
-	/// The scaling gun's sound: stretch pitch = (1 + factor) + 0.02, shrink pitch = (1 - factor) - 0.02.
-	/// sign > 0 stretches, sign < 0 shrinks.
+	/// The gun's sound, with a little random pitch so rapid fire doesn't sound mechanical.
 	/// </summary>
-	bool	PlayScaling(float sign, float factor) const;
+	bool	PlayShot() const;
 
 private:
 	const Sound*	m_sounds[static_cast<int>(Sfx::Count)] = {};

@@ -23,7 +23,6 @@ actor "Blocking Wall"
   component MeshRenderer mesh=cube tint=139,90,43,255 lit=1 specular=0.4
   component Collider shape=box half=0.5,0.5,0.5 layer=Prop
   component RigidBody type=dynamic mass=600 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
-  component Scalable speed=5 scaleMass=1 keepBottom=1
 end
 actor "Ledge"
   transform 0 1 -13  0 0 0  10 2 14
@@ -36,14 +35,12 @@ actor "Crate A"
   component MeshRenderer mesh=cube tint=235,205,80,255 lit=1 specular=0.4
   component Collider shape=box half=0.5,0.5,0.5 layer=Prop
   component RigidBody type=dynamic mass=30 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
-  component Scalable speed=5 scaleMass=1 keepBottom=1
 end
 actor "Crate B"
   transform 2 0.35 -4.6  0 0 0  0.7 0.7 0.7
   component MeshRenderer mesh=cube tint=235,205,80,255 lit=1 specular=0.4
   component Collider shape=box half=0.5,0.5,0.5 layer=Prop
   component RigidBody type=dynamic mass=30 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 ccd=auto
-  component Scalable speed=5 scaleMass=1 keepBottom=1
 end
 actor "Goal"
   transform 0 3.2 -16  0 0 0  3 2.4 3

@@ -1,7 +1,7 @@
 #include "PlayerActor.h"
 #include "player/FirstPersonController.h"
 #include "player/FirstPersonLook.h"
-#include "player/ScalingGun.h"
+#include "player/Gun.h"
 
 eng::GameActor* PlayerActor::Create(eng::Level& level, const PlayerContext& context, const Vector3& feetPosition, float yawDegrees,
 									bool withBodyMesh)
@@ -20,7 +20,7 @@ eng::GameActor* PlayerActor::Create(eng::Level& level, const PlayerContext& cont
 	FirstPersonLook* look = player->AddComponent<FirstPersonLook>();
 	look->Bind(context.input, context.camera);
 	look->SetYawPitch(yawDegrees, 0.0f);
-	player->AddComponent<ScalingGun>()->Bind(context.input, context.state, context.camera);
+	player->AddComponent<Gun>()->Bind(context.input, context.state, context.camera);
 
 	if (withBodyMesh)
 	{

@@ -18,14 +18,14 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
 | B0 | Baseline | `bs_baseline` | ✅ | 2026-11-18 | 2026-11-18 | Tag, `ENG_DEV_CONSOLE` flag |
-| B1 | Remove the scaling mechanic | `bs_remove_scaling` | ⬜ | | | `Scalable` out, `ScalingGun` → `Gun` |
+| B1 | Remove the scaling mechanic | `bs_remove_scaling` | ✅ | 2026-11-18 | 2026-11-18 | `Scalable` out, `ScalingGun` → `Gun` |
 | B2 | Developer console | `bs_dev_console` | ⬜ | | | Before the GUI goes (B‑D4) |
 | B3 | Remove the editor GUI | `bs_remove_editor_gui` | ⬜ | | | Capabilities stay, through the console |
 | B4 | Arena level | `bs_arena_level` | ⬜ | | | 16×6×16 inverted cube, one level |
 | B5 | Rename, docs and release | `bs_rename_release` | ⬜ | | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B1 Remove the scaling mechanic
-**Branch:** `bs_remove_scaling`
+**Current focus:** B2 Developer console (waiting for the developer's go)
+**Branch:** `integration`
 
 ---
 
@@ -40,14 +40,14 @@ Confirmed:
 - Ran `cmake -S . -B build/release-dev -DCMAKE_BUILD_TYPE=Release -DENG_EDITOR_IN_RELEASE=ON -DENG_DEV_CONSOLE_IN_RELEASE=ON` `cmake --build build/release-dev -j`, `./build/release-dev/my_app`
 - `INFO: ENG: Raylib Engine 0.0.1 | screen 1280 x 720 | render 1280 x 720 | editor ON | console ON | audio ON`
 
-### Phase B1 — Remove the scaling mechanic ⬜
-- [ ] Delete `game/props/Scalable`, its registration and the editor prop decorator; strip `component Scalable` from the `.lvl` files
-- [ ] `PlayerState` without scale factors / `ChangeFactor` / `ScaleFactorChangedEvent`; `PlayerInput` without `AltFire`, `Scroll` and the fire sign
-- [ ] `ScalingGun` → `Gun` (`ShotFiredEvent`, `GetAimHit`); cooldown and reach become shooter defaults (0.25 s, 100 m)
-- [ ] `RayBeamSpawner` → `ShotFXSpawner`, `RayBeam` → `Tracer` (one colour, 80 m/s), `MuzzleFX` one tint
-- [ ] `SoundFXBank::PlayShot`; remove `sfx_stretch.wav` / `sfx_shrink.wav`, update the audio generator script and `CREDITS.txt`
-- [ ] `GunView` without the factor light; `GunHUD` = crosshair (red on a hit actor in reach) + cooldown ring
-- [ ] **Done when:** LMB fires tracer + muzzle + impact + sound; RMB and wheel do nothing; crosshair turns red on a crate; no scaling code left in `src/game`; levels load without warnings
+### Phase B1 — Remove the scaling mechanic ✅
+- [x] Delete `game/props/Scalable`, its registration and the editor prop decorator; strip `component Scalable` from the `.lvl` files (+ the gun's crosshair check now means 'any actor on layer Prop' until the `Gun` task; the puzzle levels can no longer be won, they are replaced in B4)
+- [x] `PlayerState` without scale factors / `ChangeFactor` / `ScaleFactorChangedEvent`; `PlayerInput` without `AltFire`, `Scroll` and the fire sign (+ `PlayerInput` no longer needs a `PlayerState`; `ConsumeFire()` returns a bool; the factor text / pips in `GunHUD` and the factor shade of the gun light had to go in the same commit to compile)
+- [x] `ScalingGun` → `Gun` (`ShotFiredEvent`, `GetAimHit`); cooldown and reach become shooter defaults (0.25 s, 100 m) (+ reach and cooldown are `PlayerState` values with setters, ready for the console's `gun_reach` / `gun_cooldown`; `GetAimHit()` returns a `GunAim` (`isTarget` = layer Prop until there are enemies))
+- [x] `RayBeamSpawner` → `ShotFXSpawner`, `RayBeam` → `Tracer` (one colour, 80 m/s), `MuzzleFX` one tint (+ warm orange colour shared through `MuzzleFX::START_COLOR / END_COLOR`; tracer faint at the tail, bright at the head)
+- [x] `SoundFXBank::PlayShot`; remove `sfx_stretch.wav` / `sfx_shrink.wav`, update the audio generator script and `CREDITS.txt` (+ `Sfx` has only `Shot` (the ping, ±5 % random pitch); the generator's `chirp` is gone, music output unchanged)
+- [x] `GunView` without the factor light; `GunHUD` = crosshair (red on a hit actor in reach) + cooldown ring (+ muzzle tip uses the shot colour; README controls: LMB fires, RMB / wheel gone (the intro text is rewritten in B5))
+- [x] **Done when:** LMB fires tracer + muzzle + impact + sound; RMB and wheel do nothing; crosshair turns red on a crate; no scaling code left in `src/game`; levels load without warnings
 
 ### Phase B2 — Developer console ⬜
 - [ ] `DevConsole` (owned by `Engine`), `ConsoleCommands` (register / unregister tokens, completion), `ConsoleArgs`, `ConVar`; `Log` sink into the scroll‑back
@@ -134,6 +134,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B1 | Developer validated B1 (pass); merged into `integration`, branch renamed `done/bs_remove_scaling` | Start B2 on `bs_dev_console` when the developer says so | — |
+| 2026-11-18 | B1 | All 6 B1 tasks committed on `bs_remove_scaling` (Scalable out, PlayerState / PlayerInput trimmed, `Gun` + `ShotFiredEvent`, `ShotFXSpawner` / `Tracer`, `PlayShot`, HUD and gun view); clean Debug and Release builds without warnings; smoke run loads `level_01` with 0 warnings. The puzzle levels can't be won any more (no scaling); replaced in B4 | Developer runs the B1 **Done when** check | — |
 | 2026-11-18 | B0 | Developer validated B0 (release-dev build: `editor ON | console ON`); README build-flags section added; merged into `integration`, branch renamed `done/bs_baseline` | Start B1 on `bs_remove_scaling` | — |
 | 2026-11-18 | B0 | TASK_04 started: branch `bs_baseline`; tag `build-to-scale-final`; `level_01.lvl` edits discarded; `ENG_DEV_CONSOLE` flag + `IsDevConsoleBuild()` + log line; Debug and Release build and start | Developer runs the B0 **Done when** check | — |
 | 2026-11-18 | — | Developer approved the plan and risks; arena changed to 16×6×16, player size kept (B‑D9, Q1) | Wait for the next task | — |

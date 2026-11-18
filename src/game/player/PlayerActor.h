@@ -16,7 +16,7 @@ struct PlayerContext
 
 /// <summary>
 /// Builds the player: an actor "Player" with a capsule Collider (layer Player), CharacterMotor,
-/// FirstPersonController, FirstPersonLook and ScalingGun.
+/// FirstPersonController, FirstPersonLook and Gun.
 /// The actor position is the capsule center (the feet are 1 m below). Level files don't contain the player
 /// (its components aren't registered, so the serializer skips it): the game spawns it from the level's spawn point.
 /// </summary>

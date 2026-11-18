@@ -20,12 +20,10 @@ Everything is linked statically: a build needs nothing installed besides the Com
 | **W A S D** / arrows | Walk |
 | **Mouse** | Look |
 | **Space** | Jump |
-| **Left click** | Stretch the prop under the crosshair (scale up) |
-| **Right click** | Shrink it (scale down); a prop that gets tiny disappears |
-| **Mouse wheel** | Scale factor x0.25 / x0.5 / x0.75 |
+| **Left click** | Fire |
 | **ESC** | Pause / resume |
 
-The crosshair turns green when the aim is on a prop the gun can scale; a ring shows the 1 second cooldown.
+The crosshair turns red when the aim is on a target (a prop, until there are enemies); a ring shows the cooldown.
 Settings (mouse sensitivity, volumes, fullscreen) are in the main menu and the pause menu and are saved to
 `~/Library/Application Support/BuildToScale/settings.cfg`.
 
@@ -45,7 +43,7 @@ Debug builds include a level editor (`ENG_EDITOR=1`); release builds do not.
 | **F2** / **F3** | Debug grid / Bullet wireframes (while playing) |
 
 The panels: *Hierarchy* (add cube / trigger, delete, duplicate, rename, set the spawn at the camera), *Inspector*
-(transform and component fields, **Add Component** from the registry: `Scalable`, `WinTrigger`, `LoseTrigger`,
+(transform and component fields, **Add Component** from the registry: `WinTrigger`, `LoseTrigger`,
 `NextLevelTrigger`, ...) and the toolbar (Play, Reset to the state at entry, gizmo mode, Physics view, Save, Load).
 
 A level is a text file; see `src/engine/level/LevelSerializer.h` for the format.

@@ -2,7 +2,8 @@
 #include <algorithm>
 #include <cmath>
 #include <rlgl.h>
-#include "player/ScalingGun.h"
+#include "fx/MuzzleFX.h"
+#include "player/Gun.h"
 #include "state/PlayerState.h"
 
 namespace
@@ -27,11 +28,10 @@ void GunView::Init(const PlayerState& state)
 	m_camera.SetYawPitch(0.0f, 0.0f);
 	m_camera.SetPerspective({ 50.0f, 0.02f, 10.0f });
 
-	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<ScalingShotEvent>([this](const ScalingShotEvent& shot)
+	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& /*shot*/)
 	{
 		m_kick = 1.0f;
 		m_flash = 1.0f;
-		m_sign = shot.sign;
 	});
 }
 
@@ -60,9 +60,8 @@ void GunView::Draw() const
 	const float back = m_kick * 0.07f;			// kick: toward the player and a little up
 
 	const bool isReady		= m_state->IsReadyToShoot();
-	const float factorShade	= 0.45f + 0.55f * static_cast<float>(m_state->GetFactorIndex() + 1) / PlayerState::FACTOR_COUNT;
-	const Color light		= Fade(Color{ static_cast<unsigned char>(80 * factorShade), static_cast<unsigned char>(190 * factorShade), 255, 255 }, isReady ? 1.0f : 0.35f);
-	const Color tipColor	= m_sign > 0.0f ? Color{ 60, 170, 255, 255 } : Color{ 255, 210, 50, 255 };
+	const Color light		= Fade(Color{ 80, 190, 255, 255 }, isReady ? 1.0f : 0.35f);
+	const Color tipColor	= MuzzleFX::START_COLOR;
 
 	m_camera.Begin3D();
 	rlDrawRenderBatchActive();

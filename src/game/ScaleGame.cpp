@@ -26,7 +26,7 @@ bool ScaleGame::Init()
 
 	m_gameplay.Init(m_gameState, m_playerState, LevelList::Default(), [this](const std::string& path) { return LoadLevelFile(path); });
 	m_gameplay.LoadNow(0);			// the menu's backdrop
-	m_beams.Init(&m_level);			// every gun shot: muzzle burst, beam, impact, sound
+	m_shotFX.Init(&m_level);		// every gun shot: muzzle burst, tracer, impact, sound
 	m_gameUI.Init(m_input, m_gameplay);
 	m_gunView.Init(m_playerState);
 
@@ -38,12 +38,9 @@ void ScaleGame::RegisterComponents()
 {
 	// Level files and the editor's Add Component create these by name
 	eng::ComponentRegistry& registry = eng::Engine::GetInstance().GetComponentRegistry();
-	registry.Register<Scalable>("Scalable");
 	registry.Register<WinTrigger>("WinTrigger");
 	registry.Register<LoseTrigger>("LoseTrigger");
 	registry.Register<NextLevelTrigger>("NextLevelTrigger");
-
-	eng::Engine::GetInstance().GetEditor().SetPropDecorator([](eng::GameActor& prop) { prop.AddComponent<Scalable>(); });
 }
 
 void ScaleGame::BindInput()
@@ -60,7 +57,7 @@ void ScaleGame::Destroy()
 	// Actors first: their bodies leave the physics world before it shuts down
 	m_gunView.Shutdown();
 	m_gameUI.Shutdown();
-	m_beams.Shutdown();
+	m_shotFX.Shutdown();
 	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
 	m_player.Reset();

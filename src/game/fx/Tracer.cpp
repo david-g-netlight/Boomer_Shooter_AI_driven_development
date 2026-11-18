@@ -1,7 +1,8 @@
-#include "RayBeam.h"
+#include "Tracer.h"
 #include <raymath.h>
+#include "fx/MuzzleFX.h"
 
-void RayBeam::Launch(float sign, const Vector3& tail, const Vector3& head)
+void Tracer::Launch(const Vector3& tail, const Vector3& head)
 {
 	m_tail = tail;
 	m_head = head;
@@ -9,13 +10,12 @@ void RayBeam::Launch(float sign, const Vector3& tail, const Vector3& head)
 	if (eng::LineRenderer* line = GetOwner()->GetComponent<eng::LineRenderer>())
 	{
 		line->SetPoints(m_tail, m_head);
-		line->SetColors(sign > 0.0f ? Color{ 40, 120, 255, 230 } : Color{ 255, 220, 40, 230 },
-						sign > 0.0f ? Color{ 40, 255, 120, 200 } : Color{ 255, 60, 20, 200 });
-		line->SetWidth(0.06f, 0.02f);
+		line->SetColors({ 255, 150, 60, 140 }, { 255, 235, 170, 230 });	// faint tail, bright head
+		line->SetWidth(0.025f, 0.035f);
 	}
 }
 
-void RayBeam::Update(float deltaTime)
+void Tracer::Update(float deltaTime)
 {
 	const Vector3 toHead	= Vector3Subtract(m_head, m_tail);
 	const float remaining	= Vector3Length(toHead);
@@ -32,7 +32,7 @@ void RayBeam::Update(float deltaTime)
 		line->SetPoints(m_tail, m_head);
 }
 
-void RayBeam::EmitImpact(float sign, const Vector3& point, const Vector3& normal)
+void Tracer::EmitImpact(const Vector3& point, const Vector3& normal)
 {
 	eng::ParticleEmitterSettings impact;
 	impact.burstCount		= 40;
@@ -40,7 +40,7 @@ void RayBeam::EmitImpact(float sign, const Vector3& point, const Vector3& normal
 	impact.spreadDegrees	= 70.0f;
 	impact.gravity			= { 0.0f, -3.0f, 0.0f };
 	impact.additive			= true;
-	impact.startColor		= sign > 0.0f ? Color{ 40, 120, 255, 255 } : Color{ 255, 220, 40, 255 };
-	impact.endColor			= sign > 0.0f ? Color{ 40, 255, 120, 0 }   : Color{ 255, 60, 20, 0 };
+	impact.startColor		= MuzzleFX::START_COLOR;
+	impact.endColor			= MuzzleFX::END_COLOR;
 	eng::Engine::GetInstance().GetParticles().Emit(impact, point, normal);
 }
