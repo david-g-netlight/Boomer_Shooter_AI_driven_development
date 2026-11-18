@@ -9,9 +9,7 @@ SoundFXBank& SoundFXBank::Instance()
 
 void SoundFXBank::Load(eng::ResourceManager& resources)
 {
-	m_sounds[static_cast<int>(Sfx::Stretch)]	= resources.LoadSound("assets/audio/sfx_stretch.wav");
-	m_sounds[static_cast<int>(Sfx::Shrink)]		= resources.LoadSound("assets/audio/sfx_shrink.wav");
-	m_sounds[static_cast<int>(Sfx::Beam)]		= resources.LoadSound("assets/audio/sfx_ping.wav");	// placeholder
+	m_sounds[static_cast<int>(Sfx::Shot)]	= resources.LoadSound("assets/audio/sfx_ping.wav");	// placeholder
 }
 
 void SoundFXBank::Clear()
@@ -30,8 +28,8 @@ bool SoundFXBank::Play(Sfx sfx, float volume, float pitch) const
 	return true;
 }
 
-bool SoundFXBank::PlayScaling(float sign, float factor) const
+bool SoundFXBank::PlayShot() const
 {
-	return sign > 0.0f ? Play(Sfx::Stretch, 0.8f, 1.0f + factor + 0.02f)
-					   : Play(Sfx::Shrink,  0.8f, 1.0f - factor - 0.02f);
+	const float pitch = 0.95f + 0.1f * static_cast<float>(GetRandomValue(0, 100)) / 100.0f;
+	return Play(Sfx::Shot, 0.3f, pitch);
 }

@@ -45,7 +45,7 @@ Confirmed:
 - [x] `PlayerState` without scale factors / `ChangeFactor` / `ScaleFactorChangedEvent`; `PlayerInput` without `AltFire`, `Scroll` and the fire sign (+ `PlayerInput` no longer needs a `PlayerState`; `ConsumeFire()` returns a bool; the factor text / pips in `GunHUD` and the factor shade of the gun light had to go in the same commit to compile)
 - [x] `ScalingGun` → `Gun` (`ShotFiredEvent`, `GetAimHit`); cooldown and reach become shooter defaults (0.25 s, 100 m) (+ reach and cooldown are `PlayerState` values with setters, ready for the console's `gun_reach` / `gun_cooldown`; `GetAimHit()` returns a `GunAim` (`isTarget` = layer Prop until there are enemies))
 - [x] `RayBeamSpawner` → `ShotFXSpawner`, `RayBeam` → `Tracer` (one colour, 80 m/s), `MuzzleFX` one tint (+ warm orange colour shared through `MuzzleFX::START_COLOR / END_COLOR`; tracer faint at the tail, bright at the head)
-- [ ] `SoundFXBank::PlayShot`; remove `sfx_stretch.wav` / `sfx_shrink.wav`, update the audio generator script and `CREDITS.txt`
+- [x] `SoundFXBank::PlayShot`; remove `sfx_stretch.wav` / `sfx_shrink.wav`, update the audio generator script and `CREDITS.txt` (+ `Sfx` has only `Shot` (the ping, ±5 % random pitch); the generator's `chirp` is gone, music output unchanged)
 - [ ] `GunView` without the factor light; `GunHUD` = crosshair (red on a hit actor in reach) + cooldown ring
 - [ ] **Done when:** LMB fires tracer + muzzle + impact + sound; RMB and wheel do nothing; crosshair turns red on a crate; no scaling code left in `src/game`; levels load without warnings
 

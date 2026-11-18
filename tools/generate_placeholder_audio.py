@@ -38,22 +38,8 @@ def envelope(i, count, attack=0.01, decay=6.0):
     return attack_gain * math.exp(-decay * t / (count / SAMPLE_RATE))
 
 
-def chirp(start_hz, end_hz, seconds, volume=0.6):
-    """Frequency sweep with a 2nd harmonic: the 'stretch' / 'shrink' scaling sound."""
-    count = int(seconds * SAMPLE_RATE)
-    phase = 0.0
-    out = []
-    for i in range(count):
-        k = i / count
-        freq = start_hz * (end_hz / start_hz) ** k          # exponential sweep
-        phase += 2.0 * math.pi * freq / SAMPLE_RATE
-        tone = math.sin(phase) + 0.35 * math.sin(2.0 * phase) + 0.15 * math.sin(3.0 * phase)
-        out.append(volume * 0.66 * tone * envelope(i, count, decay=3.0))
-    return out
-
-
 def bell(base_hz, seconds, volume=0.6):
-    """Inharmonic partials with fast decay: a short 'ping' for spatial audio tests."""
+    """Inharmonic partials with fast decay: a short 'ping' (the placeholder shot sound)."""
     count = int(seconds * SAMPLE_RATE)
     partials = [(1.0, 1.0), (2.76, 0.45), (5.4, 0.25), (8.93, 0.12)]   # (ratio, gain)
     out = []
@@ -121,11 +107,7 @@ def main():
     random.seed(1234)
     print("Generating placeholder audio:")
 
-    # Scaling sounds (Unity: ScalingAudioFX). Played with pitch = scale factor +- 0.02
-    write_wav("sfx_stretch.wav", chirp(320.0, 960.0, 0.35))
-    write_wav("sfx_shrink.wav", chirp(960.0, 280.0, 0.35))
-
-    # Spatial test sound (AudioSource demo)
+    # Placeholder shot sound (SoundFXBank::PlayShot)
     write_wav("sfx_ping.wav", bell(1320.0, 0.6))
 
     # Themes (Unity ThemeMusicManager: MENU = 0, GAME_PLAY = 1). 16 s loops = whole bars

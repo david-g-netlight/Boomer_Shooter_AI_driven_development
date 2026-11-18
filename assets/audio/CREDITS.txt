@@ -10,4 +10,4 @@ To use real assets, drop files in with the same names. The original game jam bui
 Check each track's license before adding it to this repository.
 
 Where they play (MusicManager): music_menu.wav in the main menu, music_game.wav while playing.
-sfx_stretch / sfx_shrink are the scaling sounds, sfx_ping.wav is the placeholder beam sound.
+sfx_ping.wav is the placeholder shot sound (SoundFXBank::PlayShot).
