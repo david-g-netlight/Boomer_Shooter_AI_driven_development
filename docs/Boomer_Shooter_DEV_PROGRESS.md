@@ -20,12 +20,12 @@ stays in [`DEV_PROGRESS.md`](DEV_PROGRESS.md).
 | B0 | Baseline | `bs_baseline` | ✅ | 2026-11-18 | 2026-11-18 | Tag, `ENG_DEV_CONSOLE` flag |
 | B1 | Remove the scaling mechanic | `bs_remove_scaling` | ✅ | 2026-11-18 | 2026-11-18 | `Scalable` out, `ScalingGun` → `Gun` |
 | B2 | Developer console | `bs_dev_console` | ✅ | 2026-11-18 | 2026-11-18 | Before the GUI goes (B‑D4) |
-| B3 | Arena level | `bs_arena_level` | 🟡 | 2026-11-18 | | 16×6×16 inverted cube, one level |
-| B4 | Slim the editor | `bs_slim_editor` | ⬜ | | | Tree + inspector out; gizmo, click, toolbar (no Load) stay (B‑D12) |
+| B3 | Arena level | `done/bs_arena_level` | ✅ | 2026-11-18 | 2026-11-18 | 16×6×16 inverted cube, one level |
+| B4 | Slim the editor | `bs_slim_editor` | 🟡 | 2026-11-18 | | | Tree + inspector out; gizmo, click, toolbar (no Load) stay (B‑D12) |
 | B5 | Rename, docs and release | `bs_rename_release` | ⬜ | | | `ArenaGame`, "Boomer Shooter" |
 
-**Current focus:** B3 Arena level
-**Branch:** `bs_arena_level`
+**Current focus:** B4 Slim the editor
+**Branch:** `bs_slim_editor`
 
 ---
 
@@ -60,14 +60,14 @@ Confirmed:
 - [x] Compile‑out check: every console `.cpp`/`.h` guarded; Release `strings` check finds no command names (+ `tools/check_release_console.sh`: Release has no command names, release-dev has them; clean Release build from scratch, no warnings)
 - [x] **Done when:** grave opens the console in every mode; `help` lists everything; `pick` → `scale 2` → `set RigidBody mass=5` → `comp_add TriggerVolume` → `save` → `load` round‑trips; `restart`, `win`, `tp 0 0 0` work; ESC closes the console without pausing; Release has no console
 
-### Phase B3 — Arena level 🟡
+### Phase B3 — Arena level ✅
 - [x] `Primitive::CubeInverted` (flipped winding and normals), `mesh=cube_inverted` in level files (+ `GenMeshCube` uploads the outward faces first, so the flipped CPU data is written into those GPU buffers with `rlUpdateVertexBuffer` / `rlUpdateVertexBufferElements`; `MeshRenderer` name `cube_inverted`)
 - [x] `assets/levels/arena_01.lvl`: render cube 16×6×16 + six 0.5 m static slabs (layer Ground) + spawn; `LevelList` = arena only; delete `level_01–03.lvl` (+ spawn at `yaw 0` (looks along −Z, to the centre) instead of the plan's `yaw 180`, which faced the back wall; the uncommitted `level_01.lvl` edits went with the file)
 - [x] Player size unchanged (2 m capsule, eye 1.7 m, 1 m jump): check it against the 6 m ceiling (plan §6.3) (+ checked by reading the constants: head about 2.5 m at the jump apex, no constant changed; no commit)
 - [x] Menu orbit inside the arena (radius 6, height 4) (+ `ORBIT_RADIUS` 6, `ORBIT_HEIGHT` 4, looks at (0, 1, 0))
-- [ ] **Done when:** Start spawns the player in a lit 16×6×16 room seen from inside; walk and jump without touching the ceiling; can't leave the room; tracers stop on every face; editor shows six slab wireframes; `level_next` with one level shows the last‑level dialog
+- [x] **Done when:** Start spawns the player in a lit 16×6×16 room seen from inside; walk and jump without touching the ceiling; can't leave the room; tracers stop on every face; editor shows six slab wireframes; `level_next` with one level shows the last‑level dialog
 
-### Phase B4 — Slim the editor ⬜
+### Phase B4 — Slim the editor 🟡
 - [ ] Delete `HierarchyPanel`, `InspectorPanel`, `InspectorLayout`, the `Editor` members that own them, their `eng.h` includes
 - [ ] Remove `Component::DrawInspector` and the overrides in `MeshRenderer`, `Collider`, `RigidBody`, `TriggerVolume`, `CharacterMotor`
 - [ ] `EditorToolbar` without the Load button; `EditorUI.h` trimmed to the toolbar / status layout (`IsOverToolbar`)
@@ -135,6 +135,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-18 | B3 | Developer validated B3 (Done when pass); `Log.h` typo fixed by the developer; merged into `integration`, branch renamed `done/bs_arena_level` | Start B4 on `bs_slim_editor` | — |
 | 2026-11-18 | B3 | Four B3 checkboxes done on `bs_arena_level`: three commits (`CubeInverted`, `arena_01.lvl` + `LevelList` + `level_01–03.lvl` deleted, menu orbit in the arena) and the player-size check (no change needed). A clean copy of HEAD with these changes builds Debug with no errors or warnings; the app starts with no warnings. The level load and the room are not exercised yet (they need Start in the game). The working tree has a typo in `src/engine/core/Log.h` (`{1.` in `enum class LogLevel`) that stops the build; left untouched | Developer fixes `Log.h`, runs the B3 **Done when** check (Start, walk, jump, tracers on the faces, `level_next` shows the last-level dialog) | `Log.h` typo blocks building the working tree |
 | 2026-11-18 | — | Developer review of the editor phase: phases reordered (B3 arena, B4 slim editor, B5 release) and the editor phase rescoped to keep the gizmo, click‑select and toolbar (no Load) (B‑D12); plan §0–§10 and this tracker updated. Phase numbers in older log rows refer to the old order | Start B3 on `bs_arena_level` when the developer says so | — |
 | 2026-11-18 | B2 | Developer validated B2 (pass); merged into `integration`, branch renamed `done/bs_dev_console` | ~~Start B3 on `bs_remove_editor_gui`~~ (superseded by B‑D12) | — |
