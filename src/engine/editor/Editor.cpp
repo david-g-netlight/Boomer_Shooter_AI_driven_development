@@ -93,7 +93,7 @@ namespace eng
 			return;
 		}
 
-		const bool overPanels = EditorUI::IsOverPanels(input.GetMousePosition());
+		const bool overToolbar = EditorUI::IsOverToolbar(input.GetMousePosition());
 		if (input.IsKeyPressed(KEY_W))		m_gizmo.SetMode(GizmoMode::Move);
 		if (input.IsKeyPressed(KEY_R))		m_gizmo.SetMode(GizmoMode::Scale);
 		if (input.IsKeyPressed(KEY_DELETE))	DeleteSelected();
@@ -102,9 +102,9 @@ namespace eng
 		if (input.IsKeyPressed(KEY_S) && (input.IsKeyDown(KEY_LEFT_SUPER) || input.IsKeyDown(KEY_LEFT_CONTROL)))
 			Save();
 
-		const bool gizmoHasMouse = !overPanels && m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
+		const bool gizmoHasMouse = !overToolbar && m_gizmo.Update(m_camera.GetCamera(), input.GetMousePosition(),
 			input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT), input.IsMouseButtonDown(MOUSE_BUTTON_LEFT), m_selected);
-		if (m_level && !overPanels && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+		if (m_level && !overToolbar && !gizmoHasMouse && input.IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
 			Select(Picker::Pick(m_camera.GetCamera(), input.GetMousePosition(), *m_level, Engine::GetInstance().GetPhysics()));
 
 		if (m_selected && input.IsKeyPressed(KEY_F))

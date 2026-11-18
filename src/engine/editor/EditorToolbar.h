@@ -5,8 +5,9 @@ namespace eng
 	class Editor;
 
 	/// <summary>
-	/// Strip between the two panels: Play (leave the editor, edits stay live), Reset (back to the state at entry),
-	/// Move / Scale gizmo mode, Save and Load (Ctrl+S saves). Immediate mode: call Draw() every frame in the HUD pass.
+	/// Strip under the status line: Play (leave the editor, edits stay live), Reset (back to the state at entry),
+	/// Move / Scale gizmo mode, Physics debug, Save (Ctrl+S saves). Load is console only (`load`).
+	/// Immediate mode: call Draw() every frame in the HUD pass.
 	/// </summary>
 	class EditorToolbar
 	{
