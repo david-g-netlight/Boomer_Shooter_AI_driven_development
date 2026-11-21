@@ -34,6 +34,7 @@
 #include "ui/UIStyle.h"
 #include "ui/MenuScreens.h"
 #include "core/MathUtils.h"
+#include "ecs/Registry.h"
 #include "input/InputManager.h"
 #include "input/InputMap.h"
 #include "resources/ResourceManager.h"

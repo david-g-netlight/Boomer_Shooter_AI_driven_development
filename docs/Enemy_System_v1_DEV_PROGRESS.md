@@ -19,21 +19,21 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| E0 | ECS core | `enemy_ecs_core` | ⬜ | | | `engine/ecs/`, header‑only, std only |
+| E0 | ECS core | `enemy_ecs_core` | 🟡 | 2026-11-21 | | `engine/ecs/`, header‑only, std only |
 | E1 | Pool and visible enemies | `enemy_pool_and_render` | ⬜ | | | `Primitive::Pyramid`, 3 archetypes, capacity 32 |
 | E2 | Idle and wander | `enemy_ai_idle_wander` | ⬜ | | | Movement, walls, avoidance |
 | E3 | Shooting enemies | `enemy_damage` | ⬜ | | | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
 | E4 | Chase and attack | `enemy_ai_chase_attack` | ⬜ | | | Hysteresis 1.2 ×, player health, lose |
 | E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
 
-**Current focus:** none. The plan is approved with comments (iteration 1); waiting for the go to start E0.
-**Branch:** `integration`
+**Current focus:** E0 — ECS core (`enemy_ecs_core`).
+**Branch:** `enemy_ecs_core`
 
 ---
 
 ## Phase checklists
 
-### Phase E0 — ECS core ⬜
+### Phase E0 — ECS core 🟡
 - [ ] `engine/ecs/Entity.h` (16‑bit index + 16‑bit generation), `ComponentPool.h` (sparse set, swap‑remove), `Registry.h` (create / destroy / free list, `Add` / `Get` / `Remove`, `Each<A, Rest...>`, `Clear`); `eng.h` includes `ecs/Registry.h`
 - [ ] Debug self‑check (`#ifndef NDEBUG`) + console `ecs_selftest`
 - [ ] **Done when:** Debug and Release build clean; `ecs_selftest` passes (stale id rejected, packed after removes, `Each` visits only full matches, `Clear` keeps capacity)
