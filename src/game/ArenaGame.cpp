@@ -169,6 +169,8 @@ void ArenaGame::Update(float deltaTime)
 
 	m_input.Update(deltaTime, map);
 	m_gunView.Update(deltaTime);
+	if (engine.GetModes().IsSimulating())
+		m_enemies.Animate(deltaTime);
 	UpdateMenuCamera(deltaTime);
 }
 

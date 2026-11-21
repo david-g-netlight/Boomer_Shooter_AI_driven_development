@@ -36,9 +36,12 @@ namespace enemies
 		const EnemyArchetype& archetype = GetArchetype(type);
 		const float speed = archetype.wanderSpeed;
 
+		const Vector3 facing = Vector3Normalize(forward);
+		const Quaternion rotation = eng::LookRotation(facing);
+
 		m_registry->Add<EnemyKind>(e, EnemyKind{ type });
-		m_registry->Add<Transform>(e, Transform{ position });
-		m_registry->Add<Motion>(e, Motion{ Vector3Zero(), Vector3Normalize(forward), DEG2RAD * archetype.turnRateDeg });
+		m_registry->Add<Transform>(e, Transform{ position, rotation });
+		m_registry->Add<Motion>(e, Motion{ Vector3Zero(), facing, DEG2RAD * archetype.turnRateDeg });
 		m_registry->Add<Brain>(e, Brain{});
 		m_registry->Add<ScanForPlayer>(e, ScanForPlayer{
 			archetype.triggerRadius * archetype.triggerRadius,
@@ -53,7 +56,10 @@ namespace enemies
 		m_registry->Add<Life>(e, Life{ archetype.hp, archetype.hp });
 		m_registry->Add<Alert>(e, Alert{});
 		m_registry->Add<CollisionSphere>(e, CollisionSphere{ archetype.bodyRadius });
-		m_registry->Add<EnemyLook>(e, EnemyLook{ 0.0f });
+		EnemyLook look;
+		look.scale = 0.0f;				// scale-in starts from nothing (AnimationSystem)
+		look.renderRotation = rotation;
+		m_registry->Add<EnemyLook>(e, look);
 		return e;
 	}
 

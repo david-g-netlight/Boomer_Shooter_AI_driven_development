@@ -1,6 +1,8 @@
 #pragma once
 #include <raylib.h>
 #include <raymath.h>
+#include <algorithm>
+#include <cmath>
 
 namespace eng
 {
@@ -37,5 +39,18 @@ namespace eng
 							   0.0f, 0.0f, 0.0f, 1.0f };
 			*rotation = QuaternionNormalize(QuaternionFromMatrix(r));
 		}
+	}
+
+	/// <summary>
+	/// The rotation that turns the local forward (-Z) to `forward`: yaw first, then pitch, no roll.
+	/// `forward` must be normalized. Used for the Transform of enemies and other things that face a direction.
+	/// </summary>
+	inline Quaternion LookRotation(const Vector3& forward)
+	{
+		const float yaw		= std::atan2(-forward.x, -forward.z);
+		const float pitch	= std::asin(std::clamp(forward.y, -1.0f, 1.0f));
+		const Quaternion yawRotation	= QuaternionFromAxisAngle({ 0.0f, 1.0f, 0.0f }, yaw);
+		const Quaternion pitchRotation	= QuaternionFromAxisAngle({ 1.0f, 0.0f, 0.0f }, pitch);
+		return QuaternionNormalize(QuaternionMultiply(yawRotation, pitchRotation));
 	}
 }
