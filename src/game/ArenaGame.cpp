@@ -36,7 +36,7 @@ bool ArenaGame::Init()
 	m_gunView.Init(m_playerState);
 
 #if ENG_DEV_CONSOLE
-	m_commands.Register({ &m_gameplay, &m_gameState, &m_playerState, &m_player, &m_level });
+	m_commands.Register({ &m_gameplay, &m_gameState, &m_playerState, &m_player, &m_level, &m_enemies });
 #endif
 
 	eng::Log::Info("ArenaGame initialized");

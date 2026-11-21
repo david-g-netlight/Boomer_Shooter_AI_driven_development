@@ -27,6 +27,10 @@ namespace enemies
 		/// <summary>Queues the enemies' draw commands for this frame.</summary>
 		void			Submit(eng::RenderQueue& queue);
 
+		/// <summary>For the console and tests. Gameplay code goes through the pool.</summary>
+		EnemyPool&					GetPool()		{ return m_pool; }
+		eng::ecs::Registry&			GetRegistry()	{ return m_registry; }
+
 	private:
 		eng::ecs::Registry	m_registry{ EnemyPool::CAPACITY };
 		EnemyPool			m_pool;

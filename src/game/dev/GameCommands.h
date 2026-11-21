@@ -4,6 +4,7 @@
 #include <eng.h>
 #include <vector>
 
+namespace enemies { class EnemyManager; }
 class GameplayManager;
 class GameState;
 class PlayerState;
@@ -18,10 +19,11 @@ struct GameCommandContext
 	PlayerState*		playerState	= nullptr;
 	eng::ActorHandle*	player		= nullptr;
 	eng::Level*			level		= nullptr;
+	enemies::EnemyManager*	enemyManager	= nullptr;
 };
 
 /// <summary>
-/// restart, level_list, level_load, level_next, win, lose, tp, tp_spawn, god, gun_cooldown, gun_reach, sens, ecs_selftest (Debug).
+/// restart, level_list, level_load, level_next, win, lose, tp, tp_spawn, god, gun_cooldown, gun_reach, sens, enemy_spawn, enemy_spawn_all, enemy_list, kill_all, ecs_selftest (Debug).
 /// The commands capture the context, so the game unregisters them in Destroy().
 /// Level commands only make requests: the GameplayManager applies them in its next Update.
 /// </summary>
