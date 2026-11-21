@@ -17,6 +17,7 @@
 #include "player/GunView.h"
 #include "audio/MusicManager.h"
 #include "dev/GameCommands.h"
+#include "enemies/EnemyManager.h"
 
 /// <summary>
 /// Boomer Shooter (placeholder name): an arena FPS. Owns the level, camera and systems of the game.
@@ -33,6 +34,8 @@ public:
 	void		Update(float deltaTime)			override;
 	void		DrawViewModel()					override;
 	void		DrawHUD()						override;
+	void		FixedUpdate(float fixedDeltaTime)	override;
+	void		SubmitRenderables(eng::RenderQueue& queue)	override;
 	void		Destroy()						override;
 
 	const char*	GetTitle() const				override;
@@ -65,6 +68,7 @@ private:
 	GunHUD			m_gunHUD;
 	GunView			m_gunView;
 	MusicManager	m_music;
+	enemies::EnemyManager	m_enemies;
 #if ENG_DEV_CONSOLE
 	GameCommands	m_commands;
 #endif

@@ -169,6 +169,7 @@ namespace eng
 				case Primitive::Plane:		m_primitives[index] = GenMeshPlane(1.0f, 1.0f, 1, 1);	break;
 				case Primitive::Sphere:		m_primitives[index] = GenMeshSphere(0.5f, 16, 24);		break;
 				case Primitive::Cylinder:	m_primitives[index] = GenMeshCylinder(0.5f, 1.0f, 24);	break;
+				case Primitive::Pyramid:	m_primitives[index] = GenMeshCone(0.5f, 1.0f, 4);		break;
 				case Primitive::Count:		return nullptr;
 			}
 			m_isPrimitiveLoaded[index] = true;

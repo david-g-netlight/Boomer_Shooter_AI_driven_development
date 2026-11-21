@@ -20,13 +20,13 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
 | E0 | ECS core | `done/enemy_ecs_core` | ✅ | 2026-11-21 | 2026-11-21 | `engine/ecs/`, header‑only, std only |
-| E1 | Pool and visible enemies | `enemy_pool_and_render` | ⬜ | | | `Primitive::Pyramid`, 3 archetypes, capacity 32 |
+| E1 | Pool and visible enemies | `done/enemy_pool_and_render` | ✅ | 2026-11-21 | 2026-11-21 | `Primitive::Pyramid`, 3 archetypes, capacity 32 |
 | E2 | Idle and wander | `enemy_ai_idle_wander` | ⬜ | | | Movement, walls, avoidance |
 | E3 | Shooting enemies | `enemy_damage` | ⬜ | | | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
 | E4 | Chase and attack | `enemy_ai_chase_attack` | ⬜ | | | Hysteresis 1.2 ×, player health, lose |
 | E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
 
-**Current focus:** E1 — Pool and visible enemies (not started).
+**Current focus:** E2 — Idle and wander (`enemy_ai_idle_wander`, not started).
 **Branch:** `integration`
 
 ---
@@ -38,13 +38,13 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] Debug self‑check (`#ifndef NDEBUG`) + console `ecs_selftest` (+ the checks live in `ecs/RegistrySelfTest.h`, a new header; the startup check runs in `ArenaGame::Init`; the command is in `GameCommands`)
 - [x] **Done when:** Debug and Release build clean; `ecs_selftest` passes (stale id rejected, packed after removes, `Each` visits only full matches, `Clear` keeps capacity)
 
-### Phase E1 — Pool and visible enemies ⬜
-- [ ] `Primitive::Pyramid` (`GenMeshCone(0.5, 1, 4)`, `mesh=pyramid`); check the base cap and normals (R8)
-- [ ] `EnemyComponents.h`, `EnemyTypes` (Drifter, Stalker, Brute; §8.1), `EnemyPool` (capacity 32, `Spawn`, `FlushReleased`, `Clear`)
-- [ ] `EnemyManager` (Init, Reset, FixedUpdate shell, Submit); `ArenaGame` owns it, overrides `FixedUpdate` and `SubmitRenderables`, resets it in `OnLevelLoaded`
-- [ ] `RenderSystem` + `AnimationSystem` (spawn scale‑in, turn smoothing); 9 materials
-- [ ] Console: `enemy_spawn`, `enemy_spawn_all`, `enemy_list`, `kill_all` (removes for now)
-- [ ] **Done when:** `enemy_spawn drifter 5`, `stalker 3`, `brute 2` show three sizes and colours; `enemy_spawn_all` shows 20; a 33rd spawn logs "pool full"; `restart` removes them; no allocation after Init
+### Phase E1 — Pool and visible enemies ✅
+- [x] `Primitive::Pyramid` (`GenMeshCone(0.5, 1, 4)`, `mesh=pyramid`); check the base cap and normals (R8) (+ the cap and normals are **not checked in code**: raylib's source is not in the repo. Look at the spike from below in the test)
+- [x] `EnemyComponents.h`, `EnemyTypes` (Drifter, Stalker, Brute; §8.1), `EnemyPool` (capacity 32, `Spawn`, `FlushReleased`, `Clear`) (+ components are in namespace `enemies` (raylib's `::Transform` clash); `EnemyLook` has no material pointers, the manager's table gives them; the spawn particle burst of §6.1 is **not** done: no checkbox names it)
+- [x] `EnemyManager` (Init, Reset, FixedUpdate shell, Submit); `ArenaGame` owns it, overrides `FixedUpdate` and `SubmitRenderables`, resets it in `OnLevelLoaded` (+ `FixedUpdate` runs `FlushReleased`; `Animate` is called from `ArenaGame::Update` while simulating, as §3.3)
+- [x] `RenderSystem` + `AnimationSystem` (spawn scale‑in, turn smoothing); 9 materials (+ `MathUtils::LookRotation` added, §7.3 names it but it did not exist; the flash material and squash are drawn, but nothing sets `hitFlash` until E3; the lunge comes in E4)
+- [x] Console: `enemy_spawn`, `enemy_spawn_all`, `enemy_list`, `kill_all` (removes for now) (+ `enemy_spawn` puts the group in a grid: the first row 6 m in front, 1.5 m apart, so they do not stack; `enemy_spawn_all` is 15 Drifters, 4 Stalkers, 1 Brute)
+- [x] **Done when:** `enemy_spawn drifter 5`, `stalker 3`, `brute 2` show three sizes and colours; `enemy_spawn_all` shows 20; a 33rd spawn logs "pool full"; `restart` removes them; no allocation after Init
 
 ### Phase E2 — Idle and wander ⬜
 - [ ] `Brain` + `EnemyBrain` (`NextState`, `BrainSystem`) with Idle and Wander only

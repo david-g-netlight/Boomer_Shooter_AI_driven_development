@@ -20,6 +20,7 @@ namespace eng
 		Plane,
 		Sphere,
 		Cylinder,
+		Pyramid,
 		Count,
 	};
 

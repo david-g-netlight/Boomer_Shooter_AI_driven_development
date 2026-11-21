@@ -1,6 +1,11 @@
 #if ENG_DEV_CONSOLE
 
 #include "GameCommands.h"
+#include <algorithm>
+#include <cstdint>
+#include <vector>
+#include "enemies/EnemyComponents.h"
+#include "enemies/EnemyManager.h"
 #include "flow/GameplayManager.h"
 #include "player/PlayerActor.h"
 #include "state/GameState.h"
@@ -20,6 +25,69 @@ namespace
 			return false;
 		motor->Warp({ feet.x, feet.y + FEET_TO_CENTER, feet.z });
 		return true;
+	}
+
+	/// The player's position and the planar direction they face (the body's yaw)
+	bool GetPlayerPose(const GameCommandContext& context, Vector3& position, Vector3& forward)
+	{
+		eng::GameActor* actor = context.player ? context.player->Get() : nullptr;
+		if (!actor)
+			return false;
+		position = actor->GetWorldPosition();
+		forward = Vector3RotateByQuaternion({ 0.0f, 0.0f, -1.0f }, actor->GetTransform().rotation);
+		forward.y = 0.0f;
+		forward = Vector3Normalize(forward);
+		return true;
+	}
+
+	/// A grid in front of the player: up to 5 columns, the first row 6 m out, 2 m between rows, 1.5 m between columns
+	Vector3 SpawnSlot(const Vector3& origin, const Vector3& forward, int index, int total)
+	{
+		constexpr int	COLUMNS			= 5;
+		constexpr float	FRONT			= 6.0f;
+		constexpr float	ROW_SPACING		= 2.0f;
+		constexpr float	COLUMN_SPACING	= 1.5f;
+
+		const int columns	= std::min(total, COLUMNS);
+		const float column	= static_cast<float>(index % columns) - (columns - 1) * 0.5f;
+		const float row		= static_cast<float>(index / columns);
+		const Vector3 right	= Vector3CrossProduct(forward, { 0.0f, 1.0f, 0.0f });
+		return Vector3Add(origin, Vector3Add(Vector3Scale(forward, FRONT + row * ROW_SPACING), Vector3Scale(right, column * COLUMN_SPACING)));
+	}
+
+	/// Spawns one enemy per entry, facing the player. Returns how many spawned (less than the list when the pool is full),
+	/// or -1 when there is no player.
+	int SpawnInFront(const GameCommandContext& context, const std::vector<enemies::EnemyType>& types)
+	{
+		Vector3 position{};
+		Vector3 forward{};
+		if (!GetPlayerPose(context, position, forward))
+			return -1;
+
+		static uint32_t seed = 1;	// a new seed per spawn, so the wander RNGs differ
+		const int total = static_cast<int>(types.size());
+		int spawned = 0;
+		for (; spawned < total; ++spawned)
+		{
+			seed = seed * 1664525u + 1013904223u;
+			const eng::ecs::Entity e = context.enemyManager->GetPool().Spawn(types[spawned], SpawnSlot(position, forward, spawned, total), Vector3Negate(forward), seed);
+			if (e == eng::ecs::INVALID_ENTITY)
+				break;
+		}
+		return spawned;
+	}
+
+	const char* StateName(enemies::AiState state)
+	{
+		switch (state)
+		{
+			case enemies::AiState::Idle:	return "Idle";
+			case enemies::AiState::Wander:	return "Wander";
+			case enemies::AiState::Chase:	return "Chase";
+			case enemies::AiState::Attack:	return "Attack";
+			case enemies::AiState::Dying:	return "Dying";
+		}
+		return "?";
 	}
 }
 
@@ -151,6 +219,73 @@ void GameCommands::Register(const GameCommandContext& context)
 
 	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Float("sens", &Settings::Instance().mouseSensitivity,
 		Settings::MIN_SENSITIVITY, Settings::MAX_SENSITIVITY, "Mouse sensitivity multiplier")));
+
+	//////////////////////////////////////////
+	// Enemies
+	//////////////////////////////////////////
+	add("enemy_spawn", "enemy_spawn <drifter|stalker|brute> [n]", "Spawns n enemies in front of the player", [context](const eng::ConsoleArgs& args, eng::DevConsole& con)
+	{
+		constexpr int MAX_COUNT = 256;
+		enemies::EnemyType type{};
+		int count = 1;
+		if (!enemies::ParseEnemyType(args.GetString(0), type) || (args.Count() > 1 && !args.GetInt(1, count)) || count < 1 || count > MAX_COUNT)
+		{
+			con.PrintError("usage: enemy_spawn <drifter|stalker|brute> [n]  (n = 1..%d)", MAX_COUNT);
+			return;
+		}
+
+		const int spawned = SpawnInFront(context, std::vector<enemies::EnemyType>(count, type));
+		if (spawned < 0)
+			con.PrintError("enemy_spawn: there is no player");
+		else if (spawned < count)
+			con.PrintError("enemy_spawn: pool full, %d of %d spawned", spawned, count);
+		else
+			con.Print("enemy_spawn: %d %s spawned", spawned, enemies::GetArchetype(type).name);
+	});
+
+	add("enemy_spawn_all", "enemy_spawn_all", "Spawns the 20 enemies of the wave table at once (pool capacity check)", [context](const eng::ConsoleArgs&, eng::DevConsole& con)
+	{
+		// Plan §6.2, the three waves added up: 7 + 7 + 6 = 20 (15 Drifters, 4 Stalkers, 1 Brute)
+		std::vector<enemies::EnemyType> types;
+		types.insert(types.end(), 15, enemies::EnemyType::Drifter);
+		types.insert(types.end(), 4, enemies::EnemyType::Stalker);
+		types.insert(types.end(), 1, enemies::EnemyType::Brute);
+
+		const int spawned = SpawnInFront(context, types);
+		if (spawned < 0)
+			con.PrintError("enemy_spawn_all: there is no player");
+		else if (spawned < static_cast<int>(types.size()))
+			con.PrintError("enemy_spawn_all: pool full, %d of %d spawned", spawned, static_cast<int>(types.size()));
+		else
+			con.Print("enemy_spawn_all: %d spawned", spawned);
+	});
+
+	add("enemy_list", "enemy_list", "Lists the enemies: id, type, state, hp, distance to the player", [context](const eng::ConsoleArgs&, eng::DevConsole& con)
+	{
+		Vector3 playerPosition{};
+		Vector3 playerForward{};
+		const bool hasPlayer = GetPlayerPose(context, playerPosition, playerForward);
+
+		int listed = 0;
+		context.enemyManager->GetRegistry().Each<enemies::EnemyKind, enemies::Life, enemies::Brain, enemies::Transform>(
+			[&](eng::ecs::Entity e, enemies::EnemyKind& kind, enemies::Life& life, enemies::Brain& brain, enemies::Transform& transform)
+		{
+			const float distance = hasPlayer ? Vector3Distance(playerPosition, transform.position) : 0.0f;
+			con.Print("%u:%u  %-8s %-7s hp %g  %.1f m", e.index, e.generation, enemies::GetArchetype(kind.type).name,
+				StateName(brain.state), static_cast<double>(life.hp), static_cast<double>(distance));
+			++listed;
+		});
+
+		if (listed == 0)
+			con.Print("enemy_list: no enemies");
+	});
+
+	add("kill_all", "kill_all", "Removes every enemy (until damage can kill them)", [context](const eng::ConsoleArgs&, eng::DevConsole& con)
+	{
+		const int count = context.enemyManager->GetPool().GetAliveCount();
+		context.enemyManager->GetPool().Clear();
+		con.Print("kill_all: %d enemies removed", count);
+	});
 
 #ifndef NDEBUG
 	add("ecs_selftest", "ecs_selftest", "Runs the ECS storage self-check", [](const eng::ConsoleArgs&, eng::DevConsole& con)

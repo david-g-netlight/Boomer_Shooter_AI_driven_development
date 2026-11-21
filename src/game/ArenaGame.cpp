@@ -21,6 +21,7 @@ bool ArenaGame::Init()
 	Settings::Instance().Apply();
 
 	RegisterComponents();
+	m_enemies.Init();
 #ifndef NDEBUG
 	for (const std::string& failure : eng::ecs::RunRegistrySelfTest())
 		eng::Log::Error("ECS self-check failed: %s", failure.c_str());
@@ -35,7 +36,7 @@ bool ArenaGame::Init()
 	m_gunView.Init(m_playerState);
 
 #if ENG_DEV_CONSOLE
-	m_commands.Register({ &m_gameplay, &m_gameState, &m_playerState, &m_player, &m_level });
+	m_commands.Register({ &m_gameplay, &m_gameState, &m_playerState, &m_player, &m_level, &m_enemies });
 #endif
 
 	eng::Log::Info("ArenaGame initialized");
@@ -95,6 +96,7 @@ eng::Level* ArenaGame::GetActiveLevel()
 bool ArenaGame::LoadLevelFile(const std::string& path)
 {
 	m_player.Reset();
+	m_enemies.Reset();		// the game's own loads (start, next level, restart, retry) do not call OnLevelLoaded
 	const bool isLoaded = eng::LevelSerializer::Load(m_level, path).ok;
 	if (!isLoaded)
 	{
@@ -139,6 +141,7 @@ void ArenaGame::OnLevelLoaded()
 	for (const auto& owned : m_level.GetActors())
 		if (owned->GetComponent<eng::CharacterMotor>())
 			owned->MarkForDestroy();
+	m_enemies.Reset();
 	SpawnPlayer();
 }
 
@@ -167,6 +170,8 @@ void ArenaGame::Update(float deltaTime)
 
 	m_input.Update(deltaTime, map);
 	m_gunView.Update(deltaTime);
+	if (engine.GetModes().IsSimulating())
+		m_enemies.Animate(deltaTime);
 	UpdateMenuCamera(deltaTime);
 }
 
@@ -180,6 +185,16 @@ void ArenaGame::UpdateMenuCamera(float deltaTime)
 	const float angle = m_orbitAngle * DEG2RAD;
 	m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, ORBIT_HEIGHT, std::cos(angle) * ORBIT_RADIUS });
 	m_camera.LookAt({ 0.0f, 1.0f, 0.0f });
+}
+
+void ArenaGame::FixedUpdate(float fixedDeltaTime)
+{
+	m_enemies.FixedUpdate(fixedDeltaTime);
+}
+
+void ArenaGame::SubmitRenderables(eng::RenderQueue& queue)
+{
+	m_enemies.Submit(queue);
 }
 
 void ArenaGame::DrawViewModel()
