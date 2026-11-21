@@ -39,11 +39,11 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] **Done when:** Debug and Release build clean; `ecs_selftest` passes (stale id rejected, packed after removes, `Each` visits only full matches, `Clear` keeps capacity)
 
 ### Phase E1 — Pool and visible enemies 🟡
-- [ ] `Primitive::Pyramid` (`GenMeshCone(0.5, 1, 4)`, `mesh=pyramid`); check the base cap and normals (R8)
-- [ ] `EnemyComponents.h`, `EnemyTypes` (Drifter, Stalker, Brute; §8.1), `EnemyPool` (capacity 32, `Spawn`, `FlushReleased`, `Clear`)
-- [ ] `EnemyManager` (Init, Reset, FixedUpdate shell, Submit); `ArenaGame` owns it, overrides `FixedUpdate` and `SubmitRenderables`, resets it in `OnLevelLoaded`
-- [ ] `RenderSystem` + `AnimationSystem` (spawn scale‑in, turn smoothing); 9 materials
-- [ ] Console: `enemy_spawn`, `enemy_spawn_all`, `enemy_list`, `kill_all` (removes for now)
+- [x] `Primitive::Pyramid` (`GenMeshCone(0.5, 1, 4)`, `mesh=pyramid`); check the base cap and normals (R8) (+ the cap and normals are **not checked in code**: raylib's source is not in the repo. Look at the spike from below in the test)
+- [x] `EnemyComponents.h`, `EnemyTypes` (Drifter, Stalker, Brute; §8.1), `EnemyPool` (capacity 32, `Spawn`, `FlushReleased`, `Clear`) (+ components are in namespace `enemies` (raylib's `::Transform` clash); `EnemyLook` has no material pointers, the manager's table gives them; the spawn particle burst of §6.1 is **not** done: no checkbox names it)
+- [x] `EnemyManager` (Init, Reset, FixedUpdate shell, Submit); `ArenaGame` owns it, overrides `FixedUpdate` and `SubmitRenderables`, resets it in `OnLevelLoaded` (+ `FixedUpdate` runs `FlushReleased`; `Animate` is called from `ArenaGame::Update` while simulating, as §3.3)
+- [x] `RenderSystem` + `AnimationSystem` (spawn scale‑in, turn smoothing); 9 materials (+ `MathUtils::LookRotation` added, §7.3 names it but it did not exist; the flash material and squash are drawn, but nothing sets `hitFlash` until E3; the lunge comes in E4)
+- [x] Console: `enemy_spawn`, `enemy_spawn_all`, `enemy_list`, `kill_all` (removes for now) (+ `enemy_spawn` puts the group in a grid: the first row 6 m in front, 1.5 m apart, so they do not stack; `enemy_spawn_all` is 15 Drifters, 4 Stalkers, 1 Brute)
 - [ ] **Done when:** `enemy_spawn drifter 5`, `stalker 3`, `brute 2` show three sizes and colours; `enemy_spawn_all` shows 20; a 33rd spawn logs "pool full"; `restart` removes them; no allocation after Init
 
 ### Phase E2 — Idle and wander ⬜
