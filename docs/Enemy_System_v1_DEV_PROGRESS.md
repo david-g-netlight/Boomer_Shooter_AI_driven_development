@@ -19,24 +19,24 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| E0 | ECS core | `enemy_ecs_core` | ⬜ | | | `engine/ecs/`, header‑only, std only |
+| E0 | ECS core | `done/enemy_ecs_core` | ✅ | 2026-11-21 | 2026-11-21 | `engine/ecs/`, header‑only, std only |
 | E1 | Pool and visible enemies | `enemy_pool_and_render` | ⬜ | | | `Primitive::Pyramid`, 3 archetypes, capacity 32 |
 | E2 | Idle and wander | `enemy_ai_idle_wander` | ⬜ | | | Movement, walls, avoidance |
 | E3 | Shooting enemies | `enemy_damage` | ⬜ | | | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
 | E4 | Chase and attack | `enemy_ai_chase_attack` | ⬜ | | | Hysteresis 1.2 ×, player health, lose |
 | E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
 
-**Current focus:** none. The plan is approved with comments (iteration 1); waiting for the go to start E0.
+**Current focus:** E1 — Pool and visible enemies (not started).
 **Branch:** `integration`
 
 ---
 
 ## Phase checklists
 
-### Phase E0 — ECS core ⬜
-- [ ] `engine/ecs/Entity.h` (16‑bit index + 16‑bit generation), `ComponentPool.h` (sparse set, swap‑remove), `Registry.h` (create / destroy / free list, `Add` / `Get` / `Remove`, `Each<A, Rest...>`, `Clear`); `eng.h` includes `ecs/Registry.h`
-- [ ] Debug self‑check (`#ifndef NDEBUG`) + console `ecs_selftest`
-- [ ] **Done when:** Debug and Release build clean; `ecs_selftest` passes (stale id rejected, packed after removes, `Each` visits only full matches, `Clear` keeps capacity)
+### Phase E0 — ECS core ✅
+- [x] `engine/ecs/Entity.h` (16‑bit index + 16‑bit generation), `ComponentPool.h` (sparse set, swap‑remove), `Registry.h` (create / destroy / free list, `Add` / `Get` / `Remove`, `Each<A, Rest...>`, `Clear`); `eng.h` includes `ecs/Registry.h` (+ `IComponentPool` lives in `ComponentPool.h`; `Registry` also keeps an `m_alive` flag per slot, so a free slot's current generation is not treated as alive)
+- [x] Debug self‑check (`#ifndef NDEBUG`) + console `ecs_selftest` (+ the checks live in `ecs/RegistrySelfTest.h`, a new header; the startup check runs in `ArenaGame::Init`; the command is in `GameCommands`)
+- [x] **Done when:** Debug and Release build clean; `ecs_selftest` passes (stale id rejected, packed after removes, `Each` visits only full matches, `Clear` keeps capacity)
 
 ### Phase E1 — Pool and visible enemies ⬜
 - [ ] `Primitive::Pyramid` (`GenMeshCone(0.5, 1, 4)`, `mesh=pyramid`); check the base cap and normals (R8)

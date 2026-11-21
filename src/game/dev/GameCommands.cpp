@@ -151,6 +151,17 @@ void GameCommands::Register(const GameCommandContext& context)
 
 	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Float("sens", &Settings::Instance().mouseSensitivity,
 		Settings::MIN_SENSITIVITY, Settings::MAX_SENSITIVITY, "Mouse sensitivity multiplier")));
+
+#ifndef NDEBUG
+	add("ecs_selftest", "ecs_selftest", "Runs the ECS storage self-check", [](const eng::ConsoleArgs&, eng::DevConsole& con)
+	{
+		std::vector<std::string> failures = eng::ecs::RunRegistrySelfTest();
+		if (failures.empty())
+			con.Print("ecs_selftest: all checks passed");
+		for (const std::string& failure : failures)
+			con.PrintError("ecs_selftest FAILED: %s", failure.c_str());
+	});
+#endif
 }
 
 void GameCommands::Unregister()

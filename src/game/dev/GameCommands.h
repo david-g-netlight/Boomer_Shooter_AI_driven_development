@@ -21,7 +21,7 @@ struct GameCommandContext
 };
 
 /// <summary>
-/// restart, level_list, level_load, level_next, win, lose, tp, tp_spawn, god, gun_cooldown, gun_reach, sens.
+/// restart, level_list, level_load, level_next, win, lose, tp, tp_spawn, god, gun_cooldown, gun_reach, sens, ecs_selftest (Debug).
 /// The commands capture the context, so the game unregisters them in Destroy().
 /// Level commands only make requests: the GameplayManager applies them in its next Update.
 /// </summary>
