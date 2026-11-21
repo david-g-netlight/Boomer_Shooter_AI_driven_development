@@ -19,6 +19,11 @@ namespace enemies
 		/// <summary>Removes every enemy. Called when a level loads.</summary>
 		void			Reset();
 
+		/// <summary>
+		/// The walkable box from the "Arena" actor's world box, shrunk by 1 m (§6.2). A null actor means no limits.
+		/// </summary>
+		void			SetArena(const eng::GameActor* arena);
+
 		/// <summary>The fixed step (50 Hz). Only the release step runs for now; the systems come in later phases.</summary>
 		void			FixedUpdate(float /*fixedDeltaTime*/);
 

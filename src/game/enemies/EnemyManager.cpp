@@ -30,12 +30,31 @@ namespace enemies
 		m_pool.Clear();
 	}
 
+	void EnemyManager::SetArena(const eng::GameActor* arena)
+	{
+		constexpr float MARGIN = 1.0f;	// m, keeps the enemies off the render cube's walls
+
+		const eng::MeshRenderer* renderer = arena ? arena->GetComponent<eng::MeshRenderer>() : nullptr;
+		if (!renderer)
+		{
+			m_arena = ArenaBounds{};
+			eng::Log::Warning("EnemyManager: no \"Arena\" actor with a mesh; the enemies have no height band");
+			return;
+		}
+
+		const BoundingBox box = renderer->GetWorldBounds();
+		m_arena.min = { box.min.x + MARGIN, box.min.y + MARGIN, box.min.z + MARGIN };
+		m_arena.max = { box.max.x - MARGIN, box.max.y - MARGIN, box.max.z - MARGIN };
+	}
+
 	void EnemyManager::FixedUpdate(float fixedDeltaTime)
 	{
 		SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
 		BrainSystem(m_registry, ctx, fixedDeltaTime);
 		IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
 		WanderSystem(m_registry, ctx, fixedDeltaTime);
+		AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
+		MovementSystem(m_registry, ctx, fixedDeltaTime);
 		m_pool.FlushReleased();
 	}
 

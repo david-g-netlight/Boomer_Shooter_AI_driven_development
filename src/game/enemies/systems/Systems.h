@@ -25,6 +25,12 @@ namespace enemies
 	/// <summary>Idle: the bob (§7.3). Writes the velocity only; MovementSystem moves the enemy.</summary>
 	void IdleFloatSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
+	/// <summary>Every pair closer than r_i + r_j + 0.5 m is pushed apart by its overlap (§5.3, step 6).</summary>
+	void AvoidOthersSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
+
+	/// <summary>Moves every enemy: sweep and slide at walls, the height band, then the overlap fix (§5.3, step 7).</summary>
+	void MovementSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
+
 	/// <summary>Wander: forward speed, the wall probe, and a new direction when there is a wall (§7.3).</summary>
 	void WanderSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
