@@ -14,6 +14,7 @@ namespace enemies
 		constexpr uint32_t WALLS			= eng::Layer::Ground | eng::Layer::Prop;
 		constexpr float	MIN_ROOM			= 2.0f;							// m, the candidate must have this much free
 		constexpr int	ROOM_TRIES			= 8;
+		constexpr float	AWAY_FROM_WALL		= 0.5f;							// dot(new direction, wall normal): at most 60 degrees from the normal
 		constexpr float	AVOID_PUSH_SPEED	= 3.0f;							// m/s, a full overlap pushes this hard
 		constexpr float	AVOID_GAP			= 0.5f;							// m, the space kept between two enemies
 
@@ -72,13 +73,16 @@ namespace enemies
 			if (!wall)
 				return;
 
-			// 3-4. A wall is near: try random directions, up to ROOM_TRIES, that have room; else reflect off the wall
+			// 3-4. A wall is near: try random directions, up to ROOM_TRIES, that lead away from the wall and have room;
+			// else reflect off the wall. Away matters: a direction along the wall passes the room check, and the enemy
+			// would then slide along the wall without the probe ever firing again.
 			Vector3 candidate = motion.forward;
 			bool found = false;
 			for (int tries = 0; tries < ROOM_TRIES && !found; ++tries)
 			{
 				candidate = RandomUnitDirection(wander.rngState);
-				found = HasRoom(ctx, transform.position, candidate, radius);
+				found = Vector3DotProduct(candidate, wall->normal) >= AWAY_FROM_WALL
+					&& HasRoom(ctx, transform.position, candidate, radius);
 			}
 			if (!found)
 				candidate = Vector3Reflect(motion.forward, wall->normal);

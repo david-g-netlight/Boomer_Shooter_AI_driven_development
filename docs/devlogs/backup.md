@@ -19,6 +19,7 @@ See the plan's §0 for the reasons.
 | E‑D13 | 2026-11-21 | AI and movement in the fixed step; animation and render per frame | §0, §3.3 |
 | E‑D14 | 2026-11-21 | `Primitive::Pyramid` from `GenMeshCone(0.5, 1, 4)` | §0, §8.2 |
 | E‑D15 | 2026-11-21 | Review (Q3): fake aggro. A shot enemy outside its range stays in Wander and turns toward the shot origin (`Alert` component) | §0, §7.3, §9.1 |
+| E‑D16 | 2026-11-21 | Wander: a new direction after a wall must lead away from it (dot with the wall normal ≥ 0.5, in addition to the room check). Found in test: a tangent direction passed the room check, so the enemy slid along the wall and the probe never fired again | §7.3 step 3–4 |
 
 ---
 
@@ -58,6 +59,7 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-21 | E2 | Developer tested E2 and reported that enemies slide along walls without turning. Change: `WanderSystem` only accepts a new direction with dot(normal) ≥ 0.5 (decision E‑D16). Not verified in game yet. Built Debug and Release clean | Developer re-tests the wall behaviour | — |
 | 2026-11-21 | E2 | Branch `enemy_ai_idle_wander` (from `integration`, which has E0 and E1). Commits: `Brain` + `NextState` + `BrainSystem` (Idle, Wander); `IdleFloatSystem`, `WanderSystem`; `AvoidOthersSystem`, `MovementSystem`, `ArenaBounds` from the "Arena" actor; `ai_debug`, `ai_freeze`, `EnemyDebugDraw`. Builds: Debug and Release clean, incremental and from scratch (`build/check-*`), no warnings. Debug app ran 8 s: `ArenaGame initialized`, no errors. **Not run:** any enemy in the game (no interactive run); the 5 min / 20 enemies bounds check; the wall-turn and no-stacking checks; `ai_debug` and `ai_freeze` in game. Known limit: the sweep slides once per tick. | Developer runs the E2 **Done when** check | — |
 | 2026-11-21 | E1 | Developer validated E1 (spawns, `enemy_spawn_all`, pool full, `restart`, material warning fixed); merged into `integration`, branch renamed `done/enemy_pool_and_render`. Tracker: E1 ✅, Done when ticked. Next: E2 on `enemy_ai_idle_wander` | Start E2 | — |
 | 2026-11-21 | E1 | Developer reported `restart` does not remove the enemies. Cause: `restart` goes through `GameplayManager` → `ArenaGame::LoadLevelFile` (the game's loader). `OnLevelLoaded` is only called by the editor's `LoadNow`, so `EnemyManager::Reset` never ran in play. Fix: reset in `LoadLevelFile`; `OnLevelLoaded` keeps its reset for the editor. Debug and Release clean. Not run: `restart` in game | Developer runs `enemy_spawn` then `restart` | — |
