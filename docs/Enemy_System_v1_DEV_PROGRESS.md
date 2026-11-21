@@ -21,13 +21,13 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 |---|---|---|---|---|---|---|
 | E0 | ECS core | `done/enemy_ecs_core` | ✅ | 2026-11-21 | 2026-11-21 | `engine/ecs/`, header‑only, std only |
 | E1 | Pool and visible enemies | `done/enemy_pool_and_render` | ✅ | 2026-11-21 | 2026-11-21 | `Primitive::Pyramid`, 3 archetypes, capacity 32 |
-| E2 | Idle and wander | `enemy_ai_idle_wander` | ⬜ | | | Movement, walls, avoidance |
+| E2 | Idle and wander | `enemy_ai_idle_wander` | 🟡 | 2026-11-21 | | Movement, walls, avoidance |
 | E3 | Shooting enemies | `enemy_damage` | ⬜ | | | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
 | E4 | Chase and attack | `enemy_ai_chase_attack` | ⬜ | | | Hysteresis 1.2 ×, player health, lose |
 | E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
 
-**Current focus:** E2 — Idle and wander (`enemy_ai_idle_wander`, not started).
-**Branch:** `integration`
+**Current focus:** E2 — Idle and wander (`enemy_ai_idle_wander`).
+**Branch:** `enemy_ai_idle_wander`
 
 ---
 
@@ -46,11 +46,11 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] Console: `enemy_spawn`, `enemy_spawn_all`, `enemy_list`, `kill_all` (removes for now) (+ `enemy_spawn` puts the group in a grid: the first row 6 m in front, 1.5 m apart, so they do not stack; `enemy_spawn_all` is 15 Drifters, 4 Stalkers, 1 Brute)
 - [x] **Done when:** `enemy_spawn drifter 5`, `stalker 3`, `brute 2` show three sizes and colours; `enemy_spawn_all` shows 20; a 33rd spawn logs "pool full"; `restart` removes them; no allocation after Init
 
-### Phase E2 — Idle and wander ⬜
-- [ ] `Brain` + `EnemyBrain` (`NextState`, `BrainSystem`) with Idle and Wander only
-- [ ] `IdleFloatSystem` (5 s bob through velocity) and `WanderSystem` (probe ray, unit‑sphere draw, room check, 8 tries + reflect, snap + smooth turn)
-- [ ] `AvoidOthersSystem` and `MovementSystem` (sweep ray, slide, height band, overlap fix); `ArenaBounds` from the `"Arena"` actor
-- [ ] `ai_debug`, `ai_freeze` cvars, `EnemyDebugDraw`
+### Phase E2 — Idle and wander 🟡
+- [x] `Brain` + `EnemyBrain` (`NextState`, `BrainSystem`) with Idle and Wander only (+ `NextState` takes only the `Brain` in E2 and handles Idle and Wander; `Brain` got `baseY` (the bob centre), set at spawn as well as on entering Idle; the rest of §7.1 comes in E4)
+- [x] `IdleFloatSystem` (5 s bob through velocity) and `WanderSystem` (probe ray, unit‑sphere draw, room check, 8 tries + reflect, snap + smooth turn) (+ the bob is a velocity, plus a pull onto the bob centre so it does not drift; the Wander spin of §8.2 is not done: it is an animation, not in this checkbox)
+- [x] `AvoidOthersSystem` and `MovementSystem` (sweep ray, slide, height band, overlap fix); `ArenaBounds` from the `"Arena"` actor (+ `ArenaBounds` is shrunk 1 m from the "Arena" box and set on each level load; without an Arena actor there are no limits and a warning; the sweep slides once, a second wall within the same step is not swept; the push speed 3 m/s is a tuning value)
+- [x] `ai_debug`, `ai_freeze` cvars, `EnemyDebugDraw` (+ `ai_debug` also switches the engine's DebugDraw on, since it drops everything while off; trigger and attack spheres come in E4)
 - [ ] **Done when:** enemies float 5 s, then roam; none leaves the arena or passes the floor or ceiling in 5 minutes with 20 enemies; they turn before walls; they do not stack; `ai_debug` shows probes and states
 
 ### Phase E3 — Shooting enemies ⬜
