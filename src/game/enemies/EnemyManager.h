@@ -7,7 +7,7 @@ namespace enemies
 {
 	/// <summary>
 	/// Owns the enemy registry and the pool, and runs the enemy systems in their fixed order (plan §5.3).
-	/// ArenaGame calls it from its FixedUpdate, SubmitRenderables and OnLevelLoaded.
+	/// ArenaGame calls it from its FixedUpdate and SubmitRenderables, and resets it in LoadLevelFile (the game's loader).
 	/// </summary>
 	class EnemyManager
 	{

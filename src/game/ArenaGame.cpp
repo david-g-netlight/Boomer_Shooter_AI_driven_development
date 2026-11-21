@@ -96,6 +96,7 @@ eng::Level* ArenaGame::GetActiveLevel()
 bool ArenaGame::LoadLevelFile(const std::string& path)
 {
 	m_player.Reset();
+	m_enemies.Reset();		// the game's own loads (start, next level, restart, retry) do not call OnLevelLoaded
 	const bool isLoaded = eng::LevelSerializer::Load(m_level, path).ok;
 	if (!isLoaded)
 	{
