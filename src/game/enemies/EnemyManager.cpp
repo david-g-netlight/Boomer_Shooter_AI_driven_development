@@ -11,12 +11,14 @@ namespace enemies
 		for (size_t i = 0; i < m_materials.byType.size(); ++i)
 		{
 			const EnemyArchetype& archetype = GetArchetype(static_cast<EnemyType>(i));
+			// Made here, not in EnemyMaterials' constructor: a Material takes raylib's default texture from the
+			// window, and the constructor of ArenaGame runs before the window exists (the texture would be id 0)
 			EnemyMaterials::Set& set = m_materials.byType[i];
-			set.body.SetShader(lit);
+			set.body = eng::Material(lit);
 			set.body.SetTint(archetype.bodyColor);
-			set.bodyFlash.SetShader(lit);
+			set.bodyFlash = eng::Material(lit);
 			set.bodyFlash.SetTint(WHITE);
-			set.spike.SetShader(lit);
+			set.spike = eng::Material(lit);
 			set.spike.SetTint(archetype.spikeColor);
 		}
 	}
