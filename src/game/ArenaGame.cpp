@@ -21,6 +21,10 @@ bool ArenaGame::Init()
 	Settings::Instance().Apply();
 
 	RegisterComponents();
+#ifndef NDEBUG
+	for (const std::string& failure : eng::ecs::RunRegistrySelfTest())
+		eng::Log::Error("ECS self-check failed: %s", failure.c_str());
+#endif
 	BindInput();
 	GameContext::SetGameState(&m_gameState);
 

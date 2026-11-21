@@ -35,6 +35,9 @@
 #include "ui/MenuScreens.h"
 #include "core/MathUtils.h"
 #include "ecs/Registry.h"
+#ifndef NDEBUG
+#include "ecs/RegistrySelfTest.h"
+#endif
 #include "input/InputManager.h"
 #include "input/InputMap.h"
 #include "resources/ResourceManager.h"
