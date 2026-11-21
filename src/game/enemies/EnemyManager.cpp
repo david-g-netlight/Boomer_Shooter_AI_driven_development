@@ -34,6 +34,8 @@ namespace enemies
 	{
 		SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
 		BrainSystem(m_registry, ctx, fixedDeltaTime);
+		IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
+		WanderSystem(m_registry, ctx, fixedDeltaTime);
 		m_pool.FlushReleased();
 	}
 

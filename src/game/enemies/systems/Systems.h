@@ -1,6 +1,7 @@
 #pragma once
 #include <eng.h>
 #include <cstdint>
+#include <optional>
 
 namespace enemies
 {
@@ -20,6 +21,12 @@ namespace enemies
 		eng::PhysicsWorld&	physics;
 		ArenaBounds			bounds;
 	};
+
+	/// <summary>Idle: the bob (§7.3). Writes the velocity only; MovementSystem moves the enemy.</summary>
+	void IdleFloatSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
+
+	/// <summary>Wander: forward speed, the wall probe, and a new direction when there is a wall (§7.3).</summary>
+	void WanderSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
 	/// <summary>xorshift32 step (the RNG of Wander, §5.1). The state must never be 0.</summary>
 	inline uint32_t NextRandom(uint32_t& state)
