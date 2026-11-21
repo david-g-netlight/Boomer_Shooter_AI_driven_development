@@ -34,8 +34,8 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 ## Phase checklists
 
 ### Phase E0 — ECS core 🟡
-- [ ] `engine/ecs/Entity.h` (16‑bit index + 16‑bit generation), `ComponentPool.h` (sparse set, swap‑remove), `Registry.h` (create / destroy / free list, `Add` / `Get` / `Remove`, `Each<A, Rest...>`, `Clear`); `eng.h` includes `ecs/Registry.h`
-- [ ] Debug self‑check (`#ifndef NDEBUG`) + console `ecs_selftest`
+- [x] `engine/ecs/Entity.h` (16‑bit index + 16‑bit generation), `ComponentPool.h` (sparse set, swap‑remove), `Registry.h` (create / destroy / free list, `Add` / `Get` / `Remove`, `Each<A, Rest...>`, `Clear`); `eng.h` includes `ecs/Registry.h` (+ `IComponentPool` lives in `ComponentPool.h`; `Registry` also keeps an `m_alive` flag per slot, so a free slot's current generation is not treated as alive)
+- [x] Debug self‑check (`#ifndef NDEBUG`) + console `ecs_selftest` (+ the checks live in `ecs/RegistrySelfTest.h`, a new header; the startup check runs in `ArenaGame::Init`; the command is in `GameCommands`)
 - [ ] **Done when:** Debug and Release build clean; `ecs_selftest` passes (stale id rejected, packed after removes, `Each` visits only full matches, `Clear` keeps capacity)
 
 ### Phase E1 — Pool and visible enemies ⬜
