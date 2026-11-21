@@ -21,6 +21,7 @@ bool ArenaGame::Init()
 	Settings::Instance().Apply();
 
 	RegisterComponents();
+	m_enemies.Init();
 #ifndef NDEBUG
 	for (const std::string& failure : eng::ecs::RunRegistrySelfTest())
 		eng::Log::Error("ECS self-check failed: %s", failure.c_str());
@@ -139,6 +140,7 @@ void ArenaGame::OnLevelLoaded()
 	for (const auto& owned : m_level.GetActors())
 		if (owned->GetComponent<eng::CharacterMotor>())
 			owned->MarkForDestroy();
+	m_enemies.Reset();
 	SpawnPlayer();
 }
 
@@ -180,6 +182,16 @@ void ArenaGame::UpdateMenuCamera(float deltaTime)
 	const float angle = m_orbitAngle * DEG2RAD;
 	m_camera.SetPosition({ std::sin(angle) * ORBIT_RADIUS, ORBIT_HEIGHT, std::cos(angle) * ORBIT_RADIUS });
 	m_camera.LookAt({ 0.0f, 1.0f, 0.0f });
+}
+
+void ArenaGame::FixedUpdate(float fixedDeltaTime)
+{
+	m_enemies.FixedUpdate(fixedDeltaTime);
+}
+
+void ArenaGame::SubmitRenderables(eng::RenderQueue& queue)
+{
+	m_enemies.Submit(queue);
 }
 
 void ArenaGame::DrawViewModel()
