@@ -2,6 +2,7 @@
 #include "AnimationSystem.h"
 #include "ai/EnemyBrain.h"
 #include "systems/Systems.h"
+#include "EnemyDebugDraw.h"
 
 namespace enemies
 {
@@ -49,12 +50,15 @@ namespace enemies
 
 	void EnemyManager::FixedUpdate(float fixedDeltaTime)
 	{
-		SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
-		BrainSystem(m_registry, ctx, fixedDeltaTime);
-		IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
-		WanderSystem(m_registry, ctx, fixedDeltaTime);
-		AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
-		MovementSystem(m_registry, ctx, fixedDeltaTime);
+		if (!m_debug.freeze)
+		{
+			SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
+			BrainSystem(m_registry, ctx, fixedDeltaTime);
+			IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
+			WanderSystem(m_registry, ctx, fixedDeltaTime);
+			AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
+			MovementSystem(m_registry, ctx, fixedDeltaTime);
+		}
 		m_pool.FlushReleased();
 	}
 
@@ -66,5 +70,13 @@ namespace enemies
 	void EnemyManager::Submit(eng::RenderQueue& queue)
 	{
 		RenderSystem(m_registry, m_materials, queue);
+
+		if (m_debug.draw)
+		{
+			eng::DebugDraw& debug = eng::Engine::GetInstance().GetDebugDraw();
+			if (!debug.IsEnabled())
+				debug.SetEnabled(true);		// the engine drops debug items while it is disabled
+			DrawEnemyDebug(m_registry, debug);
+		}
 	}
 }

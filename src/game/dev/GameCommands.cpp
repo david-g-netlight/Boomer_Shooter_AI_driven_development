@@ -287,6 +287,11 @@ void GameCommands::Register(const GameCommandContext& context)
 		con.Print("kill_all: %d enemies removed", count);
 	});
 
+	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("ai_debug", &context.enemyManager->GetDebugSettings().draw,
+		"Enemy AI debug: wall probes and state labels")));
+	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("ai_freeze", &context.enemyManager->GetDebugSettings().freeze,
+		"Enemies hang in the air: AI and movement skipped (aim and damage tests)")));
+
 #ifndef NDEBUG
 	add("ecs_selftest", "ecs_selftest", "Runs the ECS storage self-check", [](const eng::ConsoleArgs&, eng::DevConsole& con)
 	{
