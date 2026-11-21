@@ -2,6 +2,7 @@
 #include <eng.h>
 #include "EnemyPool.h"
 #include "RenderSystem.h"
+#include "systems/Systems.h"
 
 namespace enemies
 {
@@ -33,6 +34,7 @@ namespace enemies
 
 	private:
 		eng::ecs::Registry	m_registry{ EnemyPool::CAPACITY };
+		ArenaBounds			m_arena;
 		EnemyPool			m_pool;
 		EnemyMaterials		m_materials;
 	};

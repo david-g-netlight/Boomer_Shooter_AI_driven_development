@@ -42,7 +42,7 @@ namespace enemies
 		m_registry->Add<EnemyKind>(e, EnemyKind{ type });
 		m_registry->Add<Transform>(e, Transform{ position, rotation });
 		m_registry->Add<Motion>(e, Motion{ Vector3Zero(), facing, DEG2RAD * archetype.turnRateDeg });
-		m_registry->Add<Brain>(e, Brain{});
+		m_registry->Add<Brain>(e, Brain{ AiState::Idle, 0.0f, 5.0f, position.y });
 		m_registry->Add<ScanForPlayer>(e, ScanForPlayer{
 			archetype.triggerRadius * archetype.triggerRadius,
 			archetype.loseRadius * archetype.loseRadius });

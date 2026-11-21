@@ -1,5 +1,7 @@
 #include "EnemyManager.h"
 #include "AnimationSystem.h"
+#include "ai/EnemyBrain.h"
+#include "systems/Systems.h"
 
 namespace enemies
 {
@@ -28,8 +30,10 @@ namespace enemies
 		m_pool.Clear();
 	}
 
-	void EnemyManager::FixedUpdate(float /*fixedDeltaTime*/)
+	void EnemyManager::FixedUpdate(float fixedDeltaTime)
 	{
+		SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
+		BrainSystem(m_registry, ctx, fixedDeltaTime);
 		m_pool.FlushReleased();
 	}
 

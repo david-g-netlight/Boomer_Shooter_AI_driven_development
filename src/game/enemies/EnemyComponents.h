@@ -29,6 +29,7 @@ namespace enemies
 		AiState	state			= AiState::Idle;
 		float	stateTime		= 0.0f;		// seconds in the current state
 		float	idleDuration	= 5.0f;
+		float	baseY			= 0.0f;		// the bob centre, stored when Idle is entered (§7.2)
 	};
 
 	struct ScanForPlayer
