@@ -102,6 +102,7 @@ namespace enemies
 		float		scale			= 1.0f;
 		float		spawnTime		= 0.0f;	// scale-in: 0.3 s from 0 to 1 (§8.2)
 		float		lunge			= 0.0f;	// metres of forward offset of the body
+		float		lungeLeft		= 0.0f;	// s left of the lunge; DealDamageSystem starts it, AnimationSystem plays it
 		float		bobPhase		= 0.0f;
 		Quaternion	renderRotation	= { 0.0f, 0.0f, 0.0f, 1.0f };	// smoothed toward Transform.rotation
 	};

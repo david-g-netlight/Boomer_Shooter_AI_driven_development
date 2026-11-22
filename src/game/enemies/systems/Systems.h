@@ -46,6 +46,18 @@ namespace enemies
 	/// </summary>
 	void LifeSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
+	/// <summary>
+	/// Chase and Attack (§7.3): clears a raised Alert (the enemy knows where the player is), turns forward toward the
+	/// player by at most turnRate · dt, and moves along it; in Attack the speed is 0 and the enemy only faces the player.
+	/// </summary>
+	void ChaseSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
+
+	/// <summary>
+	/// The attack (§5.3, step 8): the cooldown ticks in every state (E-D5); in Attack with the cooldown ready it
+	/// publishes PlayerHitEvent, restarts the cooldown and starts the lunge. No projectile and no miss: in range means hit.
+	/// </summary>
+	void DealDamageSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
+
 	/// <summary>Wander: a raised Alert turns forward toward the shooter first (E-D15); then forward speed, the wall probe, and a new direction when there is a wall (§7.3).</summary>
 	void WanderSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 

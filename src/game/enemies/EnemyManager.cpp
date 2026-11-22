@@ -103,8 +103,10 @@ namespace enemies
 			BrainSystem(m_registry, ctx, fixedDeltaTime);
 			IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
 			WanderSystem(m_registry, ctx, fixedDeltaTime);
+			ChaseSystem(m_registry, ctx, fixedDeltaTime);
 			AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
 			MovementSystem(m_registry, ctx, fixedDeltaTime);
+			DealDamageSystem(m_registry, ctx, fixedDeltaTime);
 			LifeSystem(m_registry, ctx, fixedDeltaTime);
 			
 #if ENG_DEV_CONSOLE
