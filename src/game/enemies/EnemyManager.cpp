@@ -50,6 +50,15 @@ namespace enemies
 
 		life->hp -= shot.damage;
 		life->hitFlash = HIT_FLASH_TIME;
+
+		// Fake aggro (E-D15): an Idle or Wander enemy (the player is outside its chase range) turns toward the shot origin
+		const Brain* brain = m_registry.Get<Brain>(shot.enemy);
+		Alert* alert = m_registry.Get<Alert>(shot.enemy);
+		if (brain && alert && life->hp > 0.0f && (brain->state == AiState::Idle || brain->state == AiState::Wander))
+		{
+			alert->shotFrom = shot.origin;
+			alert->pending = true;
+		}
 	}
 
 	void EnemyManager::Reset()

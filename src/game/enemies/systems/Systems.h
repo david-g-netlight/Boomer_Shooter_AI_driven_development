@@ -38,7 +38,7 @@ namespace enemies
 	/// </summary>
 	void LifeSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
-	/// <summary>Wander: forward speed, the wall probe, and a new direction when there is a wall (§7.3).</summary>
+	/// <summary>Wander: a raised Alert turns forward toward the shooter first (E-D15); then forward speed, the wall probe, and a new direction when there is a wall (§7.3).</summary>
 	void WanderSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
 	/// <summary>xorshift32 step (the RNG of Wander, §5.1). The state must never be 0.</summary>

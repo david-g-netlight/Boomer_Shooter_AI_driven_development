@@ -59,10 +59,22 @@ namespace enemies
 
 	void WanderSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float /*dt*/)
 	{
-		registry.Each<Brain, Transform, Motion, Wander, CollisionSphere>([&](eng::ecs::Entity, Brain& brain, Transform& transform, Motion& motion, Wander& wander, CollisionSphere& sphere)
+		registry.Each<Brain, Transform, Motion, Wander, CollisionSphere, Alert>([&](eng::ecs::Entity, Brain& brain, Transform& transform, Motion& motion, Wander& wander, CollisionSphere& sphere, Alert& alert)
 		{
 			if (brain.state != AiState::Wander)
 				return;
+
+			// 0. A raised Alert: turn toward where the player stood when they shot (E-D15), once
+			if (alert.pending)
+			{
+				const Vector3 toShooter = Vector3Subtract(alert.shotFrom, transform.position);
+				if (Vector3LengthSqr(toShooter) > 1.0e-4f)
+				{
+					motion.forward = Vector3Normalize(toShooter);
+					transform.rotation = eng::LookRotation(motion.forward);
+				}
+				alert.pending = false;
+			}
 
 			// 1. Move along forward
 			motion.velocity = Vector3Scale(motion.forward, wander.speed);
