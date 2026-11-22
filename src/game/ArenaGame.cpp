@@ -191,6 +191,8 @@ void ArenaGame::UpdateMenuCamera(float deltaTime)
 
 void ArenaGame::FixedUpdate(float fixedDeltaTime)
 {
+	const eng::GameActor* player = m_player.Get();
+	m_enemies.SetPlayer(player ? player->GetWorldPosition() : Vector3{ 0.0f, 0.0f, 0.0f }, player && m_gameState.IsPlaying());
 	m_enemies.FixedUpdate(fixedDeltaTime);
 }
 

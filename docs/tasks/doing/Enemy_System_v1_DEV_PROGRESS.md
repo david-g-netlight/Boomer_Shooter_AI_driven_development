@@ -23,11 +23,11 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | E1 | Pool and visible enemies | `done/enemy_pool_and_render` | ✅ | 2026-11-21 | 2026-11-21 | `Primitive::Pyramid`, 3 archetypes, capacity 32 |
 | E2 | Idle and wander | `done/enemy_ai_idle_wander` | ✅ | 2026-11-21 | 2026-11-22 | Movement, walls, avoidance |
 | E3 | Shooting enemies | `done/enemy_damage` | ✅ | 2026-11-22 | 2026-11-22 | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
-| E4 | Chase and attack | `enemy_ai_chase_attack` | ⬜ | | | Hysteresis 1.2 ×, player health, lose |
+| E4 | Chase and attack | `enemy_ai_chase_attack` | 🟡 | 2026-11-22 | | Hysteresis 1.2 ×, player health, lose |
 | E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
 
 **Current focus:** E4 — Chase and attack (`enemy_ai_chase_attack`).
-**Branch:** none yet (E4 starts from `integration`)
+**Branch:** `enemy_ai_chase_attack`
 
 ---
 
@@ -60,7 +60,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `SoundFXBank`: `PlayEnemyHit`, `PlayEnemyDeath` (+ there is only one sound file: both sounds are the ping at another pitch; the hit sound is not placed at the hit point, the bank has no 3D play)
 - [x] **Done when:** Drifter 3 hits, Stalker 6, Brute 12; hits flash; a wall in front protects an enemy; an enemy behind another is not hit; `kill_all` plays every death; spawn 32 → kill all → spawn 32 works; an enemy shot from outside its range turns toward where the player stood and stays in Wander
 
-### Phase E4 — Chase and attack ⬜
+### Phase E4 — Chase and attack 🟡
 - [ ] `ScanForPlayer` + `ScanSystem` (trigger and lose radius, E‑D6); Brain gets Chase, Attack, Dying and the player‑dead rule; attack exit at 1.2 × range
 - [ ] `ChaseSystem` (turn rate), `DealDamageSystem` (1 s cooldown that keeps ticking, E‑D5), lunge animation
 - [ ] `PlayerState` health (100), `ApplyDamage`, `god`; `PlayerHitEvent` / `PlayerDiedEvent` → `LoseGame`

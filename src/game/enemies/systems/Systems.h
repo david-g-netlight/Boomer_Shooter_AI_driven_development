@@ -22,7 +22,15 @@ namespace enemies
 		ArenaBounds			bounds;
 		eng::EventBus&		events;
 		eng::ParticleSystem&	particles;
+		Vector3				playerTarget;	// the player's chest
+		bool				playerAlive;
 	};
+
+	/// <summary>
+	/// distSq to the player and the direction toward them (§5.3, step 1). The direction is only worked out
+	/// when the enemy is inside its lose radius, so the square root is skipped for far enemies.
+	/// </summary>
+	void ScanSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
 	/// <summary>Idle: the bob (§7.3). Writes the velocity only; MovementSystem moves the enemy.</summary>
 	void IdleFloatSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
@@ -34,7 +42,7 @@ namespace enemies
 	void MovementSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
 	/// <summary>
-	/// hp <= 0: Dying for 0.25 s, then isDead (FlushReleased destroys the entity), a particle burst and EnemyKilledEvent (§5.3, step 9).
+	/// In Dying (BrainSystem sets it when hp <= 0): 0.25 s, then isDead (FlushReleased destroys the entity), a particle burst and EnemyKilledEvent (§5.3, step 9).
 	/// </summary>
 	void LifeSystem(eng::ecs::Registry& registry, const SystemContext& ctx, float dt);
 
