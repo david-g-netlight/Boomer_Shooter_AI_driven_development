@@ -53,6 +53,7 @@ void ArenaGame::RegisterComponents()
 	registry.Register<WinTrigger>("WinTrigger");
 	registry.Register<LoseTrigger>("LoseTrigger");
 	registry.Register<NextLevelTrigger>("NextLevelTrigger");
+	registry.Register<enemies::EnemySpawnPoint>("EnemySpawnPoint");
 }
 
 void ArenaGame::BindInput()

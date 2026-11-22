@@ -3,6 +3,7 @@
 #include "EnemyPool.h"
 #include "RenderSystem.h"
 #include "systems/Systems.h"
+#include "EnemySpawnPoint.h"
 #include "player/HitscanTargets.h"
 
 struct ShotFiredEvent;

@@ -24,10 +24,10 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | E2 | Idle and wander | `done/enemy_ai_idle_wander` | ✅ | 2026-11-21 | 2026-11-22 | Movement, walls, avoidance |
 | E3 | Shooting enemies | `done/enemy_damage` | ✅ | 2026-11-22 | 2026-11-22 | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
 | E4 | Chase and attack | `done/enemy_ai_chase_attack` | ✅ | 2026-11-22 | 2026-11-22 | Hysteresis 1.2 ×, player health, lose |
-| E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
+| E5 | Waves | `enemy_waves` | 🟡 | 2026-11-22 | | 7 / 7 / 6 = 20, 6 spawn points, win |
 
 **Current focus:** E5 — Waves (`enemy_waves`).
-**Branch:** none yet (E5 starts from `integration`)
+**Branch:** `enemy_waves`
 
 ---
 
@@ -67,7 +67,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] HUD health bar + hurt flash; `PlayPlayerHurt`; console `player_hp` (+ the hurt flash is a timer in `PlayerState`, ticked by the Gun; `PlayPlayerHurt` is the ping at a low pitch; `player_hp 0` publishes `PlayerDiedEvent`)
 - [x] **Done when:** chase starts inside the trigger radius and stops (idle 5 s) only beyond 1.2 ×; no flicker at either edge; in range it lunges and hits once per second; leaving and re‑entering range does not reset the cooldown; 0 HP shows "You died"; `god 1` takes no damage; the three types are clearly harder in order
 
-### Phase E5 — Waves ⬜
+### Phase E5 — Waves 🟡
 - [ ] `EnemySpawnPoint` component (registered, saved); 6 spawn actors in `arena_01.lvl` at (±6, 3, 0), (±6, 3, −14), (±6, 3, −28)
 - [ ] `WaveDirector`: table 7 / 7 / 6 (§6.2), staggered spawns, spawn safety (4 m from the player, 1.5 m from enemies), `WaveStartedEvent`, `WavesClearedEvent` → `WinGame`
 - [ ] HUD "Wave n / 3 · k left"; console `wave_start`, `wave_skip`, `waves`, `enemy_tune`
