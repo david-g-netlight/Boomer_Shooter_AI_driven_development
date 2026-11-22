@@ -113,7 +113,7 @@ void ArenaGame::SpawnPlayer()
 {
 	const eng::SpawnPoint& spawn = m_level.GetSpawn();
 	const Vector3 feet = spawn.isSet ? spawn.position : Vector3{ 0.0f, 1.0f, 0.0f };
-	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera }, feet, spawn.isSet ? spawn.yawDegrees : 0.0f, false);
+	m_player = PlayerActor::Create(m_level, { &m_input, &m_playerState, &m_camera, &m_enemies }, feet, spawn.isSet ? spawn.yawDegrees : 0.0f, false);
 }
 
 void ArenaGame::OnSettingsRequested()

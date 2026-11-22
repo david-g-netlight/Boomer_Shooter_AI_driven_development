@@ -3,6 +3,7 @@
 
 class PlayerInput;
 class PlayerState;
+class HitscanTargets;
 
 /// <summary>
 /// What the player's components need. All of it is owned by the game and outlives the Level.
@@ -12,6 +13,7 @@ struct PlayerContext
 	PlayerInput*	input	= nullptr;
 	PlayerState*	state	= nullptr;
 	eng::Camera*	camera	= nullptr;
+	const HitscanTargets*	targets	= nullptr;	// what the gun can hit besides walls and props (the enemies)
 };
 
 /// <summary>

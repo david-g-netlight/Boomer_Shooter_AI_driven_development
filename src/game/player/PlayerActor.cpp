@@ -20,7 +20,7 @@ eng::GameActor* PlayerActor::Create(eng::Level& level, const PlayerContext& cont
 	FirstPersonLook* look = player->AddComponent<FirstPersonLook>();
 	look->Bind(context.input, context.camera);
 	look->SetYawPitch(yawDegrees, 0.0f);
-	player->AddComponent<Gun>()->Bind(context.input, context.state, context.camera);
+	player->AddComponent<Gun>()->Bind(context.input, context.state, context.camera, context.targets);
 
 	if (withBodyMesh)
 	{

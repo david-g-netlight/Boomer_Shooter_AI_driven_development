@@ -8,11 +8,12 @@ namespace
 	constexpr uint32_t SHOT_MASK = eng::Layer::Ground | eng::Layer::Prop;
 }
 
-void Gun::Bind(PlayerInput* input, PlayerState* state, eng::Camera* camera)
+void Gun::Bind(PlayerInput* input, PlayerState* state, eng::Camera* camera, const HitscanTargets* targets)
 {
 	m_input		= input;
 	m_state		= state;
 	m_camera	= camera;
+	m_targets	= targets;
 }
 
 void Gun::Update(float /*deltaTime*/)
@@ -28,6 +29,19 @@ void Gun::Update(float /*deltaTime*/)
 		m_aim.isTarget	= hit->collider && hit->collider->GetLayer() == eng::Layer::Prop;
 		m_aim.distance	= hit->distance;
 		m_aim.target	= hit->actor;
+	}
+
+	// An enemy in front of the wall (or the prop) takes the aim
+	const float maxDistance = m_aim.hasHit ? m_aim.distance : m_state->GetReach();
+	if (m_targets)
+	{
+		if (const auto enemy = m_targets->Raycast(m_camera->GetPosition(), m_camera->Forward(), maxDistance))
+		{
+			m_aim.hasHit	= true;
+			m_aim.isTarget	= true;
+			m_aim.distance	= enemy->distance;
+			m_aim.target	= {};
+		}
 	}
 }
 
@@ -55,11 +69,10 @@ bool Gun::Fire()
 	const float reach		= m_state->GetReach();
 
 	ShotFiredEvent shot;
+	shot.origin		= origin;
 	shot.muzzle		= Vector3Add(origin, Vector3Add(Vector3Scale(m_camera->Right(), MUZZLE_RIGHT),
 					  Vector3Add(Vector3Scale(m_camera->Up(), -MUZZLE_DOWN), Vector3Scale(forward, MUZZLE_FORWARD))));
-	shot.hasHit		= false;
 	shot.point		= Vector3Add(origin, Vector3Scale(forward, reach));
-	shot.normal		= { 0.0f, 1.0f, 0.0f };
 
 	if (const auto hit = eng::Engine::GetInstance().GetPhysics().Raycast(origin, forward, reach, SHOT_MASK))
 	{
@@ -67,6 +80,21 @@ bool Gun::Fire()
 		shot.point	= hit->point;
 		shot.normal	= hit->normal;
 		shot.target	= hit->actor;
+	}
+
+	// The wall (or prop) distance first, then the enemies in front of it
+	if (m_targets)
+	{
+		const float maxDistance = shot.hasHit ? Vector3Distance(origin, shot.point) : reach;
+		if (const auto enemy = m_targets->Raycast(origin, forward, maxDistance))
+		{
+			shot.hasHit	= true;
+			shot.point	= enemy->point;
+			shot.normal	= enemy->normal;
+			shot.target	= {};
+			shot.enemy	= enemy->entity;
+			shot.damage	= PlayerState::GUN_DAMAGE;
+		}
 	}
 
 	m_lastShot = shot;

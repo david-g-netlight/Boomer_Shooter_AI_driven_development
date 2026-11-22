@@ -3,6 +3,8 @@
 #include "ai/EnemyBrain.h"
 #include "systems/Systems.h"
 #include "EnemyDebugDraw.h"
+#include <raymath.h>
+#include <cmath>
 
 namespace enemies
 {
@@ -65,6 +67,37 @@ namespace enemies
 		}
 #endif	
 		m_pool.FlushReleased();
+	}
+
+	std::optional<HitscanHit> EnemyManager::Raycast(const Vector3& origin, const Vector3& dir, float maxDistance) const
+	{
+		std::optional<HitscanHit> best;
+		float bestDistance = maxDistance;
+
+		// Each is not const; the registry only holds enemy data and this test does not change it
+		auto& registry = const_cast<eng::ecs::Registry&>(m_registry);
+		registry.Each<Transform, CollisionSphere, Life>([&](eng::ecs::Entity e, Transform& transform, CollisionSphere& sphere, Life& life)
+		{
+			if (life.isDead || life.hp <= 0.0f)
+				return;
+
+			// |origin + t dir - centre|^2 = r^2 with |dir| = 1: t^2 + 2 b t + c = 0
+			const Vector3 toOrigin = Vector3Subtract(origin, transform.position);
+			const float b = Vector3DotProduct(toOrigin, dir);
+			const float c = Vector3DotProduct(toOrigin, toOrigin) - sphere.radius * sphere.radius;
+			const float discriminant = b * b - c;
+			if (discriminant < 0.0f)
+				return;
+
+			const float t = -b - std::sqrt(discriminant);	// the entry point
+			if (t < 0.0f || t > bestDistance)
+				return;
+
+			const Vector3 point = Vector3Add(origin, Vector3Scale(dir, t));
+			bestDistance = t;
+			best = HitscanHit{ e, point, Vector3Normalize(Vector3Subtract(point, transform.position)), t };
+		});
+		return best;
 	}
 
 	void EnemyManager::Animate(float deltaTime)
