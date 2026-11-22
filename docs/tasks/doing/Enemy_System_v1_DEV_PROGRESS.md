@@ -22,12 +22,12 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | E0 | ECS core | `done/enemy_ecs_core` | ✅ | 2026-11-21 | 2026-11-21 | `engine/ecs/`, header‑only, std only |
 | E1 | Pool and visible enemies | `done/enemy_pool_and_render` | ✅ | 2026-11-21 | 2026-11-21 | `Primitive::Pyramid`, 3 archetypes, capacity 32 |
 | E2 | Idle and wander | `done/enemy_ai_idle_wander` | ✅ | 2026-11-21 | 2026-11-22 | Movement, walls, avoidance |
-| E3 | Shooting enemies | `enemy_damage` | 🟡 | 2026-11-22 | | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
+| E3 | Shooting enemies | `done/enemy_damage` | ✅ | 2026-11-22 | 2026-11-22 | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
 | E4 | Chase and attack | `enemy_ai_chase_attack` | ⬜ | | | Hysteresis 1.2 ×, player health, lose |
 | E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
 
-**Current focus:** E3 — Shooting enemies (`enemy_damage`).
-**Branch:** `enemy_damage`
+**Current focus:** E4 — Chase and attack (`enemy_ai_chase_attack`).
+**Branch:** none yet (E4 starts from `integration`)
 
 ---
 
@@ -53,12 +53,12 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `ai_debug`, `ai_freeze` cvars, `EnemyDebugDraw` (+ `ai_debug` also switches the engine's DebugDraw on, since it drops everything while off; trigger and attack spheres come in E4)
 - [x] **Done when:** enemies float 5 s, then roam; none leaves the arena or passes the floor or ceiling in 5 minutes with 20 enemies; they turn before walls; they do not stack; `ai_debug` shows probes and states
 
-### Phase E3 — Shooting enemies 🟡
+### Phase E3 — Shooting enemies ✅
 - [x] `HitscanTargets` + `Gun` (wall distance first, then ray‑sphere); `ShotFiredEvent` + `enemy`, `damage`, `origin`; crosshair red on enemies (+ `GunAim` also takes the enemy, so the crosshair turns red on one; `PlayerState::GUN_DAMAGE` = 10; the targets reach the Gun through `PlayerContext`; the tracker's start edit (status 🟡, date, branch) was left out of this commit by mistake and is in the tracker commit)
 - [x] `Life`, shot handler (generation check), hit flash, `LifeSystem` (death animation, burst, `EnemyKilledEvent`), `FlushReleased` (+ `kill_all` now sets hp to 0, so every enemy plays its death; `LifeSystem` takes `SystemContext` with the event bus and particles; the shrink and the flash timer are in `AnimationSystem`; `EnemyManager::Shutdown` unsubscribes the shot handler)
 - [x] `Alert` (fake aggro, E‑D15): raised on Idle / Wander enemies; Idle → Wander; `WanderSystem` turns toward the shot origin; `ChaseSystem` clears it (+ `NextState` now also takes the `Alert`; the clearing by `ChaseSystem` comes with E4, which has no Chase yet)
 - [x] `SoundFXBank`: `PlayEnemyHit`, `PlayEnemyDeath` (+ there is only one sound file: both sounds are the ping at another pitch; the hit sound is not placed at the hit point, the bank has no 3D play)
-- [ ] **Done when:** Drifter 3 hits, Stalker 6, Brute 12; hits flash; a wall in front protects an enemy; an enemy behind another is not hit; `kill_all` plays every death; spawn 32 → kill all → spawn 32 works; an enemy shot from outside its range turns toward where the player stood and stays in Wander
+- [x] **Done when:** Drifter 3 hits, Stalker 6, Brute 12; hits flash; a wall in front protects an enemy; an enemy behind another is not hit; `kill_all` plays every death; spawn 32 → kill all → spawn 32 works; an enemy shot from outside its range turns toward where the player stood and stays in Wander
 
 ### Phase E4 — Chase and attack ⬜
 - [ ] `ScanForPlayer` + `ScanSystem` (trigger and lose radius, E‑D6); Brain gets Chase, Attack, Dying and the player‑dead rule; attack exit at 1.2 × range
