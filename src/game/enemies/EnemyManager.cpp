@@ -33,7 +33,7 @@ namespace enemies
 
 	void EnemyManager::SetArena(const eng::GameActor* arena)
 	{
-		constexpr float MARGIN = 1.0f;	// m, keeps the enemies off the render cube's walls
+		constexpr float MARGIN = 0.5f;	// m, keeps the enemies off the render cube's walls; must stay under the 1 m probe reach, or the clamp pins an enemy just outside the probe (R11)
 
 		const eng::MeshRenderer* renderer = arena ? arena->GetComponent<eng::MeshRenderer>() : nullptr;
 		if (!renderer)
