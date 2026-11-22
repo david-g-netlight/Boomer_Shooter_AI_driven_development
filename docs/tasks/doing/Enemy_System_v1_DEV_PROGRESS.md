@@ -61,10 +61,10 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] **Done when:** Drifter 3 hits, Stalker 6, Brute 12; hits flash; a wall in front protects an enemy; an enemy behind another is not hit; `kill_all` plays every death; spawn 32 → kill all → spawn 32 works; an enemy shot from outside its range turns toward where the player stood and stays in Wander
 
 ### Phase E4 — Chase and attack 🟡
-- [ ] `ScanForPlayer` + `ScanSystem` (trigger and lose radius, E‑D6); Brain gets Chase, Attack, Dying and the player‑dead rule; attack exit at 1.2 × range
-- [ ] `ChaseSystem` (turn rate), `DealDamageSystem` (1 s cooldown that keeps ticking, E‑D5), lunge animation
-- [ ] `PlayerState` health (100), `ApplyDamage`, `god`; `PlayerHitEvent` / `PlayerDiedEvent` → `LoseGame`
-- [ ] HUD health bar + hurt flash; `PlayPlayerHurt`; console `player_hp`
+- [x] `ScanForPlayer` + `ScanSystem` (trigger and lose radius, E‑D6); Brain gets Chase, Attack, Dying and the player‑dead rule; attack exit at 1.2 × range (+ `NextState` has the plan's signature; `BrainSystem` moves an enemy with hp ≤ 0 into Dying and `LifeSystem` only counts the 0.25 s; an Idle enemy only starts Chase when the player is alive, so an idle enemy does not flip Chase ↔ Idle around a dead player; `ArenaGame` passes the player's chest (the actor centre, 1 m above the feet) through `EnemyManager::SetPlayer`; `playerAlive` = Playing and health > 0)
+- [x] `ChaseSystem` (turn rate), `DealDamageSystem` (1 s cooldown that keeps ticking, E‑D5), lunge animation (+ `Attack` is Chase steering with speed 0; the first bite comes at once when an enemy enters Attack, since the cooldown starts at 0; the lunge is a half sine, 0.25 s, 0.6 × body radius; `PlayerHitEvent` is in `EnemyEvents.h`)
+- [x] `PlayerState` health (100), `ApplyDamage`, `god`; `PlayerHitEvent` / `PlayerDiedEvent` → `LoseGame` (+ `ArenaGame` handles `PlayerHitEvent` and `PlayerDiedEvent`; `PlayerState::Reset` restores the health, so a level start does too; hits outside the Playing status are ignored)
+- [x] HUD health bar + hurt flash; `PlayPlayerHurt`; console `player_hp` (+ the hurt flash is a timer in `PlayerState`, ticked by the Gun; `PlayPlayerHurt` is the ping at a low pitch; `player_hp 0` publishes `PlayerDiedEvent`)
 - [ ] **Done when:** chase starts inside the trigger radius and stops (idle 5 s) only beyond 1.2 ×; no flicker at either edge; in range it lunges and hits once per second; leaving and re‑entering range does not reset the cooldown; 0 HP shows "You died"; `god 1` takes no damage; the three types are clearly harder in order
 
 ### Phase E5 — Waves ⬜
