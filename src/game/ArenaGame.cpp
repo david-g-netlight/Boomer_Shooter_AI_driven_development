@@ -104,6 +104,7 @@ bool ArenaGame::LoadLevelFile(const std::string& path)
 		eng::Log::Error("ArenaGame: level '%s' could not be loaded, starting in an empty world", path.c_str());
 	}
 
+	m_enemies.SetArena(m_level.FindByName("Arena"));
 	SpawnPlayer();
 	return isLoaded;
 }

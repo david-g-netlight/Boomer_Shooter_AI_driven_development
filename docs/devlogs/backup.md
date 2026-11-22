@@ -19,6 +19,8 @@ See the plan's §0 for the reasons.
 | E‑D13 | 2026-11-21 | AI and movement in the fixed step; animation and render per frame | §0, §3.3 |
 | E‑D14 | 2026-11-21 | `Primitive::Pyramid` from `GenMeshCone(0.5, 1, 4)` | §0, §8.2 |
 | E‑D15 | 2026-11-21 | Review (Q3): fake aggro. A shot enemy outside its range stays in Wander and turns toward the shot origin (`Alert` component) | §0, §7.3, §9.1 |
+| E‑D16 | 2026-11-21 | Wander: a new direction after a wall must lead away from it (dot with the wall normal ≥ 0.5, in addition to the room check). Found in test: a tangent direction passed the room check, so the enemy slid along the wall and the probe never fired again | §7.3 step 3–4 |
+| E‑D17 | 2026-11-22 | `ArenaBounds` margin 1.0 m → 0.5 m: the clamp must sit inside the probe reach (1 m), else it pins enemies just outside the probe (R11) | Developer report: label stays "wander" at the wall |
 
 ---
 
@@ -49,6 +51,7 @@ See the plan's §0 for the reasons.
 | R8 — pyramid mesh from `GenMeshCone` | E1 | open | Hand‑built fallback |
 | R9 — arena render cube vs slabs out of line | — | resolved | Snapped to a 16 × 6 × 41 interior (Q6) |
 | R10 — fake aggro may lose the player | — | accepted | By design (Q3) |
+| R11 — enemies slide along walls and do not turn away | E2 | closed | Reported after the E2 test; the E‑D16 fix (new direction must lead away from the wall) did **not** fix it in the developer's test. Suspects: (a) the X/Z clamp in `MovementSystem` sits 0.75 m inside the physical wall faces (clamp at ±7 m, faces at ±7.75 m), so an enemy is pinned at the clamp instead of turning; (b) the probe reach is only `radius + max(1 m, speed × 0.4 s)`, so an enemy heading almost parallel to a wall never sees it; (c) AvoidOthers changes the velocity direction after Wander picks `forward`, so the sweep can hit a wall the probe did not see. Not reproduced in code: needs a run with `ai_debug 1` | Cause found 2026-11-22: suspect (a). The level's wall faces are at ±8 m; the clamp (margin 1 m) pinned an enemy at 1 m + radius from the wall, exactly the probe reach (radius + 1 m), so the ray missed and the label stayed "wander". Fix: margin 0.5 m (E‑D17)
 
 ---
 
@@ -58,6 +61,11 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-22 | E2 | Developer validated E2 (Done when passed); merged into `integration`, branch renamed `done/enemy_ai_idle_wander`. R11 closed. Next: E3 on `enemy_damage` | Start E3 | — |
+| 2026-11-22 | E2 | Developer reported the label stays "wander" at the wall. Found the cause (R11, suspect a): clamp pinned enemies exactly at probe reach. Commits: `ai_freeze` guard behind `ENG_DEV_CONSOLE` (developer edit), docs move to `docs/tasks/doing|done`, margin 1.0 → 0.5 m. Builds: clean Debug and Release (`build/check-*`), no warnings. **Not run:** the game (no enemy seen turning at a wall); the 5 min / 20 enemies check | Developer runs the E2 **Done when** check | R11 |
+| 2026-11-21 | E2 | Developer re-tested the wall fix (E‑D16): enemies still slide along walls and do not turn. Logged as R11, open. E2 stays 🟡 (its **Done when** is not passed). Next step for the next session: reproduce with `ai_debug 1` and check suspects a–c in R11. Also added `CMakePresets.json` (Debug and Release) so CLion can load the project | Developer decides next step on R11 | R11 |
+| 2026-11-21 | E2 | Developer tested E2 and reported that enemies slide along walls without turning. Change: `WanderSystem` only accepts a new direction with dot(normal) ≥ 0.5 (decision E‑D16). Not verified in game yet. Built Debug and Release clean | Developer re-tests the wall behaviour | — |
+| 2026-11-21 | E2 | Branch `enemy_ai_idle_wander` (from `integration`, which has E0 and E1). Commits: `Brain` + `NextState` + `BrainSystem` (Idle, Wander); `IdleFloatSystem`, `WanderSystem`; `AvoidOthersSystem`, `MovementSystem`, `ArenaBounds` from the "Arena" actor; `ai_debug`, `ai_freeze`, `EnemyDebugDraw`. Builds: Debug and Release clean, incremental and from scratch (`build/check-*`), no warnings. Debug app ran 8 s: `ArenaGame initialized`, no errors. **Not run:** any enemy in the game (no interactive run); the 5 min / 20 enemies bounds check; the wall-turn and no-stacking checks; `ai_debug` and `ai_freeze` in game. Known limit: the sweep slides once per tick. | Developer runs the E2 **Done when** check | — |
 | 2026-11-21 | E1 | Developer validated E1 (spawns, `enemy_spawn_all`, pool full, `restart`, material warning fixed); merged into `integration`, branch renamed `done/enemy_pool_and_render`. Tracker: E1 ✅, Done when ticked. Next: E2 on `enemy_ai_idle_wander` | Start E2 | — |
 | 2026-11-21 | E1 | Developer reported `restart` does not remove the enemies. Cause: `restart` goes through `GameplayManager` → `ArenaGame::LoadLevelFile` (the game's loader). `OnLevelLoaded` is only called by the editor's `LoadNow`, so `EnemyManager::Reset` never ran in play. Fix: reset in `LoadLevelFile`; `OnLevelLoaded` keeps its reset for the editor. Debug and Release clean. Not run: `restart` in game | Developer runs `enemy_spawn` then `restart` | — |
 | 2026-11-21 | E1 | Developer reported the console warning `UNSUPPORTED ... GLD_TEXTURE_INDEX_2D is unloadable`. Cause: the 9 enemy materials were built in `EnemyMaterials`' constructor, which runs in `ArenaGame`'s constructor before the window opens, so their albedo texture is raylib's default (id 0). Fix: `EnemyManager::Init` builds them after the window. Debug and Release builds clean. Not run: the warning check (needs an enemy on screen) | Developer checks the warning is gone with `enemy_spawn` | — |

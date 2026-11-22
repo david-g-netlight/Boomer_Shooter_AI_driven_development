@@ -2,6 +2,7 @@
 #include <eng.h>
 #include "EnemyPool.h"
 #include "RenderSystem.h"
+#include "systems/Systems.h"
 
 namespace enemies
 {
@@ -18,6 +19,11 @@ namespace enemies
 		/// <summary>Removes every enemy. Called when a level loads.</summary>
 		void			Reset();
 
+		/// <summary>
+		/// The walkable box from the "Arena" actor's world box, shrunk by 1 m (§6.2). A null actor means no limits.
+		/// </summary>
+		void			SetArena(const eng::GameActor* arena);
+
 		/// <summary>The fixed step (50 Hz). Only the release step runs for now; the systems come in later phases.</summary>
 		void			FixedUpdate(float /*fixedDeltaTime*/);
 
@@ -27,12 +33,23 @@ namespace enemies
 		/// <summary>Queues the enemies' draw commands for this frame.</summary>
 		void			Submit(eng::RenderQueue& queue);
 
+		/// <summary>The ai_debug and ai_freeze cvars point here.</summary>
+		struct DebugSettings
+		{
+			bool	draw	= false;	// ai_debug: probes and state labels
+			bool	freeze	= false;	// ai_freeze: systems 2-8 skipped, the enemies hang in the air
+		};
+
+		DebugSettings&				GetDebugSettings()	{ return m_debug; }
+
 		/// <summary>For the console and tests. Gameplay code goes through the pool.</summary>
 		EnemyPool&					GetPool()		{ return m_pool; }
 		eng::ecs::Registry&			GetRegistry()	{ return m_registry; }
 
 	private:
 		eng::ecs::Registry	m_registry{ EnemyPool::CAPACITY };
+		ArenaBounds			m_arena;
+		DebugSettings		m_debug;
 		EnemyPool			m_pool;
 		EnemyMaterials		m_materials;
 	};

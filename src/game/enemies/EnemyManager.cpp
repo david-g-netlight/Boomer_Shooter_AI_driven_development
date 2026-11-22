@@ -1,5 +1,8 @@
 #include "EnemyManager.h"
 #include "AnimationSystem.h"
+#include "ai/EnemyBrain.h"
+#include "systems/Systems.h"
+#include "EnemyDebugDraw.h"
 
 namespace enemies
 {
@@ -28,8 +31,39 @@ namespace enemies
 		m_pool.Clear();
 	}
 
-	void EnemyManager::FixedUpdate(float /*fixedDeltaTime*/)
+	void EnemyManager::SetArena(const eng::GameActor* arena)
 	{
+		constexpr float MARGIN = 0.5f;	// m, keeps the enemies off the render cube's walls; must stay under the 1 m probe reach, or the clamp pins an enemy just outside the probe (R11)
+
+		const eng::MeshRenderer* renderer = arena ? arena->GetComponent<eng::MeshRenderer>() : nullptr;
+		if (!renderer)
+		{
+			m_arena = ArenaBounds{};
+			eng::Log::Warning("EnemyManager: no \"Arena\" actor with a mesh; the enemies have no height band");
+			return;
+		}
+
+		const BoundingBox box = renderer->GetWorldBounds();
+		m_arena.min = { box.min.x + MARGIN, box.min.y + MARGIN, box.min.z + MARGIN };
+		m_arena.max = { box.max.x - MARGIN, box.max.y - MARGIN, box.max.z - MARGIN };
+	}
+
+	void EnemyManager::FixedUpdate(float fixedDeltaTime)
+	{
+#if ENG_DEV_CONSOLE
+		if (!m_debug.freeze)
+		{
+#endif		
+			SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
+			BrainSystem(m_registry, ctx, fixedDeltaTime);
+			IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
+			WanderSystem(m_registry, ctx, fixedDeltaTime);
+			AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
+			MovementSystem(m_registry, ctx, fixedDeltaTime);
+			
+#if ENG_DEV_CONSOLE
+		}
+#endif	
 		m_pool.FlushReleased();
 	}
 
@@ -41,5 +75,13 @@ namespace enemies
 	void EnemyManager::Submit(eng::RenderQueue& queue)
 	{
 		RenderSystem(m_registry, m_materials, queue);
+
+		if (m_debug.draw)
+		{
+			eng::DebugDraw& debug = eng::Engine::GetInstance().GetDebugDraw();
+			if (!debug.IsEnabled())
+				debug.SetEnabled(true);		// the engine drops debug items while it is disabled
+			DrawEnemyDebug(m_registry, debug);
+		}
 	}
 }
