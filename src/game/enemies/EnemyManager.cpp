@@ -50,15 +50,20 @@ namespace enemies
 
 	void EnemyManager::FixedUpdate(float fixedDeltaTime)
 	{
+#if ENG_DEV_CONSOLE
 		if (!m_debug.freeze)
 		{
+#endif		
 			SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
 			BrainSystem(m_registry, ctx, fixedDeltaTime);
 			IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
 			WanderSystem(m_registry, ctx, fixedDeltaTime);
 			AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
 			MovementSystem(m_registry, ctx, fixedDeltaTime);
+			
+#if ENG_DEV_CONSOLE
 		}
+#endif	
 		m_pool.FlushReleased();
 	}
 
