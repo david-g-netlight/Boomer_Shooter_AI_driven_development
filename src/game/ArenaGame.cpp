@@ -71,6 +71,7 @@ void ArenaGame::Destroy()
 	m_gunView.Shutdown();
 	m_gameUI.Shutdown();
 	m_shotFX.Shutdown();
+	m_enemies.Shutdown();
 	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
 	m_player.Reset();

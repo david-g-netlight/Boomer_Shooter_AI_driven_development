@@ -2,6 +2,8 @@
 #include "AnimationSystem.h"
 #include "ai/EnemyBrain.h"
 #include "systems/Systems.h"
+#include "EnemyComponents.h"
+#include "player/Gun.h"
 #include "EnemyDebugDraw.h"
 #include <raymath.h>
 #include <cmath>
@@ -11,6 +13,7 @@ namespace enemies
 	void EnemyManager::Init()
 	{
 		m_pool.Init(m_registry);
+		m_shotToken = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& shot) { OnShot(shot); });
 
 		const auto* lit = eng::Engine::GetInstance().GetResources().GetDefaultLitShader();
 		for (size_t i = 0; i < m_materials.byType.size(); ++i)
@@ -26,6 +29,27 @@ namespace enemies
 			set.spike = eng::Material(lit);
 			set.spike.SetTint(archetype.spikeColor);
 		}
+	}
+
+	void EnemyManager::Shutdown()
+	{
+		if (m_shotToken != 0)
+			eng::Engine::GetInstance().GetEvents().Unsubscribe(m_shotToken);
+		m_shotToken = 0;
+	}
+
+	void EnemyManager::OnShot(const ShotFiredEvent& shot)
+	{
+		// The event arrives at the end of the frame: the enemy may be gone, and its slot may hold a new one (generation check)
+		if (shot.enemy == eng::ecs::INVALID_ENTITY || !m_registry.IsAlive(shot.enemy))
+			return;
+
+		Life* life = m_registry.Get<Life>(shot.enemy);
+		if (!life || life->isDead || life->hp <= 0.0f)
+			return;
+
+		life->hp -= shot.damage;
+		life->hitFlash = HIT_FLASH_TIME;
 	}
 
 	void EnemyManager::Reset()
@@ -56,12 +80,14 @@ namespace enemies
 		if (!m_debug.freeze)
 		{
 #endif		
-			SystemContext ctx{ eng::Engine::GetInstance().GetPhysics(), m_arena };
+			eng::Engine& engine = eng::Engine::GetInstance();
+			SystemContext ctx{ engine.GetPhysics(), m_arena, engine.GetEvents(), engine.GetParticles() };
 			BrainSystem(m_registry, ctx, fixedDeltaTime);
 			IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
 			WanderSystem(m_registry, ctx, fixedDeltaTime);
 			AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
 			MovementSystem(m_registry, ctx, fixedDeltaTime);
+			LifeSystem(m_registry, ctx, fixedDeltaTime);
 			
 #if ENG_DEV_CONSOLE
 		}

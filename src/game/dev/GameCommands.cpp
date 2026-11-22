@@ -280,10 +280,10 @@ void GameCommands::Register(const GameCommandContext& context)
 			con.Print("enemy_list: no enemies");
 	});
 
-	add("kill_all", "kill_all", "Removes every enemy (until damage can kill them)", [context](const eng::ConsoleArgs&, eng::DevConsole& con)
+	add("kill_all", "kill_all", "Kills every enemy (each plays its death)", [context](const eng::ConsoleArgs&, eng::DevConsole& con)
 	{
 		const int count = context.enemyManager->GetPool().GetAliveCount();
-		context.enemyManager->GetPool().Clear();
+		context.enemyManager->GetRegistry().Each<enemies::Life>([](eng::ecs::Entity, enemies::Life& life) { life.hp = 0.0f; });
 		con.Print("kill_all: %d enemies removed", count);
 	});
 

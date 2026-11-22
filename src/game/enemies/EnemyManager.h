@@ -5,6 +5,8 @@
 #include "systems/Systems.h"
 #include "player/HitscanTargets.h"
 
+struct ShotFiredEvent;
+
 namespace enemies
 {
 	/// <summary>
@@ -16,6 +18,9 @@ namespace enemies
 	public:
 		/// <summary>Registers the components, reserves the pool and makes the 9 materials. Call once, after the lit shader is set.</summary>
 		void			Init();
+
+		/// <summary>Stops listening to the shots. Call before the engine shuts down.</summary>
+		void			Shutdown();
 
 		/// <summary>Removes every enemy. Called when a level loads.</summary>
 		void			Reset();
@@ -53,6 +58,11 @@ namespace enemies
 		eng::ecs::Registry&			GetRegistry()	{ return m_registry; }
 
 	private:
+		static constexpr float	HIT_FLASH_TIME	= 0.1f;	// s of the white flash after a hit
+
+		void					OnShot(const ShotFiredEvent& shot);
+
+		eng::EventBus::Token	m_shotToken	= 0;
 		eng::ecs::Registry	m_registry{ EnemyPool::CAPACITY };
 		ArenaBounds			m_arena;
 		DebugSettings		m_debug;
