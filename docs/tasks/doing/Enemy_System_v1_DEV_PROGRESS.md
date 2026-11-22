@@ -51,7 +51,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `IdleFloatSystem` (5 s bob through velocity) and `WanderSystem` (probe ray, unit‑sphere draw, room check, 8 tries + reflect, snap + smooth turn) (+ the bob is a velocity, plus a pull onto the bob centre so it does not drift; the Wander spin of §8.2 is not done: it is an animation, not in this checkbox)
 - [x] `AvoidOthersSystem` and `MovementSystem` (sweep ray, slide, height band, overlap fix); `ArenaBounds` from the `"Arena"` actor (+ `ArenaBounds` is shrunk 1 m from the "Arena" box and set on each level load; without an Arena actor there are no limits and a warning; the sweep slides once, a second wall within the same step is not swept; the push speed 3 m/s is a tuning value)
 - [x] `ai_debug`, `ai_freeze` cvars, `EnemyDebugDraw` (+ `ai_debug` also switches the engine's DebugDraw on, since it drops everything while off; trigger and attack spheres come in E4)
-- [ ] **Done when:** enemies float 5 s, then roam; none leaves the arena or passes the floor or ceiling in 5 minutes with 20 enemies; they turn before walls; they do not stack; `ai_debug` shows probes and states
+- [x] **Done when:** enemies float 5 s, then roam; none leaves the arena or passes the floor or ceiling in 5 minutes with 20 enemies; they turn before walls; they do not stack; `ai_debug` shows probes and states
 
 ### Phase E3 — Shooting enemies ⬜
 - [ ] `HitscanTargets` + `Gun` (wall distance first, then ray‑sphere); `ShotFiredEvent` + `enemy`, `damage`, `origin`; crosshair red on enemies
