@@ -1,6 +1,7 @@
 #include "Systems.h"
 #include "../EnemyComponents.h"
 #include "../EnemyEvents.h"
+#include "state/SoundFXBank.h"
 
 namespace enemies
 {
@@ -49,6 +50,7 @@ namespace enemies
 				return;
 
 			life.isDead = true;
+			SoundFXBank::Instance().PlayEnemyDeath();
 			DeathBurst(ctx.particles, transform.position, kind.type);
 			ctx.events.Publish(EnemyKilledEvent{ kind.type, transform.position });
 		});

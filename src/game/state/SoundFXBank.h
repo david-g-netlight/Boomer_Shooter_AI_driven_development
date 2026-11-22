@@ -6,11 +6,14 @@ namespace eng { class ResourceManager; }
 enum class Sfx
 {
 	Shot,
+	EnemyHit,
+	EnemyDeath,
 	Count,
 };
 
 /// <summary>
-/// The game's sound effects, loaded once through the ResourceManager and played by name. More come with enemies.
+/// The game's sound effects, loaded once through the ResourceManager and played by name. The enemy sounds are
+/// the placeholder ping at another pitch until there are real files.
 /// A sound that failed to load is skipped silently after the loader's warning.
 /// </summary>
 class SoundFXBank
@@ -33,6 +36,12 @@ public:
 	/// The gun's sound, with a little random pitch so rapid fire doesn't sound mechanical.
 	/// </summary>
 	bool	PlayShot() const;
+
+	/// <summary>A shot that hit an enemy: higher and short.</summary>
+	bool	PlayEnemyHit() const;
+
+	/// <summary>An enemy dies: lower and louder.</summary>
+	bool	PlayEnemyDeath() const;
 
 private:
 	const Sound*	m_sounds[static_cast<int>(Sfx::Count)] = {};
