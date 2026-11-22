@@ -189,7 +189,7 @@ void GameCommands::Register(const GameCommandContext& context)
 			con.PrintError("tp_spawn: there is no player");
 	});
 
-	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("god", context.playerState->GetGodFlag(), "Invulnerable (read by the damage code, once there is some)")));
+	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("god", context.playerState->GetGodFlag(), "Invulnerable: enemies do no damage")));
 
 	add("gun_cooldown", "gun_cooldown [seconds]", "Prints or sets the time between shots", [context](const eng::ConsoleArgs& args, eng::DevConsole& con)
 	{
