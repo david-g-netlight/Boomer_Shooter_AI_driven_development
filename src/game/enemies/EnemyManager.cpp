@@ -32,6 +32,12 @@ namespace enemies
 		}
 	}
 
+	void EnemyManager::SetPlayer(const Vector3& chest, bool alive)
+	{
+		m_playerTarget = chest;
+		m_playerAlive = alive;
+	}
+
 	void EnemyManager::Shutdown()
 	{
 		if (m_shotToken != 0)
@@ -92,12 +98,15 @@ namespace enemies
 		{
 #endif		
 			eng::Engine& engine = eng::Engine::GetInstance();
-			SystemContext ctx{ engine.GetPhysics(), m_arena, engine.GetEvents(), engine.GetParticles() };
+			SystemContext ctx{ engine.GetPhysics(), m_arena, engine.GetEvents(), engine.GetParticles(), m_playerTarget, m_playerAlive };
+			ScanSystem(m_registry, ctx, fixedDeltaTime);
 			BrainSystem(m_registry, ctx, fixedDeltaTime);
 			IdleFloatSystem(m_registry, ctx, fixedDeltaTime);
 			WanderSystem(m_registry, ctx, fixedDeltaTime);
+			ChaseSystem(m_registry, ctx, fixedDeltaTime);
 			AvoidOthersSystem(m_registry, ctx, fixedDeltaTime);
 			MovementSystem(m_registry, ctx, fixedDeltaTime);
+			DealDamageSystem(m_registry, ctx, fixedDeltaTime);
 			LifeSystem(m_registry, ctx, fixedDeltaTime);
 			
 #if ENG_DEV_CONSOLE

@@ -34,15 +34,8 @@ namespace enemies
 			if (life.isDead)
 				return;
 
-			if (brain.state != AiState::Dying)
-			{
-				if (life.hp > 0.0f)
-					return;
-
-				brain.state = AiState::Dying;
-				brain.stateTime = 0.0f;
-				life.dyingTime = 0.0f;
-			}
+			if (brain.state != AiState::Dying)	// BrainSystem moves an enemy with hp <= 0 into Dying
+				return;
 
 			motion.velocity = { 0.0f, 0.0f, 0.0f };
 			life.dyingTime += dt;

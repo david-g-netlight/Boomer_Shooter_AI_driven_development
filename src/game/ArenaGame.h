@@ -18,6 +18,7 @@
 #include "audio/MusicManager.h"
 #include "dev/GameCommands.h"
 #include "enemies/EnemyManager.h"
+#include "enemies/EnemyEvents.h"
 
 /// <summary>
 /// Boomer Shooter (placeholder name): an arena FPS. Owns the level, camera and systems of the game.
@@ -54,6 +55,7 @@ private:
 	bool		LoadLevelFile(const std::string& path);		// the GameplayManager's loader
 	void		SpawnPlayer();
 	void		UpdateMenuCamera(float deltaTime);
+	void		OnPlayerHit(const enemies::PlayerHitEvent& hit);
 
 	eng::Level		m_level;
 	eng::Camera		m_camera;
@@ -69,6 +71,8 @@ private:
 	GunView			m_gunView;
 	MusicManager	m_music;
 	enemies::EnemyManager	m_enemies;
+	eng::EventBus::Token	m_playerHitToken	= 0;
+	eng::EventBus::Token	m_playerDiedToken	= 0;
 #if ENG_DEV_CONSOLE
 	GameCommands	m_commands;
 #endif

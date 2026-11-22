@@ -8,6 +8,7 @@ enum class Sfx
 	Shot,
 	EnemyHit,
 	EnemyDeath,
+	PlayerHurt,
 	Count,
 };
 
@@ -42,6 +43,9 @@ public:
 
 	/// <summary>An enemy dies: lower and louder.</summary>
 	bool	PlayEnemyDeath() const;
+
+	/// <summary>The player takes damage: low and short.</summary>
+	bool	PlayPlayerHurt() const;
 
 private:
 	const Sound*	m_sounds[static_cast<int>(Sfx::Count)] = {};

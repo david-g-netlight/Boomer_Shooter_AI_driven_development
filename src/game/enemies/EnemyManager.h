@@ -19,6 +19,9 @@ namespace enemies
 		/// <summary>Registers the components, reserves the pool and makes the 9 materials. Call once, after the lit shader is set.</summary>
 		void			Init();
 
+		/// <summary>The player's chest and whether they can be attacked. ArenaGame sets it before every fixed step.</summary>
+		void			SetPlayer(const Vector3& chest, bool alive);
+
 		/// <summary>Stops listening to the shots. Call before the engine shuts down.</summary>
 		void			Shutdown();
 
@@ -65,6 +68,8 @@ namespace enemies
 		eng::EventBus::Token	m_shotToken	= 0;
 		eng::ecs::Registry	m_registry{ EnemyPool::CAPACITY };
 		ArenaBounds			m_arena;
+		Vector3				m_playerTarget	= { 0.0f, 0.0f, 0.0f };
+		bool				m_playerAlive	= false;
 		DebugSettings		m_debug;
 		EnemyPool			m_pool;
 		EnemyMaterials		m_materials;

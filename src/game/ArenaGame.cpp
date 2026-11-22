@@ -22,6 +22,9 @@ bool ArenaGame::Init()
 
 	RegisterComponents();
 	m_enemies.Init();
+	eng::EventBus& events = engine.GetEvents();
+	m_playerHitToken	= events.Subscribe<enemies::PlayerHitEvent>([this](const enemies::PlayerHitEvent& hit) { OnPlayerHit(hit); });
+	m_playerDiedToken	= events.Subscribe<PlayerDiedEvent>([this](const PlayerDiedEvent&) { m_gameState.LoseGame(); });
 #ifndef NDEBUG
 	for (const std::string& failure : eng::ecs::RunRegistrySelfTest())
 		eng::Log::Error("ECS self-check failed: %s", failure.c_str());
@@ -72,6 +75,10 @@ void ArenaGame::Destroy()
 	m_gameUI.Shutdown();
 	m_shotFX.Shutdown();
 	m_enemies.Shutdown();
+	eng::EventBus& events = eng::Engine::GetInstance().GetEvents();
+	events.Unsubscribe(m_playerHitToken);
+	events.Unsubscribe(m_playerDiedToken);
+	m_playerHitToken = m_playerDiedToken = 0;
 	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
 	m_player.Reset();
@@ -108,6 +115,19 @@ bool ArenaGame::LoadLevelFile(const std::string& path)
 	m_enemies.SetArena(m_level.FindByName("Arena"));
 	SpawnPlayer();
 	return isLoaded;
+}
+
+void ArenaGame::OnPlayerHit(const enemies::PlayerHitEvent& hit)
+{
+	if (!m_gameState.IsPlaying())
+		return;
+
+	const float before = m_playerState.GetHealth();
+	const bool died = m_playerState.ApplyDamage(hit.damage);
+	if (m_playerState.GetHealth() < before)
+		SoundFXBank::Instance().PlayPlayerHurt();
+	if (died)
+		eng::Engine::GetInstance().GetEvents().Publish(PlayerDiedEvent{});
 }
 
 void ArenaGame::SpawnPlayer()
@@ -191,6 +211,8 @@ void ArenaGame::UpdateMenuCamera(float deltaTime)
 
 void ArenaGame::FixedUpdate(float fixedDeltaTime)
 {
+	const eng::GameActor* player = m_player.Get();
+	m_enemies.SetPlayer(player ? player->GetWorldPosition() : Vector3{ 0.0f, 0.0f, 0.0f }, player && m_gameState.IsPlaying() && m_playerState.IsAlive());
 	m_enemies.FixedUpdate(fixedDeltaTime);
 }
 

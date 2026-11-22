@@ -53,6 +53,7 @@ void Gun::FixedUpdate(float fixedDeltaTime)
 		return;
 
 	m_state->TickCooldown(fixedDeltaTime);
+	m_state->TickHurtFlash(fixedDeltaTime);
 	if (m_input->ConsumeFire())
 		Fire();
 }
