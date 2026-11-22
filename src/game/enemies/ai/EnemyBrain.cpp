@@ -32,12 +32,13 @@ namespace enemies
 		}
 	}
 
-	AiState NextState(const Brain& brain)
+	AiState NextState(const Brain& brain, const Alert& alert)
 	{
 		switch (brain.state)
 		{
 			case AiState::Idle:
-				return brain.stateTime >= brain.idleDuration ? AiState::Wander : AiState::Idle;
+				// A shot wakes an idle enemy at once (fake aggro, E-D15)
+				return brain.stateTime >= brain.idleDuration || alert.pending ? AiState::Wander : AiState::Idle;
 			case AiState::Wander:
 			default:
 				return brain.state;
@@ -46,11 +47,11 @@ namespace enemies
 
 	void BrainSystem(eng::ecs::Registry& registry, const SystemContext& /*ctx*/, float dt)
 	{
-		registry.Each<Brain>([&](eng::ecs::Entity e, Brain& brain)
+		registry.Each<Brain, Alert>([&](eng::ecs::Entity e, Brain& brain, Alert& alert)
 		{
 			brain.stateTime += dt;
 
-			const AiState next = NextState(brain);
+			const AiState next = NextState(brain, alert);
 			if (next == brain.state)
 				return;
 

@@ -6,9 +6,9 @@
 namespace enemies
 {
 	/// <summary>
-	/// The transition rule (§7.1) as a pure function: data in, state out. E2 has Idle and Wander only.
+	/// The transition rule (§7.1) as a pure function: data in, state out. E3 has Idle, Wander and a raised Alert (Idle → Wander).
 	/// </summary>
-	AiState NextState(const Brain& brain);
+	AiState NextState(const Brain& brain, const Alert& alert);
 
 	/// <summary>
 	/// stateTime += dt, then the transition. On a change: stateTime = 0 and the entry action of the new state

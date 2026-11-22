@@ -3,6 +3,9 @@
 #include "EnemyPool.h"
 #include "RenderSystem.h"
 #include "systems/Systems.h"
+#include "player/HitscanTargets.h"
+
+struct ShotFiredEvent;
 
 namespace enemies
 {
@@ -10,11 +13,14 @@ namespace enemies
 	/// Owns the enemy registry and the pool, and runs the enemy systems in their fixed order (plan §5.3).
 	/// ArenaGame calls it from its FixedUpdate and SubmitRenderables, and resets it in LoadLevelFile (the game's loader).
 	/// </summary>
-	class EnemyManager
+	class EnemyManager : public HitscanTargets
 	{
 	public:
 		/// <summary>Registers the components, reserves the pool and makes the 9 materials. Call once, after the lit shader is set.</summary>
 		void			Init();
+
+		/// <summary>Stops listening to the shots. Call before the engine shuts down.</summary>
+		void			Shutdown();
 
 		/// <summary>Removes every enemy. Called when a level loads.</summary>
 		void			Reset();
@@ -33,6 +39,11 @@ namespace enemies
 		/// <summary>Queues the enemies' draw commands for this frame.</summary>
 		void			Submit(eng::RenderQueue& queue);
 
+		/// <summary>
+		/// A ray-sphere test against every living enemy that is not dying (20 enemies, one quadratic each); the nearest wins (§9.1).
+		/// </summary>
+		std::optional<HitscanHit>	Raycast(const Vector3& origin, const Vector3& dir, float maxDistance) const override;
+
 		/// <summary>The ai_debug and ai_freeze cvars point here.</summary>
 		struct DebugSettings
 		{
@@ -47,6 +58,11 @@ namespace enemies
 		eng::ecs::Registry&			GetRegistry()	{ return m_registry; }
 
 	private:
+		static constexpr float	HIT_FLASH_TIME	= 0.1f;	// s of the white flash after a hit
+
+		void					OnShot(const ShotFiredEvent& shot);
+
+		eng::EventBus::Token	m_shotToken	= 0;
 		eng::ecs::Registry	m_registry{ EnemyPool::CAPACITY };
 		ArenaBounds			m_arena;
 		DebugSettings		m_debug;

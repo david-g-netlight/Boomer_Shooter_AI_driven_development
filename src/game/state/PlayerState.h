@@ -11,6 +11,7 @@ public:
 	static constexpr float	WALK_SPEED		= 10.0f;	// m/s
 	static constexpr float	DEFAULT_REACH		= 100.0f;	// m
 	static constexpr float	DEFAULT_COOLDOWN	= 0.25f;	// s between shots
+	static constexpr float	GUN_DAMAGE			= 10.0f;	// per hit: a Drifter (30 hp) takes 3, a Stalker 6, a Brute 12
 
 	/// <summary>
 	/// A ready gun (a level starts).
