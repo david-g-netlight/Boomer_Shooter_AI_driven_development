@@ -5,6 +5,7 @@ void PlayerState::Reset()
 {
 	m_cooldownLeft	= 0.0f;
 	m_health		= MAX_HEALTH;
+	m_hurtFlashLeft	= 0.0f;
 }
 
 float PlayerState::GetReach() const				{ return m_reach; }
@@ -22,8 +23,12 @@ bool PlayerState::ApplyDamage(float damage)
 		return false;
 
 	m_health = std::max(0.0f, m_health - damage);
+	m_hurtFlashLeft = HURT_FLASH_TIME;
 	return m_health <= 0.0f;
 }
+
+float PlayerState::GetHurtFlash() const			{ return m_hurtFlashLeft / HURT_FLASH_TIME; }
+void PlayerState::TickHurtFlash(float deltaTime){ m_hurtFlashLeft = std::max(0.0f, m_hurtFlashLeft - deltaTime); }
 
 bool PlayerState::IsGod() const				{ return m_god; }
 bool* PlayerState::GetGodFlag()				{ return &m_god; }

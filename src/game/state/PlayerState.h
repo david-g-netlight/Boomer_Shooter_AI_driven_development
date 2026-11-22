@@ -17,6 +17,7 @@ public:
 	static constexpr float	DEFAULT_REACH		= 100.0f;	// m
 	static constexpr float	DEFAULT_COOLDOWN	= 0.25f;	// s between shots
 	static constexpr float	MAX_HEALTH			= 100.0f;
+	static constexpr float	HURT_FLASH_TIME		= 0.2f;		// s of the red screen edge after a hit
 	static constexpr float	GUN_DAMAGE			= 10.0f;	// per hit: a Drifter (30 hp) takes 3, a Stalker 6, a Brute 12
 
 	/// <summary>
@@ -44,6 +45,9 @@ public:
 	/// </summary>
 	bool	ApplyDamage(float damage);
 
+	float	GetHurtFlash() const;					// 1 right after a hit .. 0 (HUD)
+	void	TickHurtFlash(float deltaTime);			// FixedUpdate
+
 	//////////////////////////////////////////
 	/// Developer flag (console `god`): no damage (ApplyDamage). Reset() keeps it.
 	//////////////////////////////////////////
@@ -64,5 +68,6 @@ private:
 	float	m_cooldown		= DEFAULT_COOLDOWN;
 	float	m_cooldownLeft	= 0.0f;
 	float	m_health		= MAX_HEALTH;
+	float	m_hurtFlashLeft	= 0.0f;
 	bool	m_god			= false;
 };

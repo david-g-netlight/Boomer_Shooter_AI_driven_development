@@ -12,6 +12,7 @@ void SoundFXBank::Load(eng::ResourceManager& resources)
 	m_sounds[static_cast<int>(Sfx::Shot)]		= resources.LoadSound("assets/audio/sfx_ping.wav");	// placeholder
 	m_sounds[static_cast<int>(Sfx::EnemyHit)]	= resources.LoadSound("assets/audio/sfx_ping.wav");	// placeholder
 	m_sounds[static_cast<int>(Sfx::EnemyDeath)]	= resources.LoadSound("assets/audio/sfx_ping.wav");	// placeholder
+	m_sounds[static_cast<int>(Sfx::PlayerHurt)]	= resources.LoadSound("assets/audio/sfx_ping.wav");	// placeholder
 }
 
 void SoundFXBank::Clear()
@@ -46,4 +47,9 @@ bool SoundFXBank::PlayEnemyDeath() const
 {
 	const float pitch = 0.55f + 0.1f * static_cast<float>(GetRandomValue(0, 100)) / 100.0f;
 	return Play(Sfx::EnemyDeath, 0.6f, pitch);
+}
+
+bool SoundFXBank::PlayPlayerHurt() const
+{
+	return Play(Sfx::PlayerHurt, 0.7f, 0.45f);
 }

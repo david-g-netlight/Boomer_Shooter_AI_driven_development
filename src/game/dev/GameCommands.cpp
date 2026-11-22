@@ -191,6 +191,23 @@ void GameCommands::Register(const GameCommandContext& context)
 
 	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("god", context.playerState->GetGodFlag(), "Invulnerable: enemies do no damage")));
 
+	add("player_hp", "player_hp [value]", "Prints or sets the player's health (0 kills)", [context](const eng::ConsoleArgs& args, eng::DevConsole& con)
+	{
+		float value;
+		if (args.Count() > 0 && !args.GetFloat(0, value))
+		{
+			con.PrintError("usage: player_hp [value]");
+			return;
+		}
+		if (args.Count() > 0)
+		{
+			context.playerState->SetHealth(value);
+			if (!context.playerState->IsAlive())
+				eng::Engine::GetInstance().GetEvents().Publish(PlayerDiedEvent{});
+		}
+		con.Print("player_hp: %.0f / %.0f", static_cast<double>(context.playerState->GetHealth()), static_cast<double>(PlayerState::MAX_HEALTH));
+	});
+
 	add("gun_cooldown", "gun_cooldown [seconds]", "Prints or sets the time between shots", [context](const eng::ConsoleArgs& args, eng::DevConsole& con)
 	{
 		float value;
