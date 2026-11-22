@@ -21,6 +21,7 @@ See the plan's §0 for the reasons.
 | E‑D15 | 2026-11-21 | Review (Q3): fake aggro. A shot enemy outside its range stays in Wander and turns toward the shot origin (`Alert` component) | §0, §7.3, §9.1 |
 | E‑D16 | 2026-11-21 | Wander: a new direction after a wall must lead away from it (dot with the wall normal ≥ 0.5, in addition to the room check). Found in test: a tangent direction passed the room check, so the enemy slid along the wall and the probe never fired again | §7.3 step 3–4 |
 | E‑D17 | 2026-11-22 | `ArenaBounds` margin 1.0 m → 0.5 m: the clamp must sit inside the probe reach (1 m), else it pins enemies just outside the probe (R11) | Developer report: label stays "wander" at the wall |
+| E‑D18 | 2026-11-22 | Balance (developer, after the E5 test): the Drifter is the fastest to balance its weakness. Wander / chase speeds: Drifter 3.0 / 6.0 (was 1.5 / 3.0), Stalker 2.5 / 4.5 (was 2.5 / 5.0), Brute 2.0 / 3.5 (was 2.0 / 7.0). Not play-tested by the developer yet; tunable with `enemy_tune` | Developer request |
 
 ---
 
@@ -61,6 +62,8 @@ Newest first. One entry per work session.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-22 | E5 | Developer validated E5 (Done when passed) and asked for a balance change: the Drifter fastest (E‑D18, committed before this one; builds clean, **not** play-tested). Merged into `integration`, branch renamed `done/enemy_waves`. All phases E0–E5 are done | Plan complete | — |
+| 2026-11-22 | E5 | Branch `enemy_waves` (from `integration`, E4 merged). Commits: `EnemySpawnPoint` + 6 spawn actors in `arena_01.lvl`; `WaveDirector` (table, spawn safety, events, win); HUD wave counter, `wave_start`, `wave_skip`, `waves`, `enemy_tune`. Builds: clean Debug and Release (`build/check-*`), no warnings. Debug app ran 8 s: level loads 13 actors, 0 warnings, `ArenaGame initialized`. **Not run:** any wave in the game (wave contents, 2 s gaps, spawn safety, "Arena cleared", "You died" + Retry from wave 1 with full health, spawn points moved in the editor); the Release app | Developer runs the E5 **Done when** check | — |
 | 2026-11-22 | E4 | Developer validated E4 (Done when passed); merged into `integration`, branch renamed `done/enemy_ai_chase_attack`. Tracker: E4 ✅. Next: E5 on `enemy_waves` | Start E5 | — |
 | 2026-11-22 | E4 | Branch `enemy_ai_chase_attack` (from `integration`, E3 merged). Commits: ScanSystem + full Brain (Chase, Attack, Dying, player-dead rule, 1.2 × hysteresis); ChaseSystem, DealDamageSystem, lunge; player health, `ApplyDamage`, `god`, events → `LoseGame`; HUD health bar, hurt flash, hurt sound, `player_hp`. Builds: clean Debug and Release (`build/check-*`), no warnings. Debug app ran 8 s: `ArenaGame initialized`, no warnings. **Not run:** any enemy in the game (chase / lose radius edges, bites once per second, cooldown kept across leaving range, "You died", `god 1`, difficulty order of the three types, HUD look); the Release app | Developer runs the E4 **Done when** check | — |
 | 2026-11-22 | E3 | Developer validated E3 (Done when passed); merged into `integration`, branch renamed `done/enemy_damage`. Tracker: E3 ✅. Next: E4 on `enemy_ai_chase_attack` | Start E4 | — |

@@ -3,6 +3,8 @@
 #include "EnemyPool.h"
 #include "RenderSystem.h"
 #include "systems/Systems.h"
+#include "EnemySpawnPoint.h"
+#include "WaveDirector.h"
 #include "player/HitscanTargets.h"
 
 struct ShotFiredEvent;
@@ -19,8 +21,17 @@ namespace enemies
 		/// <summary>Registers the components, reserves the pool and makes the 9 materials. Call once, after the lit shader is set.</summary>
 		void			Init();
 
-		/// <summary>The player's chest and whether they can be attacked. ArenaGame sets it before every fixed step.</summary>
-		void			SetPlayer(const Vector3& chest, bool alive);
+		/// <summary>
+		/// The player's chest, whether they are alive, and whether the game is Playing. ArenaGame sets it before every
+		/// fixed step. Enemies only attack a living player in a Playing game, and the waves only run then.
+		/// </summary>
+		void			SetPlayer(const Vector3& chest, bool alive, bool isPlaying);
+
+		/// <summary>
+		/// Reads the world position of every enabled EnemySpawnPoint actor of the level. With none, the 4 upper corners
+		/// of the arena bounds are used and a warning is logged. Call after SetArena.
+		/// </summary>
+		void			CollectSpawnPoints(const eng::Level& level);
 
 		/// <summary>Stops listening to the shots. Call before the engine shuts down.</summary>
 		void			Shutdown();
@@ -58,6 +69,7 @@ namespace enemies
 
 		/// <summary>For the console and tests. Gameplay code goes through the pool.</summary>
 		EnemyPool&					GetPool()		{ return m_pool; }
+		WaveDirector&				GetWaves()		{ return m_waves; }
 		eng::ecs::Registry&			GetRegistry()	{ return m_registry; }
 
 	private:
@@ -70,8 +82,10 @@ namespace enemies
 		ArenaBounds			m_arena;
 		Vector3				m_playerTarget	= { 0.0f, 0.0f, 0.0f };
 		bool				m_playerAlive	= false;
+		bool				m_isPlaying		= false;
 		DebugSettings		m_debug;
 		EnemyPool			m_pool;
+		WaveDirector		m_waves;
 		EnemyMaterials		m_materials;
 	};
 }

@@ -24,10 +24,10 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | E2 | Idle and wander | `done/enemy_ai_idle_wander` | ✅ | 2026-11-21 | 2026-11-22 | Movement, walls, avoidance |
 | E3 | Shooting enemies | `done/enemy_damage` | ✅ | 2026-11-22 | 2026-11-22 | `HitscanTargets`, `Life`, fake aggro (`Alert`) |
 | E4 | Chase and attack | `done/enemy_ai_chase_attack` | ✅ | 2026-11-22 | 2026-11-22 | Hysteresis 1.2 ×, player health, lose |
-| E5 | Waves | `enemy_waves` | ⬜ | | | 7 / 7 / 6 = 20, 6 spawn points, win |
+| E5 | Waves | `done/enemy_waves` | ✅ | 2026-11-22 | 2026-11-22 | 7 / 7 / 6 = 20, 6 spawn points, win |
 
-**Current focus:** E5 — Waves (`enemy_waves`).
-**Branch:** none yet (E5 starts from `integration`)
+**Current focus:** none: all phases E0–E5 are done.
+**Branch:** none
 
 ---
 
@@ -67,8 +67,8 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] HUD health bar + hurt flash; `PlayPlayerHurt`; console `player_hp` (+ the hurt flash is a timer in `PlayerState`, ticked by the Gun; `PlayPlayerHurt` is the ping at a low pitch; `player_hp 0` publishes `PlayerDiedEvent`)
 - [x] **Done when:** chase starts inside the trigger radius and stops (idle 5 s) only beyond 1.2 ×; no flicker at either edge; in range it lunges and hits once per second; leaving and re‑entering range does not reset the cooldown; 0 HP shows "You died"; `god 1` takes no damage; the three types are clearly harder in order
 
-### Phase E5 — Waves ⬜
-- [ ] `EnemySpawnPoint` component (registered, saved); 6 spawn actors in `arena_01.lvl` at (±6, 3, 0), (±6, 3, −14), (±6, 3, −28)
-- [ ] `WaveDirector`: table 7 / 7 / 6 (§6.2), staggered spawns, spawn safety (4 m from the player, 1.5 m from enemies), `WaveStartedEvent`, `WavesClearedEvent` → `WinGame`
-- [ ] HUD "Wave n / 3 · k left"; console `wave_start`, `wave_skip`, `waves`, `enemy_tune`
-- [ ] **Done when:** wave 1 = 7 Drifters, wave 2 = 5 Drifters + 2 Stalkers, wave 3 = 3 Drifters + 2 Stalkers + 1 Brute, spawned one by one; next wave 2 s after a clear; the last kill shows "Arena cleared"; dying shows "You died" and Retry restarts wave 1 with full health; spawn points moved in the editor and saved are used after a reload
+### Phase E5 — Waves ✅
+- [x] `EnemySpawnPoint` component (registered, saved); 6 spawn actors in `arena_01.lvl` at (±6, 3, 0), (±6, 3, −14), (±6, 3, −28) (+ the actors are named `Spawn W1` … `Spawn E3`, each with `EnemySpawnPoint enabled=1`; the level loads 13 actors with 0 warnings)
+- [x] `WaveDirector`: table 7 / 7 / 6 (§6.2), staggered spawns, spawn safety (4 m from the player, 1.5 m from enemies), `WaveStartedEvent`, `WavesClearedEvent` → `WinGame` (+ the first enemy of a wave comes at once, then one every interval; a blocked spawn is retried on the next tick; with no spawn point the 4 upper corners of the arena bounds are used, with a warning; `EnemyManager::SetPlayer` got an `isPlaying` argument, the waves tick only while Playing; the spawn points are read again in `OnLevelLoaded` too, together with the arena box, so editor moves are used; the "Arena cleared" dialog text is now "All three waves are down.")
+- [x] HUD "Wave n / 3 · k left"; console `wave_start`, `wave_skip`, `waves`, `enemy_tune` (+ the HUD line is `Wave n / 3 - k left` (`get ready` while waiting; ASCII, no middle dot); `enemy_tune` fields: hp, wander_speed, chase_speed, turn_rate, trigger, attack_range, damage, avoid (trigger and attack_range also move the 1.2 × radii); body radius is not tunable, the renderer reads it live; the archetype table is no longer `constexpr`)
+- [x] **Done when:** wave 1 = 7 Drifters, wave 2 = 5 Drifters + 2 Stalkers, wave 3 = 3 Drifters + 2 Stalkers + 1 Brute, spawned one by one; next wave 2 s after a clear; the last kill shows "Arena cleared"; dying shows "You died" and Retry restarts wave 1 with full health; spawn points moved in the editor and saved are used after a reload

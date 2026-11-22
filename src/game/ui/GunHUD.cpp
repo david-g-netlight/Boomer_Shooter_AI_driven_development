@@ -3,8 +3,9 @@
 #include <cmath>
 #include "player/Gun.h"
 #include "state/PlayerState.h"
+#include "enemies/WaveDirector.h"
 
-void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) const
+void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state, const enemies::WaveDirector& waves) const
 {
 	const int width		= GetScreenWidth();
 	const int height	= GetScreenHeight();
@@ -25,6 +26,18 @@ void GunHUD::Draw(const eng::ActorHandle& player, const PlayerState& state) cons
 		DrawRectangle(0, height - band, width, band, red);
 		DrawRectangle(0, band, band, height - 2 * band, red);
 		DrawRectangle(width - band, band, band, height - 2 * band, red);
+	}
+
+	// Wave counter
+	if (waves.IsEnabled())
+	{
+		const char* text = waves.GetState() == enemies::WaveDirector::State::Cleared
+			? "Arena cleared"
+			: waves.GetState() == enemies::WaveDirector::State::Waiting
+				? TextFormat("Wave %d / %d - get ready", waves.GetWaveNumber(), enemies::WaveDirector::WAVE_COUNT)
+				: TextFormat("Wave %d / %d - %d left", waves.GetWaveNumber(), enemies::WaveDirector::WAVE_COUNT, waves.GetEnemiesLeft());
+		constexpr int FONT = 24;
+		DrawText(text, (width - MeasureText(text, FONT)) / 2, 20, FONT, Fade(RAYWHITE, 0.9f));
 	}
 
 	// Health bar

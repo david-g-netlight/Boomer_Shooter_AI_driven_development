@@ -14,6 +14,7 @@ namespace enemies
 	void EnemyManager::Init()
 	{
 		m_pool.Init(m_registry);
+		m_waves.Init(m_pool, m_registry);
 		m_shotToken = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& shot) { OnShot(shot); });
 
 		const auto* lit = eng::Engine::GetInstance().GetResources().GetDefaultLitShader();
@@ -32,10 +33,39 @@ namespace enemies
 		}
 	}
 
-	void EnemyManager::SetPlayer(const Vector3& chest, bool alive)
+	void EnemyManager::SetPlayer(const Vector3& chest, bool alive, bool isPlaying)
 	{
 		m_playerTarget = chest;
-		m_playerAlive = alive;
+		m_playerAlive = alive && isPlaying;
+		m_isPlaying = isPlaying;
+	}
+
+	void EnemyManager::CollectSpawnPoints(const eng::Level& level)
+	{
+		std::vector<Vector3> points;
+		for (const auto& actor : level.GetActors())
+		{
+			const EnemySpawnPoint* spawn = actor->GetComponent<EnemySpawnPoint>();
+			if (spawn && spawn->IsSpawnEnabled())
+				points.push_back(actor->GetWorldPosition());
+		}
+
+		if (points.empty())
+		{
+			constexpr float FINITE = 1.0e5f;
+			if (m_arena.max.x < FINITE)
+			{
+				eng::Log::Warning("EnemyManager: the level has no EnemySpawnPoint, the waves use the arena's 4 upper corners");
+				for (const float x : { m_arena.min.x, m_arena.max.x })
+					for (const float z : { m_arena.min.z, m_arena.max.z })
+						points.push_back({ x, m_arena.max.y, z });
+			}
+			else
+			{
+				eng::Log::Warning("EnemyManager: the level has no EnemySpawnPoint and no arena: the waves have nowhere to spawn");
+			}
+		}
+		m_waves.SetSpawnPoints(std::move(points));
 	}
 
 	void EnemyManager::Shutdown()
@@ -72,6 +102,7 @@ namespace enemies
 	void EnemyManager::Reset()
 	{
 		m_pool.Clear();
+		m_waves.Reset();
 	}
 
 	void EnemyManager::SetArena(const eng::GameActor* arena)
@@ -113,6 +144,9 @@ namespace enemies
 		}
 #endif	
 		m_pool.FlushReleased();
+
+		if (m_isPlaying)
+			m_waves.Update(fixedDeltaTime, m_playerTarget);
 	}
 
 	std::optional<HitscanHit> EnemyManager::Raycast(const Vector3& origin, const Vector3& dir, float maxDistance) const

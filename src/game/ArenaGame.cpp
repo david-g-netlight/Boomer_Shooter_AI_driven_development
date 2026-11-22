@@ -24,6 +24,7 @@ bool ArenaGame::Init()
 	m_enemies.Init();
 	eng::EventBus& events = engine.GetEvents();
 	m_playerHitToken	= events.Subscribe<enemies::PlayerHitEvent>([this](const enemies::PlayerHitEvent& hit) { OnPlayerHit(hit); });
+	m_wavesClearedToken	= events.Subscribe<enemies::WavesClearedEvent>([this](const enemies::WavesClearedEvent&) { m_gameState.WinGame(); });
 	m_playerDiedToken	= events.Subscribe<PlayerDiedEvent>([this](const PlayerDiedEvent&) { m_gameState.LoseGame(); });
 #ifndef NDEBUG
 	for (const std::string& failure : eng::ecs::RunRegistrySelfTest())
@@ -53,6 +54,7 @@ void ArenaGame::RegisterComponents()
 	registry.Register<WinTrigger>("WinTrigger");
 	registry.Register<LoseTrigger>("LoseTrigger");
 	registry.Register<NextLevelTrigger>("NextLevelTrigger");
+	registry.Register<enemies::EnemySpawnPoint>("EnemySpawnPoint");
 }
 
 void ArenaGame::BindInput()
@@ -78,7 +80,8 @@ void ArenaGame::Destroy()
 	eng::EventBus& events = eng::Engine::GetInstance().GetEvents();
 	events.Unsubscribe(m_playerHitToken);
 	events.Unsubscribe(m_playerDiedToken);
-	m_playerHitToken = m_playerDiedToken = 0;
+	events.Unsubscribe(m_wavesClearedToken);
+	m_playerHitToken = m_playerDiedToken = m_wavesClearedToken = 0;
 	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
 	m_player.Reset();
@@ -113,6 +116,7 @@ bool ArenaGame::LoadLevelFile(const std::string& path)
 	}
 
 	m_enemies.SetArena(m_level.FindByName("Arena"));
+	m_enemies.CollectSpawnPoints(m_level);
 	SpawnPlayer();
 	return isLoaded;
 }
@@ -164,6 +168,8 @@ void ArenaGame::OnLevelLoaded()
 		if (owned->GetComponent<eng::CharacterMotor>())
 			owned->MarkForDestroy();
 	m_enemies.Reset();
+	m_enemies.SetArena(m_level.FindByName("Arena"));
+	m_enemies.CollectSpawnPoints(m_level);		// the editor may have moved them
 	SpawnPlayer();
 }
 
@@ -212,7 +218,7 @@ void ArenaGame::UpdateMenuCamera(float deltaTime)
 void ArenaGame::FixedUpdate(float fixedDeltaTime)
 {
 	const eng::GameActor* player = m_player.Get();
-	m_enemies.SetPlayer(player ? player->GetWorldPosition() : Vector3{ 0.0f, 0.0f, 0.0f }, player && m_gameState.IsPlaying() && m_playerState.IsAlive());
+	m_enemies.SetPlayer(player ? player->GetWorldPosition() : Vector3{ 0.0f, 0.0f, 0.0f }, player && m_playerState.IsAlive(), m_gameState.IsPlaying());
 	m_enemies.FixedUpdate(fixedDeltaTime);
 }
 
@@ -232,7 +238,7 @@ void ArenaGame::DrawHUD()
 	if (mode != eng::EngineMode::Play && mode != eng::EngineMode::Paused)
 		return;
 
-	m_gunHUD.Draw(m_player, m_playerState);
+	m_gunHUD.Draw(m_player, m_playerState, m_enemies.GetWaves());
 
 	DrawText(TextFormat("Level %d / %zu", m_gameplay.GetLevelIndex() + 1, m_gameplay.GetLevels().GetCount()), 16, 12, 20, Fade(RAYWHITE, 0.85f));
 	if (eng::IsEditorBuild())
