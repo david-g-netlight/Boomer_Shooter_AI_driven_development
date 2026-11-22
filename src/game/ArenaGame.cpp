@@ -238,7 +238,7 @@ void ArenaGame::DrawHUD()
 	if (mode != eng::EngineMode::Play && mode != eng::EngineMode::Paused)
 		return;
 
-	m_gunHUD.Draw(m_player, m_playerState);
+	m_gunHUD.Draw(m_player, m_playerState, m_enemies.GetWaves());
 
 	DrawText(TextFormat("Level %d / %zu", m_gameplay.GetLevelIndex() + 1, m_gameplay.GetLevels().GetCount()), 16, 12, 20, Fade(RAYWHITE, 0.85f));
 	if (eng::IsEditorBuild())

@@ -55,6 +55,7 @@ namespace enemies
 		void	SkipWave();						// kills every alive enemy and stops the wave's spawning
 		void	SetEnabled(bool enabled)		{ m_enabled = enabled; }
 		bool	IsEnabled() const				{ return m_enabled; }
+		bool*	GetEnabledFlag()				{ return &m_enabled; }	// the console binds `waves` to it
 
 		int		GetWaveNumber() const			{ return m_wave + 1; }
 		State	GetState() const				{ return m_state; }

@@ -304,6 +304,42 @@ void GameCommands::Register(const GameCommandContext& context)
 		con.Print("kill_all: %d enemies removed", count);
 	});
 
+	add("wave_start", "wave_start <1-3>", "Starts a wave now (enemies that are alive stay)", [context](const eng::ConsoleArgs& args, eng::DevConsole& con)
+	{
+		int number;
+		if (!args.GetInt(0, number) || number < 1 || number > enemies::WaveDirector::WAVE_COUNT)
+		{
+			con.PrintError("usage: wave_start <1-%d>", enemies::WaveDirector::WAVE_COUNT);
+			return;
+		}
+		context.enemyManager->GetWaves().StartWave(number);
+		con.Print("wave_start: wave %d", number);
+	});
+
+	add("wave_skip", "wave_skip", "Kills everything of the current wave (the deaths and the next wave run as normal)", [context](const eng::ConsoleArgs&, eng::DevConsole& con)
+	{
+		context.enemyManager->GetWaves().SkipWave();
+		con.Print("wave_skip: wave %d cleared", context.enemyManager->GetWaves().GetWaveNumber());
+	});
+
+	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("waves", context.enemyManager->GetWaves().GetEnabledFlag(),
+		"Wave director on / off (off: a sandbox with only the enemies you spawn)")));
+
+	add("enemy_tune", "enemy_tune <type> <field> <value>", "Changes an enemy type's value, for later spawns", [](const eng::ConsoleArgs& args, eng::DevConsole& con)
+	{
+		enemies::EnemyType type{};
+		float value;
+		if (!enemies::ParseEnemyType(args.GetString(0), type) || args.Count() < 3 || !args.GetFloat(2, value))
+		{
+			con.PrintError("usage: enemy_tune <drifter|stalker|brute> <field> <value>  (fields: %s)", enemies::GetTuneFields());
+			return;
+		}
+		if (!enemies::TuneArchetype(type, args.GetString(1), value))
+			con.PrintError("enemy_tune: unknown field '%s' or a negative value (fields: %s)", args.GetString(1).c_str(), enemies::GetTuneFields());
+		else
+			con.Print("enemy_tune: %s %s = %g (later spawns)", enemies::GetArchetype(type).name, args.GetString(1).c_str(), static_cast<double>(value));
+	});
+
 	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("ai_debug", &context.enemyManager->GetDebugSettings().draw,
 		"Enemy AI debug: wall probes and state labels")));
 	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("ai_freeze", &context.enemyManager->GetDebugSettings().freeze,

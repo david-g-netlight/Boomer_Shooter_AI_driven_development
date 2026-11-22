@@ -8,7 +8,7 @@ namespace enemies
 	namespace
 	{
 		// Plan §8.1. The loseRadius and attackExitRange values are 1.2 x the trigger and attack range (E-D6).
-		constexpr std::array<EnemyArchetype, static_cast<size_t>(EnemyType::Count)> ARCHETYPES = { {
+		std::array<EnemyArchetype, static_cast<size_t>(EnemyType::Count)> ARCHETYPES = { {
 			//  name       body  bodyColour                 spikeColour                hp   wander chase turn  trig  lose  atk   exit  dmg avoid
 			{ "drifter",  0.45f, Color{ 70, 190, 90, 255 }, Color{ 170, 240, 160, 255 }, 30.0f, 1.5f, 3.0f, 90.0f, 7.0f, 8.4f, 1.6f, 1.92f, 5.0f, 1.0f },
 			{ "stalker",  0.55f, Color{ 240, 140, 30, 255 }, Color{ 250, 230, 80, 255 }, 60.0f, 2.5f, 5.0f, 180.0f, 10.0f, 12.0f, 1.8f, 2.16f, 10.0f, 1.5f },
@@ -19,6 +19,30 @@ namespace enemies
 	const EnemyArchetype& GetArchetype(EnemyType type)
 	{
 		return ARCHETYPES[static_cast<size_t>(type)];
+	}
+
+	bool TuneArchetype(EnemyType type, const std::string& field, float value)
+	{
+		if (value < 0.0f)
+			return false;
+
+		EnemyArchetype& a = ARCHETYPES[static_cast<size_t>(type)];
+		if (field == "hp")					a.hp = value;
+		else if (field == "wander_speed")	a.wanderSpeed = value;
+		else if (field == "chase_speed")	a.chaseSpeed = value;
+		else if (field == "turn_rate")		a.turnRateDeg = value;
+		else if (field == "trigger")		{ a.triggerRadius = value; a.loseRadius = value * 1.2f; }
+		else if (field == "attack_range")	{ a.attackRange = value; a.attackExitRange = value * 1.2f; }
+		else if (field == "damage")			a.damage = value;
+		else if (field == "avoid")			a.avoidStrength = value;
+		else
+			return false;
+		return true;
+	}
+
+	const char* GetTuneFields()
+	{
+		return "hp, wander_speed, chase_speed, turn_rate, trigger, attack_range, damage, avoid";
 	}
 
 	bool ParseEnemyType(const std::string& name, EnemyType& type)
