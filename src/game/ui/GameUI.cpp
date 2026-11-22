@@ -50,7 +50,7 @@ void GameUI::ShowWon()
 		buttons.push_back({ "Play Again", [gameplay] { gameplay->LoadLevel(0); } });
 	buttons.push_back({ "Main Menu", mainMenu });
 
-	eng::Engine::GetInstance().GetUI().Push<eng::MessageScreen>("Arena cleared", "Placeholder text: waves come later.", buttons);
+	eng::Engine::GetInstance().GetUI().Push<eng::MessageScreen>("Arena cleared", "All three waves are down.", buttons);
 }
 
 void GameUI::ShowLost()
