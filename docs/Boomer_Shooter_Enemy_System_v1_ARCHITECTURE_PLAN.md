@@ -582,8 +582,8 @@ sitting inside each other in a crowd at the player.
 | Body radius (sphere) | 0.45 m | 0.55 m | 0.8 m |
 | Colour (body / spike) | green / pale green | orange / yellow | red / dark red |
 | HP (shots at 10 dmg) | 30 (3) | 60 (6) | 120 (12) |
-| Wander speed | 1.5 m/s | 2.5 m/s | 2.0 m/s |
-| Chase speed | 3.0 m/s | 5.0 m/s | 7.0 m/s |
+| Wander speed | 3.0 m/s | 2.5 m/s | 2.0 m/s |
+| Chase speed | 6.0 m/s | 4.5 m/s | 3.5 m/s |
 | Turn rate | 90 °/s | 180 °/s | 270 °/s |
 | Trigger radius | 7 m | 10 m | 14 m |
 | Lose radius (1.2 ×, E‑D6) | 8.4 m | 12 m | 16.8 m |
@@ -591,7 +591,7 @@ sitting inside each other in a crowd at the player.
 | Damage per hit (1 s cooldown) | 5 | 10 | 20 |
 | Avoid strength | 1.0 | 1.5 | 0.5 (pushes through) |
 
-Context: the player walks at 10 m/s, has 100 HP, and the gun fires 4 shots per second at 10 damage (40 DPS).
+The Drifter is the fastest, to balance its weakness (E‑D18). Context: the player walks at 10 m/s, has 100 HP, and the gun fires 4 shots per second at 10 damage (40 DPS).
 A Brute takes 3 s of steady fire and kills the player in 5 hits. Numbers are starting points for playtests, all
 tunable from the console (`enemy_tune`). The 1 s cooldown and the 5 s idle are the same for all types, as the task
 says.

@@ -21,6 +21,7 @@ See the plan's §0 for the reasons.
 | E‑D15 | 2026-11-21 | Review (Q3): fake aggro. A shot enemy outside its range stays in Wander and turns toward the shot origin (`Alert` component) | §0, §7.3, §9.1 |
 | E‑D16 | 2026-11-21 | Wander: a new direction after a wall must lead away from it (dot with the wall normal ≥ 0.5, in addition to the room check). Found in test: a tangent direction passed the room check, so the enemy slid along the wall and the probe never fired again | §7.3 step 3–4 |
 | E‑D17 | 2026-11-22 | `ArenaBounds` margin 1.0 m → 0.5 m: the clamp must sit inside the probe reach (1 m), else it pins enemies just outside the probe (R11) | Developer report: label stays "wander" at the wall |
+| E‑D18 | 2026-11-22 | Balance (developer, after the E5 test): the Drifter is the fastest to balance its weakness. Wander / chase speeds: Drifter 3.0 / 6.0 (was 1.5 / 3.0), Stalker 2.5 / 4.5 (was 2.5 / 5.0), Brute 2.0 / 3.5 (was 2.0 / 7.0). Not play-tested by the developer yet; tunable with `enemy_tune` | Developer request |
 
 ---
 
