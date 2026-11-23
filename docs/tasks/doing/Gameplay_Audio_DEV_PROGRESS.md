@@ -18,24 +18,24 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| S1 | Assets and music | `audio_assets` | ⬜ | | | Move the files, trim the growl, credits file, two Rod Kim tracks |
+| S1 | Assets and music | `done/audio_assets` | ✅ | 2026-11-24 | 2026-11-24 | Move the files, trim the growl, credits file, two Rod Kim tracks |
 | S2 | Sound table | `audio_sfx_table` | ⬜ | | | `SFX_TABLE`, `Play(Sfx)`, shot / enemy hits player / enemy dies |
 | S3 | Player and match events | `audio_player_events` | ⬜ | | | Jump, footsteps, player dies, win, match begins |
 | S4 | Cleanup | `audio_cleanup` | ⬜ | | | Delete the source folder, unused files, placeholders |
 
-**Current focus:** none. Waiting for the go to start S1.
-**Branch:** `integration`
+**Current focus:** S2 Sound table.
+**Branch:** none
 
 ---
 
 ## Phase checklists
 
-### Phase S1 — Assets and music ⬜
-- [ ] Move the 10 used files from `assets/audio-to-re-organize/` to `assets/audio/music/`, `sound_fx/player/`, `sound_fx/enemy/` and `sound_fx/announcements/`, keeping the file names (§1). Leave the unused files in the source folder until S4
-- [ ] Cut `874627__duhduhduh__slow-pitch-growl.wav` (7.8 s) into two files (A‑D6, Q1/Q3 in the history file): seconds 0–2 saved as `874627__duhduhduh__slow-pitch-growl-hit.wav` (`EnemyHit`), seconds 3–7 saved over `874627__duhduhduh__slow-pitch-growl.wav` (`EnemyDeath`). Both in `sound_fx/enemy/`. Note "trimmed" for both in the credits, and that `fireexplosion-short` is itself a trimmed version of the original (`short`)
-- [ ] Rewrite `assets/audio/CREDITS.txt` from `docs/tasks/doing/sound_database.md`: one line per file as `"<Title>" by <Author> — <Source URL> — <License>`, with a `(trimmed)` mark where it applies. The license is `TODO: check` where it is not known (§6). Fix the database rows listed in §6 (the Gunshot link, the Valhalla author lines)
-- [ ] `MusicManager`: `MENU_TRACK` and `GAME_TRACK` constants pointing at the two Rod Kim MP3s; `Init` loads them (§3)
-- [ ] **Done when:** the main menu plays `Final_Boss_Battle_Rod_Kim` and Play plays `Duty_Calls_Rod_Kim`, with the cross‑fade as before; no "failed to load" warning in the log; Debug and Release build
+### Phase S1 — Assets and music ✅
+- [x] Move the 10 used files from `assets/audio-to-re-organize/` to `assets/audio/music/`, `sound_fx/player/`, `sound_fx/enemy/` and `sound_fx/announcements/`, keeping the file names (§1). Leave the unused files in the source folder until S4 (+ in the same commit as the tracker's start edit, `d66f259`)
+- [x] Cut `874627__duhduhduh__slow-pitch-growl.wav` (7.8 s) into two files (A‑D6, Q1/Q3 in the history file): seconds 0–2 saved as `874627__duhduhduh__slow-pitch-growl-hit.wav` (`EnemyHit`), seconds 3–7 saved over `874627__duhduhduh__slow-pitch-growl.wav` (`EnemyDeath`). Both in `sound_fx/enemy/`. Note "trimmed" for both in the credits, and that `fireexplosion-short` is itself a trimmed version of the original (`short`)
+- [x] Rewrite `assets/audio/CREDITS.txt` from `docs/tasks/doing/sound_database.md`: one line per file as `"<Title>" by <Author> — <Source URL> — <License>`, with a `(trimmed)` mark where it applies. The license is `TODO: check` where it is not known (§6). Fix the database rows listed in §6 (the Gunshot link, the Valhalla author lines) (+ the old file's track names, "Nightmares Inn" and "Owls", differ from the database's Rod Kim tracks; the database wins, see the session log. The Rod Kim rows still have no track page or license, plan §6 (c), so they stay `TODO: check`. Added a database row for the hit growl, which had none)
+- [x] `MusicManager`: `MENU_TRACK` and `GAME_TRACK` constants pointing at the two Rod Kim MP3s; `Init` loads them (§3) (+ the constants are in `MusicManager.h`, next to `VOLUME`, `FADE_IN` and `CROSSFADE`)
+- [x] **Done when:** the main menu plays `Final_Boss_Battle_Rod_Kim` and Play plays `Duty_Calls_Rod_Kim`, with the cross‑fade as before; no "failed to load" warning in the log; Debug and Release build
 
 ### Phase S2 — Sound table ⬜
 - [ ] `SoundFXBank.h/.cpp`: new `Sfx` list (`Shot`, `PlayerDie`, `PlayerJump`, `PlayerStep`, `EnemyHitsPlayer`, `EnemyHit`, `EnemyDeath`, `Win`, `MatchBegins`), `SfxDef` and `SFX_TABLE` (path, volume, pitchMin, pitchMax; `EnemyHit` and `EnemyDeath` each have their own growl cut), `Load` loops the table, one `Play(Sfx)` that returns the `VoiceHandle` and picks a pitch in the range; the four `PlayX()` wrappers are removed (§3, A‑D3, A‑D6)

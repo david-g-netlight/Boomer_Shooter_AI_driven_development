@@ -8,8 +8,8 @@ MusicManager::~MusicManager()
 void MusicManager::Init(eng::ResourceManager& resources)
 {
 	Shutdown();
-	m_menu		= resources.LoadMusic("assets/audio/music_menu.wav");
-	m_gamePlay	= resources.LoadMusic("assets/audio/music_game.wav");
+	m_menu		= resources.LoadMusic(MENU_TRACK);
+	m_gamePlay	= resources.LoadMusic(GAME_TRACK);
 	eng::Engine::GetInstance().GetAudio().GetMusic().SetVolume(VOLUME);
 
 	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<eng::ModeChangedEvent>([this](const eng::ModeChangedEvent& e)
