@@ -19,12 +19,12 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
 | S1 | Assets and music | `done/audio_assets` | ✅ | 2026-11-24 | 2026-11-24 | Move the files, trim the growl, credits file, two Rod Kim tracks |
-| S2 | Sound table | `audio_sfx_table` | ⬜ | | | `SFX_TABLE`, `Play(Sfx)`, shot / enemy hits player / enemy dies |
+| S2 | Sound table | `audio_sfx_table` | 🟡 | 2026-11-24 | | `SFX_TABLE`, `Play(Sfx)`, shot / enemy hits player / enemy dies |
 | S3 | Player and match events | `audio_player_events` | ⬜ | | | Jump, footsteps, player dies, win, match begins |
 | S4 | Cleanup | `audio_cleanup` | ⬜ | | | Delete the source folder, unused files, placeholders |
 
 **Current focus:** S2 Sound table.
-**Branch:** none
+**Branch:** `audio_sfx_table`
 
 ---
 
@@ -37,7 +37,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `MusicManager`: `MENU_TRACK` and `GAME_TRACK` constants pointing at the two Rod Kim MP3s; `Init` loads them (§3) (+ the constants are in `MusicManager.h`, next to `VOLUME`, `FADE_IN` and `CROSSFADE`)
 - [x] **Done when:** the main menu plays `Final_Boss_Battle_Rod_Kim` and Play plays `Duty_Calls_Rod_Kim`, with the cross‑fade as before; no "failed to load" warning in the log; Debug and Release build
 
-### Phase S2 — Sound table ⬜
+### Phase S2 — Sound table 🟡
 - [ ] `SoundFXBank.h/.cpp`: new `Sfx` list (`Shot`, `PlayerDie`, `PlayerJump`, `PlayerStep`, `EnemyHitsPlayer`, `EnemyHit`, `EnemyDeath`, `Win`, `MatchBegins`), `SfxDef` and `SFX_TABLE` (path, volume, pitchMin, pitchMax; `EnemyHit` and `EnemyDeath` each have their own growl cut), `Load` loops the table, one `Play(Sfx)` that returns the `VoiceHandle` and picks a pitch in the range; the four `PlayX()` wrappers are removed (§3, A‑D3, A‑D6)
 - [ ] Migrate the call sites: `ShotFXSpawner.cpp` → `Play(Sfx::Shot)`; `LifeSystem.cpp` → `Play(Sfx::EnemyDeath)`; `ArenaGame::OnPlayerHit` → `Play(Sfx::EnemyHitsPlayer)`; `EnemyManager.cpp` → `Play(Sfx::EnemyHit)`. Volumes and pitch ranges in the table are tuned by ear (§4)
 - [ ] **Done when:** the gunshot, the enemy bite on the player and an enemy death each play the clip from the database (no ping); shooting an enemy plays the short growl (0–2 s cut) and killing it plays the longer one (3–7 s cut); the three clips can be tuned only by editing `SFX_TABLE`; Debug and Release build
