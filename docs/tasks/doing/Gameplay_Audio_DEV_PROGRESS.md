@@ -18,19 +18,19 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| S1 | Assets and music | `audio_assets` | ⬜ | | | Move the files, trim the growl, credits file, two Rod Kim tracks |
+| S1 | Assets and music | `audio_assets` | 🟡 | 2026-11-24 | | Move the files, trim the growl, credits file, two Rod Kim tracks |
 | S2 | Sound table | `audio_sfx_table` | ⬜ | | | `SFX_TABLE`, `Play(Sfx)`, shot / enemy hits player / enemy dies |
 | S3 | Player and match events | `audio_player_events` | ⬜ | | | Jump, footsteps, player dies, win, match begins |
 | S4 | Cleanup | `audio_cleanup` | ⬜ | | | Delete the source folder, unused files, placeholders |
 
-**Current focus:** none. Waiting for the go to start S1.
-**Branch:** `integration`
+**Current focus:** S1 Assets and music.
+**Branch:** `audio_assets`
 
 ---
 
 ## Phase checklists
 
-### Phase S1 — Assets and music ⬜
+### Phase S1 — Assets and music 🟡
 - [ ] Move the 10 used files from `assets/audio-to-re-organize/` to `assets/audio/music/`, `sound_fx/player/`, `sound_fx/enemy/` and `sound_fx/announcements/`, keeping the file names (§1). Leave the unused files in the source folder until S4
 - [ ] Cut `874627__duhduhduh__slow-pitch-growl.wav` (7.8 s) into two files (A‑D6, Q1/Q3 in the history file): seconds 0–2 saved as `874627__duhduhduh__slow-pitch-growl-hit.wav` (`EnemyHit`), seconds 3–7 saved over `874627__duhduhduh__slow-pitch-growl.wav` (`EnemyDeath`). Both in `sound_fx/enemy/`. Note "trimmed" for both in the credits, and that `fireexplosion-short` is itself a trimmed version of the original (`short`)
 - [ ] Rewrite `assets/audio/CREDITS.txt` from `docs/tasks/doing/sound_database.md`: one line per file as `"<Title>" by <Author> — <Source URL> — <License>`, with a `(trimmed)` mark where it applies. The license is `TODO: check` where it is not known (§6). Fix the database rows listed in §6 (the Gunshot link, the Valhalla author lines)
