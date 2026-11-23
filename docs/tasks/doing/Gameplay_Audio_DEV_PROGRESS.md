@@ -21,10 +21,10 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | S1 | Assets and music | `done/audio_assets` | ✅ | 2026-11-24 | 2026-11-24 | Move the files, trim the growl, credits file, two Rod Kim tracks |
 | S2 | Sound table | `done/audio_sfx_table` | ✅ | 2026-11-24 | 2026-11-24 | `SFX_TABLE`, `Play(Sfx)`, shot / enemy hits player / enemy dies |
 | S3 | Player and match events | `done/audio_player_events` | ✅ | 2026-11-24 | 2026-11-24 | Jump, footsteps, player dies, win, match begins |
-| S4 | Cleanup | `audio_cleanup` | ⬜ | | | Delete the source folder, unused files, placeholders |
+| S4 | Cleanup | `audio_cleanup` | 🟡 | 2026-11-24 | | Delete the source folder, unused files, placeholders |
 
 **Current focus:** S4 Cleanup.
-**Branch:** none
+**Branch:** `audio_cleanup`
 
 ---
 
@@ -48,7 +48,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `ArenaGame`: subscribe to `PlayerDiedEvent` (play `Sfx::PlayerDie`), `GameWonEvent` (`Sfx::Win`) and `GameStartedEvent` (`Sfx::MatchBegins`); unsubscribe in the destructor like the other tokens. Stop the footstep voice on death and on level reload (§2) (+ the death stop is in the `PlayerDiedEvent` handler, and the level load stop is at the top of `LoadLevelFile`. Pause is covered by the note above, so the arena does not listen to `ModeChangedEvent`)
 - [x] **Done when:** all 8 events are heard (2 themes + 8 sounds): jump once per jump; footsteps play while walking on the ground and stop when standing still, in the air, on pause and on death; "match begins" plays on Start, Restart and Retry; "you win" plays on "Arena cleared"; the death sound plays when HP reaches 0; Debug and Release build
 
-### Phase S4 — Cleanup ⬜
+### Phase S4 — Cleanup 🟡
 - [ ] Delete `assets/audio-to-re-organize/` (with the unused `761501…explosion.wav` and `583715…walking…wav`) and the placeholders `assets/audio/sfx_ping.wav`, `music_menu.wav`, `music_game.wav`. `tools/generate_placeholder_audio.py` stays (§1.1)
 - [ ] Fix the docs: `README.md` and `assets/README.md` stop mentioning placeholders and list the new folders; check `tools/package_release.sh` still copies `assets/` (§4)
 - [ ] **Done when:** `grep -rn "sfx_ping\|music_menu\|music_game\|audio-to-re-organize" .` finds nothing outside the docs history; `assets/audio-to-re-organize` does not exist; `assets/audio/` holds only `CREDITS.txt`, `music/` and `sound_fx/`; a clean Debug and Release build runs with no audio warning
