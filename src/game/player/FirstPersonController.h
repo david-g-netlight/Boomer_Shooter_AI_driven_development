@@ -19,14 +19,18 @@ public:
 	static constexpr float	APEX_TIME		= 0.25f;	// s
 	static constexpr float	GRAVITY			= 2.0f * JUMP_HEIGHT / (APEX_TIME * APEX_TIME);		// 32 m/s^2
 	static constexpr float	JUMP_SPEED		= 2.0f * JUMP_HEIGHT / APEX_TIME;					// 8 m/s
+	static constexpr float	STEP_MIN_SPEED	= 0.5f;		// m/s, slower than this and the footsteps stop
 
 	void			Bind(PlayerInput* input, PlayerState* state);
 
 	void			OnEnable() override;
 	void			FixedUpdate(float fixedDeltaTime) override;
+	// Stops the footstep loop (the arena calls it on death and on level load)
+	void			StopFootsteps();
 	const char*		TypeName() const override { return "FirstPersonController"; }
 
 private:
 	PlayerInput*	m_input		= nullptr;
 	PlayerState*	m_state		= nullptr;
+	eng::VoiceHandle	m_stepVoice;		// the footstep loop, while it plays
 };

@@ -34,4 +34,21 @@ void FirstPersonController::FixedUpdate(float /*fixedDeltaTime*/)
 		motor->Jump(JUMP_SPEED);
 		SoundFXBank::Instance().Play(Sfx::PlayerJump);
 	}
+
+	// Footsteps: a loop the controller restarts while the player walks on the ground and is alive
+	const Vector3 velocity = motor->GetVelocity();
+	const bool walking = motor->IsGrounded() && m_state->IsAlive() && Vector2Length({ velocity.x, velocity.z }) > STEP_MIN_SPEED;
+	if (!walking)
+		StopFootsteps();
+	else if (!eng::Engine::GetInstance().GetAudio().IsPlaying(m_stepVoice))
+		m_stepVoice = SoundFXBank::Instance().Play(Sfx::PlayerStep);
+}
+
+void FirstPersonController::StopFootsteps()
+{
+	if (!m_stepVoice.IsValid())
+		return;
+
+	eng::Engine::GetInstance().GetAudio().Stop(m_stepVoice);
+	m_stepVoice = {};
 }
