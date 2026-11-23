@@ -44,6 +44,7 @@ Answers are in `tasks/doing/TASK_08_Dicussions.md`.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-24 | S2 | Developer validated S2; merged into `integration`, branch renamed `done/audio_sfx_table` | Start S3 (Player and match events) | — |
 | 2026-11-24 | S2 | Table and `Play(Sfx)` (`2b0804b`); call sites moved, wrappers removed (`6ad9c7e`). Clean Debug and Release builds: 0 errors, 0 warnings. Each app ran 8 s: all nine sound files loaded, arena 0 warnings. **Not run:** hearing the clips (needs a person). The pitch and volume of the five sounds not played yet are first guesses | Developer runs the S2 **Done when** check | — |
 | 2026-11-24 | S1 | Developer validated S1; merged into `integration`, branch renamed `done/audio_assets` | Start S2 (Sound table) | — |
 | 2026-11-24 | S1 | Developer's staged clean-up committed as `f940bb0`. Branch `audio_assets` made from `integration`. Used files moved (`d66f259`); growl cut to `…growl-hit.wav` (0–2 s) and `…growl.wav` (3–7 s) (`8c96c4b`); `CREDITS.txt` rewritten and database rows fixed (`14a2a41`); `MusicManager` loads the MP3s (`d851210`). Clean Debug and Release builds (`build/check-debug`, `build/check-release`): 0 errors, 0 warnings. Each app ran 8 s: both MP3s "loaded successfully", arena 13 actors, 0 warnings. **Not run:** hearing the tracks, the cross-fade, and the level-start music (need a person). The old `CREDITS.txt` track names ("Nightmares Inn", "Owls") differ from the database; the database was used | Developer runs the S1 **Done when** check | — |
