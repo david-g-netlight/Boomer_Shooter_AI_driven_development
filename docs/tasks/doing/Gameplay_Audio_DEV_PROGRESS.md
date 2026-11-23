@@ -49,12 +49,14 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] **Done when:** all 8 events are heard (2 themes + 8 sounds): jump once per jump; footsteps play while walking on the ground and stop when standing still, in the air, on pause and on death; "match begins" plays on Start, Restart and Retry; "you win" plays on "Arena cleared"; the death sound plays when HP reaches 0; Debug and Release build
 
 ### Phase S4 — Cleanup 🟡
-- [ ] Delete `assets/audio-to-re-organize/` (with the unused `761501…explosion.wav` and `583715…walking…wav`) and the placeholders `assets/audio/sfx_ping.wav`, `music_menu.wav`, `music_game.wav`. `tools/generate_placeholder_audio.py` stays (§1.1)
-- [ ] Fix the docs: `README.md` and `assets/README.md` stop mentioning placeholders and list the new folders; check `tools/package_release.sh` still copies `assets/` (§4)
-- [ ] **Done when:** `grep -rn "sfx_ping\|music_menu\|music_game\|audio-to-re-organize" .` finds nothing outside the docs history; `assets/audio-to-re-organize` does not exist; `assets/audio/` holds only `CREDITS.txt`, `music/` and `sound_fx/`; a clean Debug and Release build runs with no audio warning
+- [x] Delete `assets/audio-to-re-organize/` (with the unused `761501…explosion.wav` and `583715…walking…wav`) and the placeholders `assets/audio/sfx_ping.wav`, `music_menu.wav`, `music_game.wav`. `tools/generate_placeholder_audio.py` stays (§1.1) (+ commit `6f27835`. The two unused files left with the folder. `tools/generate_placeholder_audio.py` stays, A‑D8)
+- [x] Fix the docs: `README.md` and `assets/README.md` stop mentioning placeholders and list the new folders; check `tools/package_release.sh` still copies `assets/` (§4) (+ commit `edeeef6`. `tools/package_release.sh` already copies the whole `assets/` folder, so it needed no change)
+- [ ] **Done when:** `grep -rn "sfx_ping\|music_menu\|music_game\|audio-to-re-organize" .` finds nothing outside the docs history; `assets/audio-to-re-organize` does not exist; `assets/audio/` holds only `CREDITS.txt`, `music/` and `sound_fx/`; a clean Debug and Release build runs with no audio warning (+ not ticked yet: the grep also matches `tools/generate_placeholder_audio.py`, which the plan keeps. See Q6)
 
 ---
 
 ## Open questions
 
-None. The plan's Q1–Q5 are answered in `tasks/doing/TASK_08_Dicussions.md` and recorded in the history file.
+| # | Question | Default if no answer |
+|---|---|---|
+| Q6 | The S4 grep check matches `tools/generate_placeholder_audio.py` (it writes `sfx_ping.wav`, `music_menu.wav`, `music_game.wav`), and the plan keeps that script (A‑D8). Should the check skip `tools/`, or should the script's output names change? | Skip `tools/` in the grep. The script stays unchanged |
