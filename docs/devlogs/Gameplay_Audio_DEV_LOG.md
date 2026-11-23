@@ -44,6 +44,7 @@ Answers are in `tasks/doing/TASK_08_Dicussions.md`.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-24 | S1 | Developer validated S1; merged into `integration`, branch renamed `done/audio_assets` | Start S2 (Sound table) | — |
 | 2026-11-24 | S1 | Developer's staged clean-up committed as `f940bb0`. Branch `audio_assets` made from `integration`. Used files moved (`d66f259`); growl cut to `…growl-hit.wav` (0–2 s) and `…growl.wav` (3–7 s) (`8c96c4b`); `CREDITS.txt` rewritten and database rows fixed (`14a2a41`); `MusicManager` loads the MP3s (`d851210`). Clean Debug and Release builds (`build/check-debug`, `build/check-release`): 0 errors, 0 warnings. Each app ran 8 s: both MP3s "loaded successfully", arena 13 actors, 0 warnings. **Not run:** hearing the tracks, the cross-fade, and the level-start music (need a person). The old `CREDITS.txt` track names ("Nightmares Inn", "Owls") differ from the database; the database was used | Developer runs the S1 **Done when** check | — |
 | 2026-11-23 | — | Developer's answers read; `EnemyHit` kept (shares the growl), growl cut into two files (0–2 s hit, 3–7 s death); plan, tracker and log updated | Developer gives the go for S1 | — |
 | 2026-11-23 | — | Tracker written for the Gameplay Audio plan | Developer reviews, gives the go for S1 | — |
