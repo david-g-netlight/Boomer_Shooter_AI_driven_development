@@ -13,6 +13,9 @@ class MusicManager
 public:
 	enum class Theme { None, Menu, GamePlay };
 
+	static constexpr const char*	MENU_TRACK	= "assets/audio/music/Final_Boss_Battle_Rod_Kim.mp3";
+	static constexpr const char*	GAME_TRACK	= "assets/audio/music/Duty_Calls_Rod_Kim.mp3";
+
 	static constexpr float	FADE_IN			= 4.0f;		// seconds, first track
 	static constexpr float	CROSSFADE		= 2.0f;		// seconds, theme to theme
 	static constexpr float	VOLUME			= 0.7f;
