@@ -20,11 +20,11 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 |---|---|---|---|---|---|---|
 | S1 | Assets and music | `done/audio_assets` | ✅ | 2026-11-24 | 2026-11-24 | Move the files, trim the growl, credits file, two Rod Kim tracks |
 | S2 | Sound table | `done/audio_sfx_table` | ✅ | 2026-11-24 | 2026-11-24 | `SFX_TABLE`, `Play(Sfx)`, shot / enemy hits player / enemy dies |
-| S3 | Player and match events | `audio_player_events` | ⬜ | | | Jump, footsteps, player dies, win, match begins |
+| S3 | Player and match events | `audio_player_events` | 🟡 | 2026-11-24 | | Jump, footsteps, player dies, win, match begins |
 | S4 | Cleanup | `audio_cleanup` | ⬜ | | | Delete the source folder, unused files, placeholders |
 
 **Current focus:** S3 Player and match events.
-**Branch:** none
+**Branch:** `audio_player_events`
 
 ---
 
@@ -42,7 +42,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] Migrate the call sites: `ShotFXSpawner.cpp` → `Play(Sfx::Shot)`; `LifeSystem.cpp` → `Play(Sfx::EnemyDeath)`; `ArenaGame::OnPlayerHit` → `Play(Sfx::EnemyHitsPlayer)`; `EnemyManager.cpp` → `Play(Sfx::EnemyHit)`. Volumes and pitch ranges in the table are tuned by ear (§4) (+ `EnemyManager.cpp` calls `Play(Sfx::EnemyHit)`, `LifeSystem.cpp` `Play(Sfx::EnemyDeath)`, `ShotFXSpawner.cpp` `Play(Sfx::Shot)`, `ArenaGame::OnPlayerHit` `Play(Sfx::EnemyHitsPlayer)`; no `PlayX` name is left in `src/`)
 - [x] **Done when:** the gunshot, the enemy bite on the player and an enemy death each play the clip from the database (no ping); shooting an enemy plays the short growl (0–2 s cut) and killing it plays the longer one (3–7 s cut); the three clips can be tuned only by editing `SFX_TABLE`; Debug and Release build
 
-### Phase S3 — Player and match events ⬜
+### Phase S3 — Player and match events 🟡
 - [ ] `FirstPersonController`: play `Sfx::PlayerJump` where `ConsumeJump()` succeeds and `motor->Jump()` is called (§2)
 - [ ] `FirstPersonController`: footstep loop. Keep a `VoiceHandle m_stepVoice`; while grounded and the horizontal speed is above `STEP_MIN_SPEED`, replay `Sfx::PlayerStep` when `!IsPlaying(m_stepVoice)`; otherwise `Stop` it (A‑D5, R1)
 - [ ] `ArenaGame`: subscribe to `PlayerDiedEvent` (play `Sfx::PlayerDie`), `GameWonEvent` (`Sfx::Win`) and `GameStartedEvent` (`Sfx::MatchBegins`); unsubscribe in the destructor like the other tokens. Stop the footstep voice on death and on level reload (§2)

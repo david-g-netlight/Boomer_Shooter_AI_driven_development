@@ -3,6 +3,7 @@
 #include "player/FirstPersonLook.h"
 #include "player/PlayerInput.h"
 #include "state/PlayerState.h"
+#include "state/SoundFXBank.h"
 
 void FirstPersonController::Bind(PlayerInput* input, PlayerState* state)
 {
@@ -29,5 +30,8 @@ void FirstPersonController::FixedUpdate(float /*fixedDeltaTime*/)
 
 	// Take the buffered jump only once there is ground under the capsule
 	if (motor->IsGrounded() && m_input->ConsumeJump())
+	{
 		motor->Jump(JUMP_SPEED);
+		SoundFXBank::Instance().Play(Sfx::PlayerJump);
+	}
 }
