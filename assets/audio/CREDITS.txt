@@ -4,7 +4,7 @@ Audio credits
 Every audio file under assets/audio/ is listed here as: "Title" by Author - Source - License.
 "(trimmed)" marks a file cut from a longer original.
 "TODO: check" means the license is not confirmed yet. Check it on the source page before release.
-Source of the list: docs/tasks/doing/sound_database.md
+Source of the list: docs/tasks/done/sound_database.md
 
 Music
 -----

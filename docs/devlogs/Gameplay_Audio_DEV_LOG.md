@@ -1,6 +1,6 @@
 # Development Log — Gameplay Audio
 
-Tracker: [`tasks/doing/Gameplay_Audio_DEV_PROGRESS.md`](../tasks/doing/Gameplay_Audio_DEV_PROGRESS.md). Plan: [`deliverables/Boomer_Shooter_Gameplay_Audio_ARCHITECTURE_PLAN.md`](../deliverables/Boomer_Shooter_Gameplay_Audio_ARCHITECTURE_PLAN.md).
+Tracker: [`tasks/done/Gameplay_Audio_DEV_PROGRESS.md`](../tasks/done/Gameplay_Audio_DEV_PROGRESS.md). Plan: [`deliverables/Boomer_Shooter_Gameplay_Audio_ARCHITECTURE_PLAN.md`](../deliverables/Boomer_Shooter_Gameplay_Audio_ARCHITECTURE_PLAN.md).
 
 ## Decision log
 
@@ -18,7 +18,7 @@ Tracker: [`tasks/doing/Gameplay_Audio_DEV_PROGRESS.md`](../tasks/doing/Gameplay_
 
 ## Questions for the developer
 
-Answers are in `tasks/doing/TASK_08_Dicussions.md`.
+Answers are in `tasks/done/TASK_08_Dicussions.md`.
 
 | # | Question | Answer |
 |---|---|---|

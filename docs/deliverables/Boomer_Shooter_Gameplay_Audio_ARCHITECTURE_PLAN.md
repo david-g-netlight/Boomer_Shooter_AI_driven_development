@@ -2,7 +2,7 @@
 
 Builds on [`Boomer_Shooter_ARCHITECTURE_PLAN.md`](Boomer_Shooter_ARCHITECTURE_PLAN.md) and
 [`Boomer_Shooter_Enemy_System_v1_ARCHITECTURE_PLAN.md`](Boomer_Shooter_Enemy_System_v1_ARCHITECTURE_PLAN.md).
-Source task: [`tasks/doing/TASK_08.md`](../tasks/doing/TASK_08.md). Asset list and authors: [`tasks/doing/sound_database.md`](../tasks/doing/sound_database.md).
+Source task: [`tasks/done/TASK_08.md`](../tasks/done/TASK_08.md). Asset list and authors: [`tasks/done/sound_database.md`](../tasks/done/sound_database.md).
 
 **Goal:** replace the placeholder audio (one synthesized ping, two synthesized themes) with the real files of the
 sound database, and play them on 8 gameplay events plus 2 music themes. The engine's audio layer does not change.
