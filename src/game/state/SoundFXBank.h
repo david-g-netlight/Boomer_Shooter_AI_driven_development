@@ -38,20 +38,6 @@ public:
 	/// </summary>
 	eng::VoiceHandle	Play(Sfx sfx) const;
 
-	/// <summary>
-	/// The gun's sound, with a little random pitch so rapid fire doesn't sound mechanical.
-	/// </summary>
-	bool	PlayShot() const;
-
-	/// <summary>A shot that hit an enemy: higher and short.</summary>
-	bool	PlayEnemyHit() const;
-
-	/// <summary>An enemy dies: lower and louder.</summary>
-	bool	PlayEnemyDeath() const;
-
-	/// <summary>The player takes damage: low and short.</summary>
-	bool	PlayPlayerHurt() const;
-
 private:
 	const Sound*	m_sounds[static_cast<int>(Sfx::Count)] = {};
 };

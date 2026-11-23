@@ -59,8 +59,3 @@ eng::VoiceHandle SoundFXBank::Play(Sfx sfx) const
 	const float pitch = def.pitchMin + (def.pitchMax - def.pitchMin) * static_cast<float>(GetRandomValue(0, 100)) / 100.0f;
 	return eng::Engine::GetInstance().GetAudio().Play(*sound, def.volume, pitch);
 }
-
-bool SoundFXBank::PlayShot() const				{ return Play(Sfx::Shot).IsValid(); }
-bool SoundFXBank::PlayEnemyHit() const			{ return Play(Sfx::EnemyHit).IsValid(); }
-bool SoundFXBank::PlayEnemyDeath() const		{ return Play(Sfx::EnemyDeath).IsValid(); }
-bool SoundFXBank::PlayPlayerHurt() const		{ return Play(Sfx::EnemyHitsPlayer).IsValid(); }
