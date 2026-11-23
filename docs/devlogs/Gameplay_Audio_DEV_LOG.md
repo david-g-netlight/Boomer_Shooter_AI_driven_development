@@ -44,6 +44,8 @@ Answers are in `tasks/doing/TASK_08_Dicussions.md`.
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-24 | S3 | Developer validated S3; merged into `integration`, branch renamed `done/audio_player_events` | Start S4 (Cleanup) | — |
+| 2026-11-24 | S3 | Jump sound (`fcea387`); footstep loop with `StopFootsteps` (`e11239c`); arena plays Player dies, Win and Match begins, footsteps stop on death and on level load (`099da6c`). Clean Debug and Release builds: 0 errors, 0 warnings. Each app ran 8 s: nine sound files loaded, 0 failed, 0 warnings. **Not run:** hearing the sounds, the footstep rhythm, and the jump timing (need a person). Pause and death are checked by reading the code only | Developer runs the S3 **Done when** check | — |
 | 2026-11-24 | S2 | Developer validated S2; merged into `integration`, branch renamed `done/audio_sfx_table` | Start S3 (Player and match events) | — |
 | 2026-11-24 | S2 | Table and `Play(Sfx)` (`2b0804b`); call sites moved, wrappers removed (`6ad9c7e`). Clean Debug and Release builds: 0 errors, 0 warnings. Each app ran 8 s: all nine sound files loaded, arena 0 warnings. **Not run:** hearing the clips (needs a person). The pitch and volume of the five sounds not played yet are first guesses | Developer runs the S2 **Done when** check | — |
 | 2026-11-24 | S1 | Developer validated S1; merged into `integration`, branch renamed `done/audio_assets` | Start S2 (Sound table) | — |

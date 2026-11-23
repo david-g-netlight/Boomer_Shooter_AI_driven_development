@@ -1,4 +1,5 @@
 #include "ArenaGame.h"
+#include "player/FirstPersonController.h"
 #include <cmath>
 #include <raymath.h>
 
@@ -25,7 +26,14 @@ bool ArenaGame::Init()
 	eng::EventBus& events = engine.GetEvents();
 	m_playerHitToken	= events.Subscribe<enemies::PlayerHitEvent>([this](const enemies::PlayerHitEvent& hit) { OnPlayerHit(hit); });
 	m_wavesClearedToken	= events.Subscribe<enemies::WavesClearedEvent>([this](const enemies::WavesClearedEvent&) { m_gameState.WinGame(); });
-	m_playerDiedToken	= events.Subscribe<PlayerDiedEvent>([this](const PlayerDiedEvent&) { m_gameState.LoseGame(); });
+	m_playerDiedToken	= events.Subscribe<PlayerDiedEvent>([this](const PlayerDiedEvent&)
+	{
+		SoundFXBank::Instance().Play(Sfx::PlayerDie);
+		StopFootsteps();
+		m_gameState.LoseGame();
+	});
+	m_gameStartedToken	= events.Subscribe<GameStartedEvent>([](const GameStartedEvent&) { SoundFXBank::Instance().Play(Sfx::MatchBegins); });
+	m_gameWonToken		= events.Subscribe<GameWonEvent>([](const GameWonEvent&) { SoundFXBank::Instance().Play(Sfx::Win); });
 #ifndef NDEBUG
 	for (const std::string& failure : eng::ecs::RunRegistrySelfTest())
 		eng::Log::Error("ECS self-check failed: %s", failure.c_str());
@@ -81,7 +89,9 @@ void ArenaGame::Destroy()
 	events.Unsubscribe(m_playerHitToken);
 	events.Unsubscribe(m_playerDiedToken);
 	events.Unsubscribe(m_wavesClearedToken);
-	m_playerHitToken = m_playerDiedToken = m_wavesClearedToken = 0;
+	events.Unsubscribe(m_gameStartedToken);
+	events.Unsubscribe(m_gameWonToken);
+	m_playerHitToken = m_playerDiedToken = m_wavesClearedToken = m_gameStartedToken = m_gameWonToken = 0;
 	m_gameplay.Shutdown();
 	GameContext::SetGameState(nullptr);
 	m_player.Reset();
@@ -106,6 +116,7 @@ eng::Level* ArenaGame::GetActiveLevel()
 //////////////////////////////////////////
 bool ArenaGame::LoadLevelFile(const std::string& path)
 {
+	StopFootsteps();
 	m_player.Reset();
 	m_enemies.Reset();		// the game's own loads (start, next level, restart, retry) do not call OnLevelLoaded
 	const bool isLoaded = eng::LevelSerializer::Load(m_level, path).ok;
@@ -132,6 +143,15 @@ void ArenaGame::OnPlayerHit(const enemies::PlayerHitEvent& hit)
 		SoundFXBank::Instance().Play(Sfx::EnemyHitsPlayer);
 	if (died)
 		eng::Engine::GetInstance().GetEvents().Publish(PlayerDiedEvent{});
+}
+
+void ArenaGame::StopFootsteps()
+{
+	if (const eng::GameActor* player = m_player.Get())
+	{
+		if (FirstPersonController* controller = player->GetComponent<FirstPersonController>())
+			controller->StopFootsteps();
+	}
 }
 
 void ArenaGame::SpawnPlayer()

@@ -56,6 +56,7 @@ private:
 	void		SpawnPlayer();
 	void		UpdateMenuCamera(float deltaTime);
 	void		OnPlayerHit(const enemies::PlayerHitEvent& hit);
+		void		StopFootsteps();
 
 	eng::Level		m_level;
 	eng::Camera		m_camera;
@@ -74,6 +75,8 @@ private:
 	eng::EventBus::Token	m_playerHitToken	= 0;
 	eng::EventBus::Token	m_playerDiedToken	= 0;
 	eng::EventBus::Token	m_wavesClearedToken	= 0;
+		eng::EventBus::Token	m_gameStartedToken	= 0;
+		eng::EventBus::Token	m_gameWonToken		= 0;
 #if ENG_DEV_CONSOLE
 	GameCommands	m_commands;
 #endif
