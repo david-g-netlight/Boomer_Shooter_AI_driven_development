@@ -14,6 +14,7 @@ Tracker: [`tasks/doing/Gameplay_Audio_DEV_PROGRESS.md`](../tasks/doing/Gameplay_
 | A‑D6 | 2026-11-23 | ~~`Sfx::EnemyHit` removed (no asset)~~ Revised by the developer (Q1): `EnemyHit` stays and has its own file: growl seconds 0–2 (`EnemyDeath` uses seconds 3–7) | §0 |
 | A‑D7 | 2026-11-23 | `CREDITS.txt` rewritten from the database; the in‑game Credits screen is a follow‑up | §0, §6 |
 | A‑D8 | 2026-11-23 | ~~`tools/generate_placeholder_audio.py` is deleted~~ Revised by the developer's edit of the plan: the script stays | §1.1, §4 |
+| A‑D9 | 2026-11-24 | The S4 grep check skips `tools/` (answer to Q6). The placeholder script and its names stay | §5 (S4) |
 
 ## Questions for the developer
 
@@ -27,6 +28,7 @@ Answers are in `tasks/doing/TASK_08_Dicussions.md`.
 | Q4 | ~~Credits screen in this task?~~ | **Answered:** `CREDITS.txt` now, screen in a follow‑up |
 | Q5 | ~~"Match begins" on every wave?~~ | **Answered:** no, once per match |
 | — | Python placeholder script | **Answered:** do not delete it (A‑D8) |
+| Q6 | ~~Grep check hits `tools/generate_placeholder_audio.py`~~ | **Answered:** skip `tools/` in the grep (A‑D9) |
 
 ## Known issues and risks being watched
 
@@ -45,6 +47,7 @@ Answers are in `tasks/doing/TASK_08_Dicussions.md`.
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
 | 2026-11-24 | S3 | Developer validated S3; merged into `integration`, branch renamed `done/audio_player_events` | Start S4 (Cleanup) | — |
+| 2026-11-24 | S4 | Q6 answered: the grep skips `tools/` (A‑D9). With that scope the grep finds nothing | Developer runs the S4 **Done when** check | — |
 | 2026-11-24 | S4 | Deleted `assets/audio-to-re-organize/` (incl. the 2 unused files), `sfx_ping.wav`, `music_menu.wav`, `music_game.wav` (`6f27835`). README and `assets/README.md` describe the real files (`edeeef6`). Clean Debug and Release builds: 0 errors, 0 warnings. Both apps ran 8 s: 36 loads, 0 failed, 0 WARN. Grep check: outside `docs/`, only `tools/generate_placeholder_audio.py` matches (open question Q6) | Developer decides Q6, then runs the S4 **Done when** check | Q6 |
 | 2026-11-24 | S3 | Jump sound (`fcea387`); footstep loop with `StopFootsteps` (`e11239c`); arena plays Player dies, Win and Match begins, footsteps stop on death and on level load (`099da6c`). Clean Debug and Release builds: 0 errors, 0 warnings. Each app ran 8 s: nine sound files loaded, 0 failed, 0 warnings. **Not run:** hearing the sounds, the footstep rhythm, and the jump timing (need a person). Pause and death are checked by reading the code only | Developer runs the S3 **Done when** check | — |
 | 2026-11-24 | S2 | Developer validated S2; merged into `integration`, branch renamed `done/audio_sfx_table` | Start S3 (Player and match events) | — |

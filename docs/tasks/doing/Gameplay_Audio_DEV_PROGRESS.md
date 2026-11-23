@@ -51,12 +51,10 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 ### Phase S4 — Cleanup 🟡
 - [x] Delete `assets/audio-to-re-organize/` (with the unused `761501…explosion.wav` and `583715…walking…wav`) and the placeholders `assets/audio/sfx_ping.wav`, `music_menu.wav`, `music_game.wav`. `tools/generate_placeholder_audio.py` stays (§1.1) (+ commit `6f27835`. The two unused files left with the folder. `tools/generate_placeholder_audio.py` stays, A‑D8)
 - [x] Fix the docs: `README.md` and `assets/README.md` stop mentioning placeholders and list the new folders; check `tools/package_release.sh` still copies `assets/` (§4) (+ commit `edeeef6`. `tools/package_release.sh` already copies the whole `assets/` folder, so it needed no change)
-- [ ] **Done when:** `grep -rn "sfx_ping\|music_menu\|music_game\|audio-to-re-organize" .` finds nothing outside the docs history; `assets/audio-to-re-organize` does not exist; `assets/audio/` holds only `CREDITS.txt`, `music/` and `sound_fx/`; a clean Debug and Release build runs with no audio warning (+ not ticked yet: the grep also matches `tools/generate_placeholder_audio.py`, which the plan keeps. See Q6)
+- [ ] **Done when:** `grep -rn "sfx_ping\|music_menu\|music_game\|audio-to-re-organize" .` finds nothing outside `docs/` and `tools/` (A‑D9); `assets/audio-to-re-organize` does not exist; `assets/audio/` holds only `CREDITS.txt`, `music/` and `sound_fx/`; a clean Debug and Release build runs with no audio warning (+ Q6 answered: `tools/` is skipped, A‑D9. The grep now finds nothing. Not ticked: the developer checks it)
 
 ---
 
 ## Open questions
 
-| # | Question | Default if no answer |
-|---|---|---|
-| Q6 | The S4 grep check matches `tools/generate_placeholder_audio.py` (it writes `sfx_ping.wav`, `music_menu.wav`, `music_game.wav`), and the plan keeps that script (A‑D8). Should the check skip `tools/`, or should the script's output names change? | Skip `tools/` in the grep. The script stays unchanged |
+None. Q6 is answered in the history file.
