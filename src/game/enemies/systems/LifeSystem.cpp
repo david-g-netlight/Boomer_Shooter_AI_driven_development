@@ -43,7 +43,7 @@ namespace enemies
 				return;
 
 			life.isDead = true;
-			SoundFXBank::Instance().PlayEnemyDeath();
+			SoundFXBank::Instance().Play(Sfx::EnemyDeath);
 			DeathBurst(ctx.particles, transform.position, kind.type);
 			ctx.events.Publish(EnemyKilledEvent{ kind.type, transform.position });
 		});

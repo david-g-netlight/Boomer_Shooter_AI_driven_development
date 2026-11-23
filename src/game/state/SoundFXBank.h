@@ -1,20 +1,25 @@
 #pragma once
-#include <raylib.h>
+#include <eng.h>
 
 namespace eng { class ResourceManager; }
 
 enum class Sfx
 {
 	Shot,
+	PlayerDie,
+	PlayerJump,
+	PlayerStep,
+	EnemyHitsPlayer,
 	EnemyHit,
 	EnemyDeath,
-	PlayerHurt,
+	Win,
+	MatchBegins,
 	Count,
 };
 
 /// <summary>
-/// The game's sound effects, loaded once through the ResourceManager and played by name. The enemy sounds are
-/// the placeholder ping at another pitch until there are real files.
+/// The game's sound effects, loaded once through the ResourceManager and played by name. Each sound's file,
+/// volume and pitch range are in SFX_TABLE (SoundFXBank.cpp).
 /// A sound that failed to load is skipped silently after the loader's warning.
 /// </summary>
 class SoundFXBank
@@ -29,23 +34,9 @@ public:
 	void	Clear();								// before the ResourceManager unloads
 
 	/// <summary>
-	/// Plays through the AudioManager's voice pool; false if the sound is missing.
+	/// Plays the sound with a pitch picked from its table range. Returns an invalid handle if the sound is missing.
 	/// </summary>
-	bool	Play(Sfx sfx, float volume = 0.8f, float pitch = 1.0f) const;
-
-	/// <summary>
-	/// The gun's sound, with a little random pitch so rapid fire doesn't sound mechanical.
-	/// </summary>
-	bool	PlayShot() const;
-
-	/// <summary>A shot that hit an enemy: higher and short.</summary>
-	bool	PlayEnemyHit() const;
-
-	/// <summary>An enemy dies: lower and louder.</summary>
-	bool	PlayEnemyDeath() const;
-
-	/// <summary>The player takes damage: low and short.</summary>
-	bool	PlayPlayerHurt() const;
+	eng::VoiceHandle	Play(Sfx sfx) const;
 
 private:
 	const Sound*	m_sounds[static_cast<int>(Sfx::Count)] = {};

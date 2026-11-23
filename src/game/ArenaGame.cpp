@@ -129,7 +129,7 @@ void ArenaGame::OnPlayerHit(const enemies::PlayerHitEvent& hit)
 	const float before = m_playerState.GetHealth();
 	const bool died = m_playerState.ApplyDamage(hit.damage);
 	if (m_playerState.GetHealth() < before)
-		SoundFXBank::Instance().PlayPlayerHurt();
+		SoundFXBank::Instance().Play(Sfx::EnemyHitsPlayer);
 	if (died)
 		eng::Engine::GetInstance().GetEvents().Publish(PlayerDiedEvent{});
 }

@@ -40,5 +40,5 @@ void ShotFXSpawner::Spawn(const ShotFiredEvent& shot)
 	if (shot.hasHit)
 		Tracer::EmitImpact(shot.point, shot.normal);
 
-	SoundFXBank::Instance().PlayShot();
+	SoundFXBank::Instance().Play(Sfx::Shot);
 }

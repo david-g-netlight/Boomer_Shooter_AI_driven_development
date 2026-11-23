@@ -87,7 +87,7 @@ namespace enemies
 
 		life->hp -= shot.damage;
 		life->hitFlash = HIT_FLASH_TIME;
-		SoundFXBank::Instance().PlayEnemyHit();
+		SoundFXBank::Instance().Play(Sfx::EnemyHit);
 
 		// Fake aggro (E-D15): an Idle or Wander enemy (the player is outside its chase range) turns toward the shot origin
 		const Brain* brain = m_registry.Get<Brain>(shot.enemy);
