@@ -25,8 +25,8 @@ public:
 	struct Tuning
 	{
 		bool		useObj		= true;						// false: the primitive gun
-		Vector3		offset		= { 0.05f, -0.05f, 0.2f };	// added to the gun's place in view space (meters)
-		Vector3		rotation	= { 0.0f, 2.0f, 5.0f };		// pitch, yaw, roll of the model in degrees, before it is scaled
+		Vector3		offset		= { 0.0f, -0.02f, 0.4f };	// added to the gun's place in view space (meters)
+		Vector3		rotation	= { 0.0f, 5.0f, 10.0f };		// pitch, yaw, roll of the model in degrees, before it is scaled
 		float		length		= GUN_LENGTH;
 		Vector3		muzzle		= { 0.0f, 0.05f, -0.1f };	// moves the tip flash from the barrel's end (meters)
 	};
