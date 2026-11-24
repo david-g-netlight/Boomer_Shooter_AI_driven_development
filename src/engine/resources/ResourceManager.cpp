@@ -31,6 +31,42 @@ namespace
 			UnloadTexture(texture);
 	}
 
+	constexpr int MAX_OBJ_FACE_VERTICES = 5;	// raylib's OBJ loader (tinyobj) asserts on longer `f` lines, which aborts the game
+
+	/// The most vertices on one `f` line of an OBJ file (0 when the file can't be read). The loader aborts on n-gons
+	/// longer than MAX_OBJ_FACE_VERTICES, so the file is checked before it is handed over.
+	int MaxObjFaceVertices(const std::string& path, int& lineOfMax)
+	{
+		char* text = LoadFileText(path.c_str());
+		if (!text)
+			return 0;
+
+		int most = 0, line = 1;
+		lineOfMax = 0;
+		for (const char* cursor = text; *cursor; ++line)
+		{
+			const char* end = cursor;
+			while (*end && *end != '\n')
+				++end;
+
+			if (cursor[0] == 'f' && (cursor[1] == ' ' || cursor[1] == '\t'))
+			{
+				int count = 0;
+				for (const char* c = cursor + 1; c < end; ++c)
+					if (*c != ' ' && *c != '\t' && *c != '\r' && (c == cursor + 1 || c[-1] == ' ' || c[-1] == '\t'))
+						++count;
+				if (count > most)
+				{
+					most = count;
+					lineOfMax = line;
+				}
+			}
+			cursor = *end ? end + 1 : end;
+		}
+		UnloadFileText(text);
+		return most;
+	}
+
 	/// Swaps vertices a and b of an attribute array with `stride` floats per vertex.
 	void SwapVertices(float* data, int stride, int a, int b)
 	{
@@ -87,6 +123,18 @@ namespace eng
 	{
 		if (auto it = m_models.find(path); it != m_models.end())
 			return &it->second;
+
+		if (IsFileExtension(path.c_str(), ".obj"))
+		{
+			int line = 0;
+			const int most = MaxObjFaceVertices(path, line);
+			if (most > MAX_OBJ_FACE_VERTICES)
+			{
+				Log::Warning("ResourceManager: model '%s' not loaded: line %d has a face with %d vertices (max %d). Export it triangulated",
+					path.c_str(), line, most, MAX_OBJ_FACE_VERTICES);
+				return nullptr;
+			}
+		}
 
 		Model model = ::LoadModel(path.c_str());
 		if (!IsModelValid(model))

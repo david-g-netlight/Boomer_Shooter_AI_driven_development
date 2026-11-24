@@ -8,7 +8,7 @@ Source of the rules: `docs/deliverables/Rendering_OBJ_Gun_Spike_PLAN.md` §1.
 | Axes | **+Y up, barrel pointing north (-Z)**; the side the player sees on the left is -X, on top is +Y. A wrong axis is fixed live with `gun_rot`, then written back into the model |
 | Origin / pivot | Anything. The code recenters on the bounds |
 | Units / scale | Anything (Blockbench: 16 px = 1 block). The code scales to `GUN_LENGTH`; the load log prints the raw bounds |
-| Faces | Quads are fine (raylib triangulates on load) |
+| Faces | Triangles or quads (up to 5 vertices per face; raylib triangulates on load). Longer n-gons are refused by `LoadModel` (raylib's loader would abort the game): export triangulated |
 | Texture | One PNG, **power of two** (32, 64 or 128 px), 16 px per block for a uniform texel size. Transparent pixels only where a hole is wanted. One texture = one material = one draw |
 | Export | *File -> Export -> Export OBJ Model*: save `gun.obj` + `gun.mtl`, and the texture as `gun.png` in the **same folder** |
 | `.mtl` check | `map_Kd gun.png` must be a **bare file name**, not an absolute path from your disk |
