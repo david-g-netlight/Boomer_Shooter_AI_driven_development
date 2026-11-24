@@ -22,12 +22,12 @@ Gun files: `assets/models/prototype/gun`.
 |---|---|---|---|---|---|---|
 | V0 | Branch, folders, filter | `done/gun_spike_folders_filter` | ✅ | 2026-11-24 | 2026-11-24 | G4, G7; developer's `gun.obj` / `.mtl` / `.png` |
 | V1 | Depth‑cleared, lit gun pass | `done/gun_spike_depth_pass` | ✅ | 2026-11-24 | 2026-11-24 | G2; primitive gun, lit, view‑space sun |
-| V2 | OBJ gun on screen | `done/gun_spike_obj_gun` | ✅ | 2026-11-24 | 2026-11-24 | | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
-| V3 | Tune and decide | `gun_spike_tune` | ⬜ | | | Final constants, screenshots, Go / Iterate art / No‑go |
+| V2 | OBJ gun on screen | `done/gun_spike_obj_gun` | ✅ | 2026-11-24 | 2026-11-24 | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
+| V3 | Tune and decide | `done/gun_spike_tune` | ✅ | 2026-11-24 | 2026-11-24 | Final constants, screenshots, Go / Iterate art / No‑go |
 | V4 | Textures in level files | `gun_spike_level_textures` | ⬜ | | | G6; `texture=` / `uv=` on `MeshRenderer` |
 | V5 | Tiling on scaled level geometry | `gun_spike_world_uv` | ⬜ | | | G8; `worldUV` box projection, textured arena |
 
-**Current focus:** V3 (not started).
+**Current focus:** V4 (not started).
 **Branch:** `spike/obj-gun-rendering`
 
 ---
@@ -57,10 +57,10 @@ Gun files: `assets/models/prototype/gun`.
   - Works: the log shows the OBJ loaded, its bounds and its texture (`TEXTURE: [ID n] ... loaded`); renaming `gun.obj` → the game starts, logs a warning, shows the primitive gun; `gun_obj 0` / `gun_obj 1` switch between the two guns; on quit the log shows the gun's texture unloaded and no `ResourceManager destroyed with ... still loaded` warning
   - Looks right: the silhouette reads as a gun at the default FOV, at a glance, without the HUD; the texture is not flipped (a marked pixel appears where it was painted), not stretched (square pixels look square), not blurry (sharp pixel edges); the model is lit by the sun (one side brighter, ambient on the other, the top light reads); no back faces over front faces, no holes, no missing faces; transparent texels are holes, not black or white blocks; the gun does not clip into walls and the near plane does not cut it; kick, bob and muzzle flash feel attached to the model (the tip sits on the barrel's end); side by side (`gun_obj`), the OBJ looks better than the primitive gun; 60 FPS unchanged (`fps 1`)
 
-### Phase V3 — Tune and decide ⬜
-- [ ] Final `gun_ofs` / `gun_rot` / `gun_len` values copied into `GunView.cpp` constants (the model's axes fixed in Blockbench if `gun_rot` was needed, re‑exported files committed) (§4 V3)
-- [ ] Three screenshots (idle, firing, against a bright wall) committed for the record (§4 V3; folder: open question Q1)
-- [ ] **Done when:** the developer records the decision in the history file: **Go** (port to `integration`, §8) · **Iterate art** · **No‑go** (blocker written in plan §7 and in the assessment)
+### Phase V3 — Tune and decide ✅
+- [x] Final `gun_ofs` / `gun_rot` / `gun_len` values copied into `GunView.cpp` constants (the model's axes fixed in Blockbench if `gun_rot` was needed, re‑exported files committed) (§4 V3) (+ values from the developer: `gun_ofs 0.05 -0.05 0.2`, `gun_rot 0 2 5`, `gun_len 0.6`, `gun_muzzle 0 0.05 -0.1`; they are the defaults of `GunView::Tuning` and `GUN_LENGTH` is now 0.6; the new `gun.obj` / `.mtl` / `.png` are committed; `gun.obj` was never in git before because `.gitignore` has `*.obj`, now fixed with `!assets/models/**/*.obj`, a V0 miss)
+- [x] Screenshots (idle, firing, against a bright wall) committed for the record (§4 V3; folder: open question Q1) (+ the developer supplied one screenshot, `docs/devlogs/obj_gun_spike/rendering_spike.png`, not three)
+- [x] **Done when:** the developer records the decision in the history file: **Go** (port to `integration`, §8) · **Iterate art** · **No‑go** (blocker written in plan §7 and in the assessment) (+ the developer said "pass, continue with V4" without naming one; recorded as **Go**, to be corrected if that is wrong)
 
 ### Phase V4 — Textures in level files ⬜
 - [ ] `MeshRenderer::Serialize` / `Deserialize`: `texture=<path>` (loaded through `ResourceManager::LoadTexture`) and `uv=<meters>` (the material's `worldUV` parameter); edited with `set MeshRenderer texture=...` (G6, S‑D13)
