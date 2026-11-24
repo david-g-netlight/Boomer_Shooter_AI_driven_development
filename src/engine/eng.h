@@ -45,6 +45,7 @@
 #include "render/Material.h"
 #include "render/RenderQueue.h"
 #include "render/RenderTarget.h"
+#include "render/RenderUtil.h"
 #include "render/DebugDraw.h"
 #include "audio/AudioManager.h"
 #include "audio/AudioSource.h"
