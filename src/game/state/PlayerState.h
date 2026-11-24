@@ -83,6 +83,6 @@ private:
 	float	m_health		= MAX_HEALTH;
 	float	m_hurtFlashLeft	= 0.0f;
 	bool	m_god			= false;
-	Vector3	m_muzzleOffset	= { 0.3f, -0.25f, 0.6f };	// a gun held low and to the right
+	Vector3	m_muzzleOffset	= { 0.18f, -0.1f, 0.55f };	// tuned in Debug (muzzle_ofs): right, up, forward of the camera
 	bool	m_muzzleProbe	= false;
 };
