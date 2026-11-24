@@ -16,18 +16,19 @@ class GunView
 {
 public:
 	static constexpr const char*	MODEL_PATH	= "assets/models/prototype/gun/gun.obj";
-	static constexpr float			GUN_LENGTH	= 0.48f;	// the model's length along -Z, in meters of view space (today's gun)
+	static constexpr float			GUN_LENGTH	= 0.6f;		// the model's length along -Z, in meters of view space (tuned in V3; the primitive gun is 0.48)
 
 	/// <summary>
-	/// Spike only: tuned live from the console (gun_obj, gun_ofs, gun_rot, gun_len, gun_muzzle), final values go to constants.
+	/// Spike only: tuned live from the console (gun_obj, gun_ofs, gun_rot, gun_len, gun_muzzle). The defaults are the values the
+	/// developer settled on in V3.
 	/// </summary>
 	struct Tuning
 	{
 		bool		useObj		= true;						// false: the primitive gun
-		Vector3		offset		= { 0.0f, 0.0f, 0.0f };		// added to the gun's place in view space (meters)
-		Vector3		rotation	= { 0.0f, 0.0f, 0.0f };		// pitch, yaw, roll of the model in degrees, before it is scaled
+		Vector3		offset		= { 0.05f, -0.05f, 0.2f };	// added to the gun's place in view space (meters)
+		Vector3		rotation	= { 0.0f, 2.0f, 5.0f };		// pitch, yaw, roll of the model in degrees, before it is scaled
 		float		length		= GUN_LENGTH;
-		Vector3		muzzle		= { 0.0f, 0.0f, 0.0f };		// moves the tip flash from the barrel's end (meters)
+		Vector3		muzzle		= { 0.0f, 0.05f, -0.1f };		// moves the tip flash from the barrel's end (meters)
 	};
 
 	~GunView();
