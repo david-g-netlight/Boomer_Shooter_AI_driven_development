@@ -4,7 +4,7 @@ Tracks the implementation of [`Rendering_OBJ_Gun_Spike_PLAN.md`](../../deliverab
 §4 of that plan. The previous work's history stays in [`Gameplay_Audio_DEV_PROGRESS.md`](../done/Gameplay_Audio_DEV_PROGRESS.md).
 History of this plan (decision log, answered questions, risks, session log): [`devlogs/OBJ_Gun_Spike_DEV_LOG.md`](../../devlogs/OBJ_Gun_Spike_DEV_LOG.md).
 
-Find assests here: `assets/models/tech_spike`.
+Gun files: `assets/models/prototype/gun`.
 
 **How to use this file**
 - Tick a task `[x]` when it is merged on the working branch, not just when it is written.
@@ -20,25 +20,25 @@ Find assests here: `assets/models/tech_spike`.
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| V0 | Branch, folders, filter | `gun_spike_folders_filter` | ⬜ | | | G4, G7; developer's `gun.obj` / `.mtl` / `.png` |
+| V0 | Branch, folders, filter | `done/gun_spike_folders_filter` | ✅ | 2026-11-24 | 2026-11-24 | G4, G7; developer's `gun.obj` / `.mtl` / `.png` |
 | V1 | Depth‑cleared, lit gun pass | `gun_spike_depth_pass` | ⬜ | | | G2; primitive gun, lit, view‑space sun |
 | V2 | OBJ gun on screen | `gun_spike_obj_gun` | ⬜ | | | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
 | V3 | Tune and decide | `gun_spike_tune` | ⬜ | | | Final constants, screenshots, Go / Iterate art / No‑go |
 | V4 | Textures in level files | `gun_spike_level_textures` | ⬜ | | | G6; `texture=` / `uv=` on `MeshRenderer` |
 | V5 | Tiling on scaled level geometry | `gun_spike_world_uv` | ⬜ | | | G8; `worldUV` box projection, textured arena |
 
-**Current focus:** none. Waiting for the go to start V0.
-**Branch:** `integration`
+**Current focus:** V1 (not started).
+**Branch:** `spike/obj-gun-rendering`
 
 ---
 
 ## Phase checklists
 
-### Phase V0 — Branch, folders, filter ⬜
-- [ ] `assets/models/README.md` (the Blockbench → OBJ export rules of §1), `assets/models/CREDITS.txt`, `assets/textures/` (G7, §4 V0)
-- [ ] `ResourceManager::LoadTexture(path, filter = TEXTURE_FILTER_POINT)`; mipmaps only for `TEXTURE_FILTER_TRILINEAR` (G4, S‑D10)
-- [ ] The developer's `gun.obj`, `gun.mtl`, `gun.png` committed in `assets/models/prototype/gun/`, with a line in `assets/models/CREDITS.txt` (S‑D3, §1)
-- [ ] **Done when:** the build passes; the three files are copied next to the executable (`build/.../assets/models/prototype/gun/`); `map_Kd` in `gun.mtl` is a bare file name
+### Phase V0 — Branch, folders, filter ✅
+- [x] `assets/models/README.md` (the Blockbench → OBJ export rules of §1), `assets/models/CREDITS.txt`, `assets/textures/` (G7, §4 V0) (+ `assets/textures/` has a `.gitkeep` so git tracks the empty folder)
+- [x] `ResourceManager::LoadTexture(path, filter = TEXTURE_FILTER_POINT)`; mipmaps only for `TEXTURE_FILTER_TRILINEAR` (G4, S‑D10) (+ no other caller existed; the cache is by path, so the first filter wins)
+- [x] The developer's `gun.obj`, `gun.mtl`, `gun.png` committed in `assets/models/prototype/gun/`, with a line in `assets/models/CREDITS.txt` (S‑D3, §1) (+ moved with `git mv` from `tech_spike/`; the tracker start edit is in this commit)
+- [x] **Done when:** the build passes; the three files are copied next to the executable (`build/.../assets/models/prototype/gun/`); `map_Kd` in `gun.mtl` is a bare file name
 
 ### Phase V1 — Depth‑cleared, lit gun pass ⬜
 - [ ] `render/RenderUtil.h/.cpp` (new): `eng::ClearDepthBuffer()` = `rlDrawRenderBatchActive()` + `glClear(GL_DEPTH_BUFFER_BIT)` (`<OpenGL/gl3.h>` with `GL_SILENCE_DEPRECATION`, inside `#ifdef __APPLE__`) (S‑D5, §3)
