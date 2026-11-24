@@ -33,14 +33,25 @@ namespace enemies
 			const Vector3 forward = Vector3RotateByQuaternion({ 0.0f, 0.0f, -1.0f }, look.renderRotation);
 			const Vector3 center = Vector3Add(transform.position, Vector3Scale(forward, look.lunge));
 
-			// Body: scale, rotation, then translation (the GameActor order)
 			const bool flashing = life.hitFlash > 0.0f;
+			const eng::Material& bodyMaterial = flashing ? set.bodyFlash : set.body;
+
+			if (set.model)
+			{
+				// The model: its fit (fitted to the diameter), then the look's scale and squash, rotation, translation
+				const Vector3 squash = flashing ? Vector3{ FLASH_SQUASH_XZ, FLASH_SQUASH_Y, FLASH_SQUASH_XZ } : Vector3{ 1.0f, 1.0f, 1.0f };
+				const Matrix scale = MatrixScale(look.scale * squash.x, look.scale * squash.y, look.scale * squash.z);
+				const Matrix matrix = MatrixMultiply(MatrixMultiply(MatrixMultiply(set.fit, scale), rotation), MatrixTranslate(center.x, center.y, center.z));
+				queue.SubmitModel(*set.model, &bodyMaterial, matrix);
+				return;
+			}
+
+			// Body: scale, rotation, then translation (the GameActor order)
 			const float diameter = 2.0f * radius;	// the sphere mesh has radius 0.5
 			const Vector3 bodySize = flashing
 				? Vector3{ diameter * FLASH_SQUASH_XZ, diameter * FLASH_SQUASH_Y, diameter * FLASH_SQUASH_XZ }
 				: Vector3{ diameter, diameter, diameter };
 			const Matrix body = MatrixMultiply(MatrixMultiply(MatrixScale(bodySize.x, bodySize.y, bodySize.z), rotation), MatrixTranslate(center.x, center.y, center.z));
-			const eng::Material& bodyMaterial = flashing ? set.bodyFlash : set.body;
 			queue.Submit(*sphere, bodyMaterial, body);
 
 			// Spike: its base sits on the body surface and its tip points along forward

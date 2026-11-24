@@ -47,6 +47,30 @@ void Gun::Update(float /*deltaTime*/)
 
 const GunAim& Gun::GetAimHit() const	{ return m_aim; }
 
+Vector3 Gun::MuzzlePoint() const
+{
+	const Vector3 offset = m_state->GetMuzzleOffset();
+	return Vector3Add(m_camera->GetPosition(), Vector3Add(Vector3Scale(m_camera->Right(), offset.x),
+				Vector3Add(Vector3Scale(m_camera->Up(), offset.y), Vector3Scale(m_camera->Forward(), offset.z))));
+}
+
+void Gun::DrawMuzzleProbe() const
+{
+	if (!m_state || !m_camera || !m_state->IsMuzzleProbeOn())
+		return;
+
+	eng::DebugDraw& debug = eng::Engine::GetInstance().GetDebugDraw();
+	if (!debug.IsEnabled())
+		debug.SetEnabled(true);	// the engine drops debug items while it is disabled
+
+	const Vector3 muzzle = MuzzlePoint();
+	const Vector3 offset = m_state->GetMuzzleOffset();
+	debug.WireSphere(muzzle, 0.02f, YELLOW);
+	debug.Axes(muzzle, 0.1f);
+	debug.Line(muzzle, Vector3Add(muzzle, Vector3Scale(m_camera->Forward(), m_state->GetReach())), YELLOW);
+	debug.Label(muzzle, std::string(TextFormat("muzzle %.2f %.2f %.2f", offset.x, offset.y, offset.z)), YELLOW);
+}
+
 void Gun::FixedUpdate(float fixedDeltaTime)
 {
 	if (!m_input || !m_state)
@@ -71,8 +95,7 @@ bool Gun::Fire()
 
 	ShotFiredEvent shot;
 	shot.origin		= origin;
-	shot.muzzle		= Vector3Add(origin, Vector3Add(Vector3Scale(m_camera->Right(), MUZZLE_RIGHT),
-					  Vector3Add(Vector3Scale(m_camera->Up(), -MUZZLE_DOWN), Vector3Scale(forward, MUZZLE_FORWARD))));
+	shot.muzzle		= MuzzlePoint();
 	shot.point		= Vector3Add(origin, Vector3Scale(forward, reach));
 
 	if (const auto hit = eng::Engine::GetInstance().GetPhysics().Raycast(origin, forward, reach, SHOT_MASK))

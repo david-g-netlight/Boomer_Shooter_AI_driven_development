@@ -1,4 +1,5 @@
 #pragma once
+#include <raylib.h>
 
 /// <summary>
 /// Published on the EventBus when the player's health reaches 0 (ArenaGame turns it into GameState::LoseGame).
@@ -32,6 +33,18 @@ public:
 	void	SetReach(float meters);					// clamped to > 0
 	float	GetCooldown() const;
 	void	SetCooldown(float seconds);				// clamped to >= 0.01
+
+	/// <summary>
+	/// Tracer and muzzle start relative to the camera: right, up, forward (meters). Console `muzzle_ofs`.
+	/// </summary>
+	Vector3	GetMuzzleOffset() const;
+	Vector3*	GetMuzzleOffsetPtr();
+
+	/// <summary>
+	/// Debug: draws the muzzle point every frame (console `muzzle_probe`). Reset() keeps it.
+	/// </summary>
+	bool	IsMuzzleProbeOn() const;
+	bool*	GetMuzzleProbeFlag();
 
 	//////////////////////////////////////////
 	/// Health
@@ -70,4 +83,6 @@ private:
 	float	m_health		= MAX_HEALTH;
 	float	m_hurtFlashLeft	= 0.0f;
 	bool	m_god			= false;
+	Vector3	m_muzzleOffset	= { 0.18f, -0.1f, 0.55f };	// tuned in Debug (muzzle_ofs): right, up, forward of the camera
+	bool	m_muzzleProbe	= false;
 };

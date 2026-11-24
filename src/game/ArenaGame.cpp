@@ -245,6 +245,12 @@ void ArenaGame::FixedUpdate(float fixedDeltaTime)
 void ArenaGame::SubmitRenderables(eng::RenderQueue& queue)
 {
 	m_enemies.Submit(queue);
+
+#ifndef NDEBUG
+	if (eng::GameActor* player = m_player.Get())
+		if (Gun* gun = player->GetComponent<Gun>())
+			gun->DrawMuzzleProbe();
+#endif
 }
 
 void ArenaGame::DrawViewModel()
