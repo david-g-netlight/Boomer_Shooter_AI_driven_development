@@ -21,14 +21,14 @@ Gun files: `assets/models/prototype/gun`.
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
 | V0 | Branch, folders, filter | `done/gun_spike_folders_filter` | ✅ | 2026-11-24 | 2026-11-24 | G4, G7; developer's `gun.obj` / `.mtl` / `.png` |
-| V1 | Depth‑cleared, lit gun pass | `gun_spike_depth_pass` | 🟡 | 2026-11-24 | | G2; primitive gun, lit, view‑space sun |
+| V1 | Depth‑cleared, lit gun pass | `done/gun_spike_depth_pass` | ✅ | 2026-11-24 | 2026-11-24 | G2; primitive gun, lit, view‑space sun |
 | V2 | OBJ gun on screen | `gun_spike_obj_gun` | ⬜ | | | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
 | V3 | Tune and decide | `gun_spike_tune` | ⬜ | | | Final constants, screenshots, Go / Iterate art / No‑go |
 | V4 | Textures in level files | `gun_spike_level_textures` | ⬜ | | | G6; `texture=` / `uv=` on `MeshRenderer` |
 | V5 | Tiling on scaled level geometry | `gun_spike_world_uv` | ⬜ | | | G8; `worldUV` box projection, textured arena |
 
-**Current focus:** V1, waiting for the developer's **Done when** check.
-**Branch:** `gun_spike_depth_pass`
+**Current focus:** V2 (not started).
+**Branch:** `spike/obj-gun-rendering`
 
 ---
 
@@ -40,11 +40,11 @@ Gun files: `assets/models/prototype/gun`.
 - [x] The developer's `gun.obj`, `gun.mtl`, `gun.png` committed in `assets/models/prototype/gun/`, with a line in `assets/models/CREDITS.txt` (S‑D3, §1) (+ moved with `git mv` from `tech_spike/`; the tracker start edit is in this commit)
 - [x] **Done when:** the build passes; the three files are copied next to the executable (`build/.../assets/models/prototype/gun/`); `map_Kd` in `gun.mtl` is a bare file name
 
-### Phase V1 — Depth‑cleared, lit gun pass 🟡
+### Phase V1 — Depth‑cleared, lit gun pass ✅
 - [x] `render/RenderUtil.h/.cpp` (new): `eng::ClearDepthBuffer()` = `rlDrawRenderBatchActive()` + `glClear(GL_DEPTH_BUFFER_BIT)` (`<OpenGL/gl3.h>` with `GL_SILENCE_DEPRECATION`, inside `#ifdef __APPLE__`) (S‑D5, §3) (+ also exported from `eng.h`; a no-op on other platforms)
 - [x] `GunView::Draw`: clear depth, depth test **on**, one pose matrix (§2) instead of `rlPushMatrix` / `rlTranslatef` / `rlRotatef` / `rlScalef`; same values (`ORIGIN`, bob, kick, −3°, 0.7 scale) (S‑D5, §2) (+ this commit still drew the parts immediately; the next line moved them to the queue)
 - [x] Primitive gun parts as primitive meshes + lit `eng::Material`s, submitted to a `RenderQueue` owned by `GunView` and drawn with the gun camera; sun direction rotated into view space with the main camera's right / up / forward (`Engine::GetMainCamera()`, `Engine::GetWorld()`) (S‑D6, S‑D7) (+ the barrel / tip are cylinders turned to −Z; the tip and the ready light are `emissive=1` with the brightness in the tint instead of alpha; the `DrawCubeWires` outline is gone, lighting replaces it)
-- [ ] **Done when:** the primitive gun has the same size and position as on `integration`; it is now shaded and the shading changes when you turn toward / away from the sun; walking into a wall, the gun never clips into it; kick, bob, muzzle flash and ready light work as before
+- [x] **Done when:** the primitive gun has the same size and position as on `integration`; it is now shaded and the shading changes when you turn toward / away from the sun; walking into a wall, the gun never clips into it; kick, bob, muzzle flash and ready light work as before
 
 ### Phase V2 — OBJ gun on screen ⬜
 - [ ] `ResourceManager::LoadModel`: the default lit shader on every material of the model (when set), the point filter on the model's textures, the raw bounds in the load log (G1, S‑D4, S‑D10)
