@@ -13,6 +13,11 @@ namespace
 	constexpr float FLASH_DECAY	= 5.0f;
 	constexpr Vector3 ORIGIN	= { 0.19f, -0.15f, -0.78f };	// the gun's center in view space (right, down, forward)
 	constexpr Color LIGHT_COLOR	= { 80, 190, 255, 255 };
+	constexpr float PRIMITIVE_SCALE	= 0.7f;		// the primitive gun is modeled bigger and scaled down
+	constexpr float MUZZLE_Y	= 0.021f;		// OBJ gun: the barrel's height above the model's center (meters, to tune)
+	constexpr float TIP_LENGTH	= 0.028f;
+	constexpr float TIP_RADIUS	= 0.028f;
+	constexpr float ALPHA_CUTOFF	= 0.5f;		// texels more transparent than this are holes (only for textures with some)
 
 	Color Brighten(Color color, float factor)
 	{
@@ -50,11 +55,56 @@ void GunView::Init(const PlayerState& state)
 	make(m_parts.handle, { 48, 52, 64, 255 },    0.0f);
 	make(m_parts.light,  LIGHT_COLOR,            1.0f);
 
+	LoadGunModel(false);
+
 	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& /*shot*/)
 	{
 		m_kick = 1.0f;
 		m_flash = 1.0f;
 	});
+}
+
+bool GunView::ReloadModel()
+{
+	return LoadGunModel(true);
+}
+
+bool GunView::LoadGunModel(bool isReload)
+{
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+	m_model = nullptr;		// a reload invalidates the old pointer
+	m_model = isReload ? resources.ReloadModel(MODEL_PATH) : resources.LoadModel(MODEL_PATH);
+	if (!m_model)
+	{
+		eng::Log::Warning("GunView: '%s' did not load, drawing the primitive gun", MODEL_PATH);
+		return false;
+	}
+
+	const BoundingBox bounds = GetModelBoundingBox(*m_model);
+	m_modelCenter	= Vector3Scale(Vector3Add(bounds.min, bounds.max), 0.5f);
+	m_modelSize		= Vector3Subtract(bounds.max, bounds.min);
+
+	// Lit, with the model's albedo texture (nullptr = raylib's white one); a texture with transparent texels is cut out
+	const Shader* lit = resources.GetDefaultLitShader();
+	m_modelMaterial = eng::Material(lit);
+	const Texture2D* texture = (m_model->materialCount > 0) ? &m_model->materials[0].maps[MATERIAL_MAP_DIFFUSE].texture : nullptr;
+	if (texture && texture->id > 0 && texture->id != rlGetTextureIdDefault())
+	{
+		m_modelMaterial.SetTexture(texture);
+
+		Image image = LoadImageFromTexture(*texture);
+		ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+		const Color* pixels = static_cast<const Color*>(image.data);
+		bool hasTransparency = false;
+		for (int i = 0; i < image.width * image.height && !hasTransparency; ++i)
+			hasTransparency = pixels[i].a < 255;
+		UnloadImage(image);
+
+		if (hasTransparency)
+			m_modelMaterial.SetParameter("alphaCutoff", ALPHA_CUTOFF);
+		eng::Log::Info("GunView: gun texture %dx%d, %s", texture->width, texture->height, hasTransparency ? "with transparent texels (alphaCutoff on)" : "opaque");
+	}
+	return true;
 }
 
 void GunView::Shutdown()
@@ -77,46 +127,34 @@ void GunView::Draw() const
 	if (!m_state || (mode != eng::EngineMode::Play && mode != eng::EngineMode::Paused))
 		return;
 
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+	if (!resources.GetPrimitive(eng::Primitive::Cube) || !resources.GetPrimitive(eng::Primitive::Cylinder))
+		return;
+
 	const float time = static_cast<float>(eng::Engine::GetInstance().GetTime().GetTotalTime());
 	const float bob	 = std::sin(time * 1.6f) * 0.004f;
 	const float back = m_kick * 0.07f;			// kick: toward the player and a little up
 
-	const bool isReady		= m_state->IsReadyToShoot();
-	const Color tipColor	= MuzzleFX::START_COLOR;
-
-	// Translate * RotateX(muzzle lifts) * RotateY(a little toward the center) * Scale; raymath applies the left matrix first
-	const Matrix pose = MatrixMultiply(MatrixMultiply(MatrixMultiply(
-		MatrixScale(0.7f, 0.7f, 0.7f),
-		MatrixRotateY(-3.0f * DEG2RAD)),
-		MatrixRotateX(-m_kick * 6.0f * DEG2RAD)),
-		MatrixTranslate(ORIGIN.x, ORIGIN.y + bob + back * 0.25f, ORIGIN.z + back));
+	const bool isReady = m_state->IsReadyToShoot();
 
 	// Tip and light are unlit: their brightness is the tint
-	m_parts.tip.SetTint(Brighten(tipColor, 0.55f + 0.45f * m_flash));
+	m_parts.tip.SetTint(Brighten(MuzzleFX::START_COLOR, 0.55f + 0.45f * m_flash));
 	m_parts.light.SetTint(Brighten(LIGHT_COLOR, isReady ? 1.0f : 0.35f));
 
-	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
-	const ::Mesh* cube		= resources.GetPrimitive(eng::Primitive::Cube);
-	const ::Mesh* cylinder	= resources.GetPrimitive(eng::Primitive::Cylinder);
-	if (!cube || !cylinder)
-		return;
+	// Translate * RotateX(muzzle lifts) * RotateY(a little toward the center) * Scale; raymath applies the left matrix first
+	const bool useObj = m_tuning.useObj && m_model;
+	const Vector3 offset = useObj ? m_tuning.offset : Vector3{ 0.0f, 0.0f, 0.0f };
+	const float scale = useObj ? 1.0f : PRIMITIVE_SCALE;		// the model is scaled to its length in meters instead
+	const Matrix pose = MatrixMultiply(MatrixMultiply(MatrixMultiply(
+		MatrixScale(scale, scale, scale),
+		MatrixRotateY(-3.0f * DEG2RAD)),
+		MatrixRotateX(-m_kick * 6.0f * DEG2RAD)),
+		MatrixTranslate(ORIGIN.x + offset.x, ORIGIN.y + offset.y + bob + back * 0.25f, ORIGIN.z + offset.z + back));
 
-	// A box of the given size centered on `center`, and a cylinder from z = start to z = end (the mesh's +Y turned to -Z)
-	const auto box = [&](const eng::Material& material, Vector3 center, Vector3 size)
-	{
-		m_queue.Submit(*cube, material, MatrixMultiply(MatrixMultiply(MatrixScale(size.x, size.y, size.z), MatrixTranslate(center.x, center.y, center.z)), pose));
-	};
-	const auto tube = [&](const eng::Material& material, float y, float zStart, float zEnd, float radius)
-	{
-		const Matrix local = MatrixMultiply(MatrixMultiply(MatrixScale(radius * 2.0f, zStart - zEnd, radius * 2.0f), MatrixRotateX(-90.0f * DEG2RAD)), MatrixTranslate(0.0f, y, zStart));
-		m_queue.Submit(*cylinder, material, MatrixMultiply(local, pose));
-	};
-
-	tube(m_parts.barrel, 0.03f, -0.20f, -0.46f, 0.035f);
-	tube(m_parts.tip,    0.03f, -0.46f, -0.50f, 0.04f);
-	box(m_parts.body,   { 0.0f,  0.0f,   0.0f   }, { 0.11f,  0.13f,  0.38f });
-	box(m_parts.handle, { 0.0f, -0.12f,  0.12f  }, { 0.07f,  0.16f,  0.09f });
-	box(m_parts.light,  { 0.0f,  0.075f, -0.02f }, { 0.045f, 0.025f, 0.12f });
+	if (useObj)
+		SubmitObjGun(pose);
+	else
+		SubmitPrimitiveGun(pose);
 
 	// The sun in view space: the gun camera looks down -Z with +X right and +Y up, so the world's sun is turned by the
 	// main camera's right / up / forward (forward becomes -Z)
@@ -132,4 +170,44 @@ void GunView::Draw() const
 	rlDrawRenderBatchActive();
 	m_camera.End3D();
 	m_queue.Clear();
+}
+
+void GunView::SubmitBox(const eng::Material& material, const Matrix& pose, Vector3 center, Vector3 size) const
+{
+	const ::Mesh* cube = eng::Engine::GetInstance().GetResources().GetPrimitive(eng::Primitive::Cube);
+	m_queue.Submit(*cube, material, MatrixMultiply(MatrixMultiply(MatrixScale(size.x, size.y, size.z), MatrixTranslate(center.x, center.y, center.z)), pose));
+}
+
+// A cylinder from z = zStart to z = zEnd (the mesh's +Y turned to -Z), centered on (x, y)
+void GunView::SubmitTube(const eng::Material& material, const Matrix& pose, float x, float y, float zStart, float zEnd, float radius) const
+{
+	const ::Mesh* cylinder = eng::Engine::GetInstance().GetResources().GetPrimitive(eng::Primitive::Cylinder);
+	const Matrix local = MatrixMultiply(MatrixMultiply(MatrixScale(radius * 2.0f, zStart - zEnd, radius * 2.0f), MatrixRotateX(-90.0f * DEG2RAD)), MatrixTranslate(x, y, zStart));
+	m_queue.Submit(*cylinder, material, MatrixMultiply(local, pose));
+}
+
+void GunView::SubmitPrimitiveGun(const Matrix& pose) const
+{
+	SubmitTube(m_parts.barrel, pose, 0.0f, 0.03f, -0.20f, -0.46f, 0.035f);
+	SubmitTube(m_parts.tip,    pose, 0.0f, 0.03f, -0.46f, -0.50f, 0.04f);
+	SubmitBox(m_parts.body,   pose, { 0.0f,  0.0f,   0.0f   }, { 0.11f,  0.13f,  0.38f });
+	SubmitBox(m_parts.handle, pose, { 0.0f, -0.12f,  0.12f  }, { 0.07f,  0.16f,  0.09f });
+	SubmitBox(m_parts.light,  pose, { 0.0f,  0.075f, -0.02f }, { 0.045f, 0.025f, 0.12f });
+}
+
+void GunView::SubmitObjGun(const Matrix& pose) const
+{
+	// Recenter on the bounds, turn (gun_rot), scale so the length along -Z is `length`
+	const float scale = m_tuning.length / std::max(m_modelSize.z, 0.0001f);
+	const Matrix local = MatrixMultiply(MatrixMultiply(
+		MatrixTranslate(-m_modelCenter.x, -m_modelCenter.y, -m_modelCenter.z),
+		MatrixScale(scale, scale, scale)),
+		MatrixRotateXYZ({ m_tuning.rotation.x * DEG2RAD, m_tuning.rotation.y * DEG2RAD, m_tuning.rotation.z * DEG2RAD }));
+	m_queue.SubmitModel(*m_model, &m_modelMaterial, MatrixMultiply(local, pose));
+
+	// Tip flash on the barrel's end and the ready light on top, in the recentered model's space
+	const float halfLength = m_tuning.length * 0.5f;
+	const float topY = m_modelSize.y * scale * 0.5f;
+	SubmitTube(m_parts.tip, pose, m_tuning.muzzle.x, MUZZLE_Y + m_tuning.muzzle.y, -halfLength + m_tuning.muzzle.z + TIP_LENGTH, -halfLength + m_tuning.muzzle.z, TIP_RADIUS);
+	SubmitBox(m_parts.light, pose, { 0.0f, topY, -0.014f }, { 0.0315f, 0.0175f, 0.084f });
 }

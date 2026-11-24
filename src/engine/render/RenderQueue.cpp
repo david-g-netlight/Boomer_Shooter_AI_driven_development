@@ -165,11 +165,20 @@ namespace eng
 			}
 			else
 			{
+				ResetParameters(command.rawMaterial->shader);
 				DrawMesh(*command.mesh, *command.rawMaterial, command.transform);
 			}
 		}
 
 		DrawLines();
+	}
+
+	void RenderQueue::ResetParameters(const Shader& shader) const
+	{
+		const float zero = 0.0f;
+		for (const auto& [name, location] : m_parameterLocations[shader.id])
+			if (location >= 0)
+				SetShaderValue(shader, location, &zero, SHADER_UNIFORM_FLOAT);
 	}
 
 	void RenderQueue::BindMaterial(const Material& material) const
