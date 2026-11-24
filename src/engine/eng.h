@@ -46,6 +46,7 @@
 #include "render/RenderQueue.h"
 #include "render/RenderTarget.h"
 #include "render/DebugDraw.h"
+#include "render/ModelFit.h"
 #include "audio/AudioManager.h"
 #include "audio/AudioSource.h"
 #include "audio/MusicPlayer.h"
