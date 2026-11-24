@@ -5,6 +5,8 @@
 
 namespace
 {
+	constexpr int MATERIAL_MAP_COUNT = 12;		// raylib's MAX_MATERIAL_MAPS (config.h, not in the public headers)
+
 	/// Swaps vertices a and b of an attribute array with `stride` floats per vertex.
 	void SwapVertices(float* data, int stride, int a, int b)
 	{
@@ -69,6 +71,23 @@ namespace eng
 			UnloadModel(model);
 			return nullptr;
 		}
+
+		// The lit shader of the game on every material (it keeps the material's texture and color), and the point
+		// filter on its textures: raylib's loader leaves them bilinear
+		for (int i = 0; i < model.materialCount; ++i)
+		{
+			Material& material = model.materials[i];
+			if (m_defaultLitShader)
+				material.shader = *m_defaultLitShader;
+			for (int map = 0; map < MATERIAL_MAP_COUNT; ++map)
+				if (material.maps[map].texture.id > 0 && material.maps[map].texture.id != rlGetTextureIdDefault())
+					SetTextureFilter(material.maps[map].texture, TEXTURE_FILTER_POINT);
+		}
+
+		const BoundingBox bounds = GetModelBoundingBox(model);
+		Log::Info("ResourceManager: model '%s': %d meshes, %d materials, bounds (%.4f %.4f %.4f) to (%.4f %.4f %.4f)",
+			path.c_str(), model.meshCount, model.materialCount,
+			bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
 
 		return &m_models.emplace(path, model).first->second;
 	}
