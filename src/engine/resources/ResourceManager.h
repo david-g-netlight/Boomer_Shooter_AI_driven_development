@@ -66,6 +66,8 @@ namespace eng
 		size_t		GetLoadedCount() const;
 
 	private:
+		static void UnloadModelAndTextures(Model& model);
+
 		std::unordered_map<std::string, Model>		m_models;
 		std::unordered_map<std::string, Texture2D>	m_textures;
 		std::unordered_map<std::string, Shader>		m_shaders;
