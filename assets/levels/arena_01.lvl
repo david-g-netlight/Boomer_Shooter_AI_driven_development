@@ -64,3 +64,27 @@ actor "Spawn E3"
   transform 6 3 -28  0 0 0  1 1 1
   component EnemySpawnPoint enabled=1
 end
+actor "Wall N Copy"
+  transform 1 5.40134 -17.9802  0 0 0  18.6569 1.49273 0.669348
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy"
+  transform 1.25961 5.40134 -11.9719  0 0 0  18.6569 1.49273 0.669348
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy"
+  transform 1.10127 5.40134 -7.79304  0 0 0  18.6569 1.49273 0.669348
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy Copy"
+  transform 1.14414 5.40134 -4.06254  0 0 0  18.6569 1.49273 0.669348
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
