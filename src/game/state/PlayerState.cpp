@@ -33,6 +33,11 @@ void PlayerState::TickHurtFlash(float deltaTime){ m_hurtFlashLeft = std::max(0.0
 bool PlayerState::IsGod() const				{ return m_god; }
 bool* PlayerState::GetGodFlag()				{ return &m_god; }
 
+Vector3 PlayerState::GetMuzzleOffset() const	{ return m_muzzleOffset; }
+Vector3* PlayerState::GetMuzzleOffsetPtr()	{ return &m_muzzleOffset; }
+bool PlayerState::IsMuzzleProbeOn() const		{ return m_muzzleProbe; }
+bool* PlayerState::GetMuzzleProbeFlag()		{ return &m_muzzleProbe; }
+
 bool PlayerState::IsReadyToShoot() const	{ return m_cooldownLeft <= 0.0f; }
 void PlayerState::StartCooldown()			{ m_cooldownLeft = m_cooldown; }
 float PlayerState::GetCooldownLeft() const	{ return m_cooldownLeft; }

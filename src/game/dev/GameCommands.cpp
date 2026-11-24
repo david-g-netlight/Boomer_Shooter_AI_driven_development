@@ -7,6 +7,7 @@
 #include "enemies/EnemyComponents.h"
 #include "enemies/EnemyManager.h"
 #include "flow/GameplayManager.h"
+#include "player/Gun.h"
 #include "player/GunView.h"
 #include "player/PlayerActor.h"
 #include "state/GameState.h"
@@ -261,6 +262,8 @@ void GameCommands::Register(const GameCommandContext& context)
 		vector3Command("gun_ofs", &tuning.offset, "Offset of the gun in view space (right, up, back), meters");
 		vector3Command("gun_rot", &tuning.rotation, "Rotation of the OBJ model (pitch yaw roll), degrees");
 		vector3Command("gun_muzzle", &tuning.muzzle, "Moves the tip flash from the barrel's end, meters");
+		vector3Command("muzzle_ofs", context.playerState->GetMuzzleOffsetPtr(), "Tracer and muzzle start from the camera: right, up, forward, meters");
+		m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("muzzle_probe", context.playerState->GetMuzzleProbeFlag(), "1 = draws the muzzle point (yellow) with its offset")));
 	}
 #endif
 

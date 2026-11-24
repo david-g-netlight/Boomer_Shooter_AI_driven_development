@@ -44,11 +44,14 @@ class Gun : public eng::Component
 {
 public:
 	/// <summary>
-	/// Tracer start relative to the camera: a gun held low and to the right.
+	/// Where the tracer and the muzzle flash start: the camera plus the muzzle offset of PlayerState.
 	/// </summary>
-	static constexpr float	MUZZLE_RIGHT	= 0.3f;
-	static constexpr float	MUZZLE_DOWN		= 0.25f;
-	static constexpr float	MUZZLE_FORWARD	= 0.6f;
+	Vector3			MuzzlePoint() const;
+
+	/// <summary>
+	/// Debug: while `muzzle_probe` is on, draws the muzzle point (axes, aim line and its offset) for this frame.
+	/// </summary>
+	void			DrawMuzzleProbe() const;
 
 	void			Bind(PlayerInput* input, PlayerState* state, eng::Camera* camera, const HitscanTargets* targets = nullptr);
 
