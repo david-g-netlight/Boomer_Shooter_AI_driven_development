@@ -20,13 +20,13 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
 | M0 | Asset pipeline | `done/mesh_assets_pipeline` | ✅ | 2026-11-24 | 2026-11-24 | `.gitignore`, model README + credits, enemy files committed, `LoadTexture` filter |
-| M1 | Models in the engine | `mesh_model_loading` | 🟡 | 2026-11-24 | | `LoadModel` guard / lit / bounds / texture unload, parameter reset, `alphaCutoff`, `FitModel` |
+| M1 | Models in the engine | `done/mesh_model_loading` | ✅ | 2026-11-24 | 2026-11-24 | `LoadModel` guard / lit / bounds / texture unload, parameter reset, `alphaCutoff`, `FitModel` |
 | M2 | Model gun | `mesh_gun_view` | ⬜ | | | Depth‑cleared gun pass, Kenney blaster, Debug `gun_*` tuning |
 | M3 | Textured levels | `mesh_level_textures` | ⬜ | | | `texture=` / `uv=`, `worldUV`, textured arena |
 | M4 | Enemy meshes | `mesh_enemy_models` | ⬜ | | | Targets for Drifter / Stalker / Brute, sphere + pyramid fallback |
 
-**Current focus:** M1 Models in the engine.
-**Branch:** `mesh_model_loading`
+**Current focus:** M2 Model gun.
+**Branch:** `integration`
 
 ---
 
@@ -38,13 +38,13 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `ResourceManager::LoadTexture(path, filter = TEXTURE_FILTER_POINT)`, mipmaps only for trilinear (§1.1, M‑D5) (+ the cache is keyed by path, so the filter applies on the first load of a path only)
 - [x] **Done when:** the Debug and Release builds pass; the three target `.obj` files are tracked by git (`git ls-files assets/models/enemies`); the README matches §2.
 
-### Phase M1 — Models in the engine 🟡
+### Phase M1 — Models in the engine ✅
 - [x] `ResourceManager::LoadModel`: refuse OBJ faces over 5 vertices (warning + `nullptr`); default lit shader and point filter on every material; mesh / material counts and bounds logged; private `UnloadModelAndTextures` used by `UnloadAll` and after a failed load (§3.1, M‑D4, M‑D6) (+ the face check reads `.obj` paths only; `UnloadModelAndTextures` is a private static member)
 - [x] `ResourceManager::GetModelBounds(path)`: bounds cached at load (§1.1) (+ returns `nullptr` for a model that is not loaded)
 - [x] `RenderQueue`: reset the shader's known material parameters before a raw‑material draw (§1.1, M‑D8) (+ the reset is a `ResetParameters` helper, shared with `BindMaterial`)
 - [x] `lit.fs`: `alphaCutoff` discard, 0 = off (§1.2)
 - [x] `render/ModelFit.h/.cpp`: `eng::FitModel(bounds, FitAxis, size)` with `FitAxis::Z` and `FitAxis::Largest`; exported in `eng.h` (§1.1, M‑D7) (+ a zero extent keeps scale 1)
-- [ ] **Done when:** the game looks unchanged; loading the three targets from a temporary call logs their bounds and materials; an OBJ with an 8‑vertex face logs a warning and does not abort; on quit the log has no `still loaded` warning.
+- [x] **Done when:** the game looks unchanged; loading the three targets from a temporary call logs their bounds and materials; an OBJ with an 8‑vertex face logs a warning and does not abort; on quit the log has no `still loaded` warning.
 
 ### Phase M2 — Model gun ⬜
 - [ ] `render/RenderUtil.h/.cpp`: `eng::ClearDepthBuffer()` (`#ifdef __APPLE__`, no‑op elsewhere), exported in `eng.h` (§1.1, M‑D9)
