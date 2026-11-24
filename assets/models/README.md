@@ -14,11 +14,11 @@ Source of the rules: `docs/deliverables/Rendering_OBJ_Gun_Spike_PLAN.md` §1.
 | `.mtl` check | `map_Kd gun.png` must be a **bare file name**, not an absolute path from your disk |
 | Material color | `Kd 1 1 1` (`Kd` multiplies the texture) |
 | Poly budget | <= 1 500 triangles |
-| Credits | Add a line to `CREDITS.txt` (author, license). Files under `prototype/` are exempt |
+| Credits | Add a line to `CREDITS.txt` (author, license). |
 
 After a re-export: `cmake --build build --target copy_assets`, then `gun_reload` in the console (no restart).
 
 ## Layout
 
-- `prototype/` — the developer's own work-in-progress models (not listed in `CREDITS.txt`).
+- `prototype/` — the developer's own work-in-progress models.
 - `../textures/` — standalone textures (level geometry, tiling).

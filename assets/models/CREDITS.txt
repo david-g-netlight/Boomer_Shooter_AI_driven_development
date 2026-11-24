@@ -1,7 +1,9 @@
 Model credits
 =============
 
-Every model under assets/models/ (except prototype/) is listed here as: "Title" by Author - Source - License.
+Every model under assets/models/ is listed here as: "Title" by Author - Source - License.
 Texture credits for assets/textures/ go in the same list.
 "TODO: check" means the license is not confirmed yet. Check it on the source page before release.
 
+"gun" by the developer (Blockbench 5.1.4) - own work - own work, no external license
+    Prototype view model (prototype/gun/gun.obj, gun.mtl, gun.png)
