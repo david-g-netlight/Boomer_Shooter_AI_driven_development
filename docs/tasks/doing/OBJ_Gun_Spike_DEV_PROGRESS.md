@@ -24,11 +24,11 @@ Gun files: `assets/models/prototype/gun`.
 | V1 | Depth‑cleared, lit gun pass | `done/gun_spike_depth_pass` | ✅ | 2026-11-24 | 2026-11-24 | G2; primitive gun, lit, view‑space sun |
 | V2 | OBJ gun on screen | `done/gun_spike_obj_gun` | ✅ | 2026-11-24 | 2026-11-24 | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
 | V3 | Tune and decide | `done/gun_spike_tune` | ✅ | 2026-11-24 | 2026-11-24 | Final constants, screenshots, Go / Iterate art / No‑go |
-| V4 | Textures in level files | `gun_spike_level_textures` | 🟡 | 2026-11-24 | | G6; `texture=` / `uv=` on `MeshRenderer` |
+| V4 | Textures in level files | `done/gun_spike_level_textures` | ✅ | 2026-11-24 | 2026-11-24 | G6; `texture=` / `uv=` on `MeshRenderer` |
 | V5 | Tiling on scaled level geometry | `gun_spike_world_uv` | ⬜ | | | G8; `worldUV` box projection, textured arena |
 
-**Current focus:** V4, waiting for the developer's **Done when** check.
-**Branch:** `gun_spike_level_textures`
+**Current focus:** V5 (not started).
+**Branch:** `spike/obj-gun-rendering`
 
 ---
 
@@ -62,10 +62,10 @@ Gun files: `assets/models/prototype/gun`.
 - [x] Screenshots (idle, firing, against a bright wall) committed for the record (§4 V3; folder: open question Q1) (+ the developer supplied one screenshot, `docs/devlogs/obj_gun_spike/rendering_spike.png`, not three)
 - [x] **Done when:** the developer records the decision in the history file: **Go** (port to `integration`, §8) · **Iterate art** · **No‑go** (blocker written in plan §7 and in the assessment) (+ the developer said "pass, continue with V4" without naming one; recorded as **Go**, to be corrected if that is wrong)
 
-### Phase V4 — Textures in level files 🟡
+### Phase V4 — Textures in level files ✅
 - [x] `MeshRenderer::Serialize` / `Deserialize`: `texture=<path>` (loaded through `ResourceManager::LoadTexture`) and `uv=<meters>` (the material's `worldUV` parameter); edited with `set MeshRenderer texture=...` (G6, S‑D13) (+ both keys are always written for a mesh with an own material, `texture=none` / `uv=0` when unset, because `set` only reaches keys that exist; so the next `save` adds them to the arena's line; `uv` only sets `worldUV`, which the shader uses from V5)
 - [x] One test texture `assets/textures/crate.png` on a crate in `arena_01.lvl`, set with `select` + `set MeshRenderer texture=assets/textures/crate.png`, then `save` (§4 V4; source of the texture: open question Q2) (+ there was no crate in `arena_01.lvl`: I added an actor `Crate` (1.5 m cube, static collider) by hand with the `texture=` line already in, so the developer's check of `select` + `set` + `save` is the roundtrip; `crate.png` is the generated 32 × 32 checker of Q2's default, credited in `assets/textures/CREDITS.txt`)
-- [ ] **Done when:** the crate is textured and point filtered; save → reload keeps it (the `.lvl` line has `texture=`); a mesh without `texture=` looks exactly as before
+- [x] **Done when:** the crate is textured and point filtered; save → reload keeps it (the `.lvl` line has `texture=`); a mesh without `texture=` looks exactly as before
 
 ### Phase V5 — Tiling on scaled level geometry ⬜
 - [ ] `worldUV` in `assets/shaders/lit.fs`: UVs from the world position, projected on the dominant normal axis, divided by `worldUV` (0 = off, mesh UVs) (G8, S‑D14)
