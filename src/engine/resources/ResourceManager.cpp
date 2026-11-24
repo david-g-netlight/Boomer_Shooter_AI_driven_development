@@ -1,10 +1,50 @@
 #include "ResourceManager.h"
 #include <algorithm>
+#include <vector>
 #include <rlgl.h>
 #include "core/Log.h"
 
 namespace
 {
+	constexpr int MATERIAL_MAP_COUNT		= 12;	// raylib's MAX_MATERIAL_MAPS (config.h, not in the public headers)
+	constexpr int MAX_OBJ_FACE_VERTICES		= 5;	// raylib's OBJ loader (tinyobj) aborts the game on longer `f` lines
+
+	/// The most vertices on one `f` line of an OBJ file (0 when the file can't be read), and the line it is on.
+	/// The loader aborts on n-gons longer than MAX_OBJ_FACE_VERTICES, so the file is checked before it is handed over.
+	int MaxObjFaceVertices(const std::string& path, int& lineOfMax)
+	{
+		lineOfMax = 0;
+		char* text = LoadFileText(path.c_str());
+		if (!text)
+			return 0;
+
+		int most = 0, line = 1;
+		for (const char* cursor = text; *cursor; ++line)
+		{
+			const char* end = cursor;
+			while (*end && *end != '\n')
+				++end;
+
+			if (cursor[0] == 'f' && (cursor[1] == ' ' || cursor[1] == '\t'))
+			{
+				int count = 0;
+				for (const char* c = cursor + 1; c < end; ++c)
+					if (*c != ' ' && *c != '\t' && *c != '\r' && (c == cursor + 1 || c[-1] == ' ' || c[-1] == '\t'))
+						++count;
+				if (count > most)
+				{
+					most = count;
+					lineOfMax = line;
+				}
+			}
+
+			cursor = *end ? end + 1 : end;
+		}
+
+		UnloadFileText(text);
+		return most;
+	}
+
 	/// Swaps vertices a and b of an attribute array with `stride` floats per vertex.
 	void SwapVertices(float* data, int stride, int a, int b)
 	{
@@ -57,20 +97,80 @@ namespace eng
 			Log::Warning("ResourceManager destroyed with %zu resources still loaded (UnloadAll() not called)", GetLoadedCount());
 	}
 
+	/// UnloadModel() frees the materials' arrays but not the textures loaded from the MTL (raylib leaves that to
+	/// the user, who may share them). Unloads each of them once (skipping raylib's default texture), then the model.
+	void ResourceManager::UnloadModelAndTextures(Model& model)
+	{
+		std::vector<Texture2D> textures;
+		for (int i = 0; i < model.materialCount && model.materials; ++i)
+		{
+			if (!model.materials[i].maps)
+				continue;
+			for (int map = 0; map < MATERIAL_MAP_COUNT; ++map)
+			{
+				const Texture2D& texture = model.materials[i].maps[map].texture;
+				const bool isKnown = std::any_of(textures.begin(), textures.end(), [&](const Texture2D& other) { return other.id == texture.id; });
+				if (texture.id > 0 && texture.id != rlGetTextureIdDefault() && !isKnown)
+					textures.push_back(texture);
+			}
+		}
+
+		UnloadModel(model);
+		for (const Texture2D& texture : textures)
+			UnloadTexture(texture);
+	}
+
 	Model* ResourceManager::LoadModel(const std::string& path)
 	{
 		if (auto it = m_models.find(path); it != m_models.end())
 			return &it->second;
 
+		if (IsFileExtension(path.c_str(), ".obj"))
+		{
+			int line = 0;
+			const int most = MaxObjFaceVertices(path, line);
+			if (most > MAX_OBJ_FACE_VERTICES)
+			{
+				Log::Warning("ResourceManager: model '%s' not loaded: line %d has a face with %d vertices (max %d). Export it triangulated",
+					path.c_str(), line, most, MAX_OBJ_FACE_VERTICES);
+				return nullptr;
+			}
+		}
+
 		Model model = ::LoadModel(path.c_str());
 		if (!IsModelValid(model))
 		{
 			Log::Warning("ResourceManager: failed to load model '%s'", path.c_str());
-			UnloadModel(model);
+			UnloadModelAndTextures(model);
 			return nullptr;
 		}
 
+		// The lit shader of the game on every material (it keeps the material's texture and color), and the point
+		// filter on its textures: raylib's loader leaves them bilinear
+		for (int i = 0; i < model.materialCount; ++i)
+		{
+			Material& material = model.materials[i];
+			if (m_defaultLitShader)
+				material.shader = *m_defaultLitShader;
+			for (int map = 0; map < MATERIAL_MAP_COUNT; ++map)
+				if (material.maps[map].texture.id > 0 && material.maps[map].texture.id != rlGetTextureIdDefault())
+					SetTextureFilter(material.maps[map].texture, TEXTURE_FILTER_POINT);
+		}
+
+		const BoundingBox bounds = GetModelBoundingBox(model);
+		Log::Info("ResourceManager: model '%s': %d meshes, %d materials, bounds (%.4f %.4f %.4f) to (%.4f %.4f %.4f)",
+			path.c_str(), model.meshCount, model.materialCount,
+			bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
+
+		m_modelBounds.emplace(path, bounds);
 		return &m_models.emplace(path, model).first->second;
+	}
+
+	const BoundingBox* ResourceManager::GetModelBounds(const std::string& path) const
+	{
+		if (auto it = m_modelBounds.find(path); it != m_modelBounds.end())
+			return &it->second;
+		return nullptr;
 	}
 
 	Texture2D* ResourceManager::LoadTexture(const std::string& path, TextureFilter filter)
@@ -187,13 +287,14 @@ namespace eng
 		const size_t count = GetLoadedCount();
 		m_defaultLitShader = nullptr;
 
-		for (auto& [path, model]   : m_models)		UnloadModel(model);
+		for (auto& [path, model]   : m_models)		UnloadModelAndTextures(model);
 		for (auto& [path, texture] : m_textures)	UnloadTexture(texture);
 		for (auto& [key, shader]   : m_shaders)		UnloadShader(shader);
 		for (auto& [key, font]     : m_fonts)		UnloadFont(font);
 		for (auto& [path, sound]   : m_sounds)		UnloadSound(sound);
 		for (auto& [path, music]   : m_music)		UnloadMusicStream(music);
 		m_models.clear();
+		m_modelBounds.clear();
 		m_textures.clear();
 		m_shaders.clear();
 		m_fonts.clear();
