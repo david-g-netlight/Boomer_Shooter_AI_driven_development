@@ -5,7 +5,7 @@
 | Folder | Content |
 |---|---|
 | `enemies/` | Enemy targets: `target-small` (Drifter), `target-large` (Stalker), `target-detail` (Brute). Their shared `Textures/colormap.png` |
-| `prototype/` | Spike files, kept as reference (not loaded by the game) |
+| `gun/` | The player's gun: Kenney's Blaster Kit blaster (`gun.obj`, `gun.mtl`, colors only) |
 
 ## Export rules
 
