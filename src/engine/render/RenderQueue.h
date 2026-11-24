@@ -99,6 +99,8 @@ namespace eng
 
 		void	UploadSceneUniforms(const Shader& shader, const Vector3& viewPosition) const;
 		void	BindMaterial(const Material& material) const;
+		/// Sets the parameters ever uploaded to `shader` that `material` (nullptr: a raw material) doesn't set, to 0.
+		void	ResetParameters(const Shader& shader, const Material* material) const;
 		void	DrawLines() const;
 
 		std::vector<RenderCommand>	m_commands;

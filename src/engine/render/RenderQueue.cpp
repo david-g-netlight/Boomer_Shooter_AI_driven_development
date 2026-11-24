@@ -165,6 +165,7 @@ namespace eng
 			}
 			else
 			{
+				ResetParameters(command.rawMaterial->shader, nullptr);
 				DrawMesh(*command.mesh, *command.rawMaterial, command.transform);
 			}
 		}
@@ -175,18 +176,22 @@ namespace eng
 	void RenderQueue::BindMaterial(const Material& material) const
 	{
 		const Shader&	shader		= material.GetShader();
-		auto&			known		= m_parameterLocations[shader.id];
-		const float		zero		= 0.0f;
-
-		for (const auto& [name, location] : known)
-			if (location >= 0 && !material.HasParameter(name))
-				SetShaderValue(shader, location, &zero, SHADER_UNIFORM_FLOAT);
+		ResetParameters(shader, &material);
 
 		material.Bind();
 
+		auto& known = m_parameterLocations[shader.id];
 		for (const auto& [name, value] : material.GetParameters())
 			if (known.find(name) == known.end())
 				known.emplace(name, GetShaderLocation(shader, name.c_str()));
+	}
+
+	void RenderQueue::ResetParameters(const Shader& shader, const Material* material) const
+	{
+		const float zero = 0.0f;
+		for (const auto& [name, location] : m_parameterLocations[shader.id])
+			if (location >= 0 && !(material && material->HasParameter(name)))
+				SetShaderValue(shader, location, &zero, SHADER_UNIFORM_FLOAT);
 	}
 
 	void RenderQueue::Clear()
