@@ -22,13 +22,13 @@ Gun files: `assets/models/prototype/gun`.
 |---|---|---|---|---|---|---|
 | V0 | Branch, folders, filter | `done/gun_spike_folders_filter` | ✅ | 2026-11-24 | 2026-11-24 | G4, G7; developer's `gun.obj` / `.mtl` / `.png` |
 | V1 | Depth‑cleared, lit gun pass | `done/gun_spike_depth_pass` | ✅ | 2026-11-24 | 2026-11-24 | G2; primitive gun, lit, view‑space sun |
-| V2 | OBJ gun on screen | `gun_spike_obj_gun` | 🟡 | 2026-11-24 | | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
+| V2 | OBJ gun on screen | `done/gun_spike_obj_gun` | ✅ | 2026-11-24 | 2026-11-24 | | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
 | V3 | Tune and decide | `gun_spike_tune` | ⬜ | | | Final constants, screenshots, Go / Iterate art / No‑go |
 | V4 | Textures in level files | `gun_spike_level_textures` | ⬜ | | | G6; `texture=` / `uv=` on `MeshRenderer` |
 | V5 | Tiling on scaled level geometry | `gun_spike_world_uv` | ⬜ | | | G8; `worldUV` box projection, textured arena |
 
-**Current focus:** V2, waiting for the developer's **Done when** check.
-**Branch:** `gun_spike_obj_gun`
+**Current focus:** V3 (not started).
+**Branch:** `spike/obj-gun-rendering`
 
 ---
 
@@ -46,14 +46,14 @@ Gun files: `assets/models/prototype/gun`.
 - [x] Primitive gun parts as primitive meshes + lit `eng::Material`s, submitted to a `RenderQueue` owned by `GunView` and drawn with the gun camera; sun direction rotated into view space with the main camera's right / up / forward (`Engine::GetMainCamera()`, `Engine::GetWorld()`) (S‑D6, S‑D7) (+ the barrel / tip are cylinders turned to −Z; the tip and the ready light are `emissive=1` with the brightness in the tint instead of alpha; the `DrawCubeWires` outline is gone, lighting replaces it)
 - [x] **Done when:** the primitive gun has the same size and position as on `integration`; it is now shaded and the shading changes when you turn toward / away from the sun; walking into a wall, the gun never clips into it; kick, bob, muzzle flash and ready light work as before
 
-### Phase V2 — OBJ gun on screen 🟡
+### Phase V2 — OBJ gun on screen ✅
 - [x] `ResourceManager::LoadModel`: the default lit shader on every material of the model (when set), the point filter on the model's textures, the raw bounds in the load log (G1, S‑D4, S‑D10) (+ also logs mesh and material counts)
 - [x] `ResourceManager`: unload a model's own textures in `UnloadAll` and on a failed load (skip `rlGetTextureIdDefault()` and duplicates) (G3, §3) (+ raylib's `UnloadModel` frees the material arrays but not the textures, so a helper unloads them first)
 - [x] `RenderQueue::Draw`: before a `rawMaterial` draw, reset the shader's known material parameters to 0, as `BindMaterial` does (S‑D17)
 - [x] `alphaCutoff` in `assets/shaders/lit.fs` (0 = off, discard under it) (S‑D15)
 - [x] `GunView::Init` loads `assets/models/prototype/gun/gun.obj`; on failure a warning and the primitive gun (S‑D11). Recenter on the bounds, scale to `GUN_LENGTH` = 0.48 along −Z (S‑D8, §2). Drawn with an `eng::Material` override (lit, the model's albedo texture, `alphaCutoff` 0.5 when the texture has transparent pixels) (S‑D15). Tip flash and ready light stay primitives drawn after the model with the same pose (S‑D9) (+ the OBJ gun is posed without the primitive gun's 0.7 scale, since it is scaled to 0.48 m directly; the ready light sits on the model's top at a guessed place; `MUZZLE_Y` is a guess to tune)
 - [x] `ResourceManager::ReloadModel(path)` (spike); `GunView*` in `GameCommandContext` (`ArenaGame` passes `&m_gunView`); ConVars `gun_obj 0|1`, `gun_ofs x y z`, `gun_rot pitch yaw roll`, `gun_len`, command `gun_reload` (S‑D11, S‑D12) (+ added `gun_muzzle x y z` to move the tip flash, because S‑D9 asks for tunable offsets; `gun_ofs` is (right, up, back) and acts on the OBJ gun only)
-- [ ] **Done when:**
+- [x] **Done when:**
   - Works: the log shows the OBJ loaded, its bounds and its texture (`TEXTURE: [ID n] ... loaded`); renaming `gun.obj` → the game starts, logs a warning, shows the primitive gun; `gun_obj 0` / `gun_obj 1` switch between the two guns; on quit the log shows the gun's texture unloaded and no `ResourceManager destroyed with ... still loaded` warning
   - Looks right: the silhouette reads as a gun at the default FOV, at a glance, without the HUD; the texture is not flipped (a marked pixel appears where it was painted), not stretched (square pixels look square), not blurry (sharp pixel edges); the model is lit by the sun (one side brighter, ambient on the other, the top light reads); no back faces over front faces, no holes, no missing faces; transparent texels are holes, not black or white blocks; the gun does not clip into walls and the near plane does not cut it; kick, bob and muzzle flash feel attached to the model (the tip sits on the barrel's end); side by side (`gun_obj`), the OBJ looks better than the primitive gun; 60 FPS unchanged (`fps 1`)
 
