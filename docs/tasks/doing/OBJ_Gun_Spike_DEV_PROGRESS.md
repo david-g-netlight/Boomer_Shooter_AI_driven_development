@@ -25,10 +25,10 @@ Gun files: `assets/models/prototype/gun`.
 | V2 | OBJ gun on screen | `done/gun_spike_obj_gun` | ✅ | 2026-11-24 | 2026-11-24 | G1, G3; **main validation**; fallback, `gun_obj` toggle, tuning ConVars |
 | V3 | Tune and decide | `done/gun_spike_tune` | ✅ | 2026-11-24 | 2026-11-24 | Final constants, screenshots, Go / Iterate art / No‑go |
 | V4 | Textures in level files | `done/gun_spike_level_textures` | ✅ | 2026-11-24 | 2026-11-24 | G6; `texture=` / `uv=` on `MeshRenderer` |
-| V5 | Tiling on scaled level geometry | `gun_spike_world_uv` | ⬜ | | | G8; `worldUV` box projection, textured arena |
+| V5 | Tiling on scaled level geometry | `gun_spike_world_uv` | 🟡 | 2026-11-24 | | G8; `worldUV` box projection, textured arena |
 
-**Current focus:** V5 (not started).
-**Branch:** `spike/obj-gun-rendering`
+**Current focus:** V5, waiting for the developer's **Done when** check.
+**Branch:** `gun_spike_world_uv`
 
 ---
 
@@ -67,9 +67,9 @@ Gun files: `assets/models/prototype/gun`.
 - [x] One test texture `assets/textures/crate.png` on a crate in `arena_01.lvl`, set with `select` + `set MeshRenderer texture=assets/textures/crate.png`, then `save` (§4 V4; source of the texture: open question Q2) (+ there was no crate in `arena_01.lvl`: I added an actor `Crate` (1.5 m cube, static collider) by hand with the `texture=` line already in, so the developer's check of `select` + `set` + `save` is the roundtrip; `crate.png` is the generated 32 × 32 checker of Q2's default, credited in `assets/textures/CREDITS.txt`)
 - [x] **Done when:** the crate is textured and point filtered; save → reload keeps it (the `.lvl` line has `texture=`); a mesh without `texture=` looks exactly as before
 
-### Phase V5 — Tiling on scaled level geometry ⬜
-- [ ] `worldUV` in `assets/shaders/lit.fs`: UVs from the world position, projected on the dominant normal axis, divided by `worldUV` (0 = off, mesh UVs) (G8, S‑D14)
-- [ ] Arena: `set MeshRenderer texture=assets/textures/wall.png uv=2` on the `"Arena"` actor, saved in `arena_01.lvl` (§4 V5)
+### Phase V5 — Tiling on scaled level geometry 🟡
+- [x] `worldUV` in `assets/shaders/lit.fs`: UVs from the world position, projected on the dominant normal axis, divided by `worldUV` (0 = off, mesh UVs) (G8, S‑D14) (+ the vertical axis is negated so the texture's rows run downward on walls)
+- [x] Arena: `set MeshRenderer texture=assets/textures/wall.png uv=2` on the `"Arena"` actor, saved in `arena_01.lvl` (§4 V5) (+ I edited the `.lvl` line by hand instead of `set` + `save`; `wall.png` is a generated 32 × 32 brick placeholder with a magenta corner, Q2's default, credited in `assets/textures/CREDITS.txt`)
 - [ ] **Done when:** floor, ceiling and the four walls repeat the texture with square texels (no stretch on the 41 m walls); no visible seam at the corners beyond the texture's own edge; the editor's gizmo and picking still work on the textured arena; the enemies and the player body (no `uv=`) are unchanged
 
 ---
