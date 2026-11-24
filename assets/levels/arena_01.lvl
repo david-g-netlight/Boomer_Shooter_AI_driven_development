@@ -71,19 +71,61 @@ actor "Wall N Copy"
   component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
 end
 actor "Wall N Copy Copy"
-  transform 1.25961 5.40134 -11.9719  0 0 0  18.6569 1.49273 0.669348
+  transform 1.25961 5.40134 -11.0879  0 0 0  18.6569 1.49273 0.669348
   component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
   component Collider shape=box half=0.5,0.5,0.5 layer=Ground
   component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
 end
 actor "Wall N Copy Copy Copy"
-  transform 1.10127 5.40134 -7.79304  0 0 0  18.6569 1.49273 0.669348
+  transform 1.10127 5.40134 2.12176  0 0 0  18.6569 1.49273 0.669348
   component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
   component Collider shape=box half=0.5,0.5,0.5 layer=Ground
   component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
 end
 actor "Wall N Copy Copy Copy Copy"
   transform 1.14414 5.40134 -4.06254  0 0 0  18.6569 1.49273 0.669348
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy Copy Copy"
+  transform -3.97561 2.60064 -4.06254  0 0 0  1.66626 7.02466 1.70263
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy Copy Copy Copy"
+  transform 3.98373 2.60064 -4.06254  0 0 0  1.66626 7.02466 1.70263
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy Copy Copy Copy Copy"
+  transform 4.02208 2.60064 -17.9618  0 0 0  1.66626 7.02466 1.70263
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy Copy Copy Copy Copy Copy"
+  transform -4.05134 2.60064 -17.9618  0 0 0  1.66626 7.02466 1.70263
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy"
+  transform 0.297378 2.9027 -11.1119  0 0 0  3.73154 6.51539 3.81486
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy Copy"
+  transform 0.293785 0.200688 -11.1119  0 0 0  6.48615 0.488766 5.65014
+  component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
+  component Collider shape=box half=0.5,0.5,0.5 layer=Ground
+  component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
+end
+actor "Wall N Copy Copy Copy"
+  transform 0.94458 -0.0275453 -11.0879  0 0 0  18.6569 1.96152 2.12832
   component MeshRenderer mesh=cube visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
   component Collider shape=box half=0.5,0.5,0.5 layer=Ground
   component RigidBody type=static mass=0 friction=0.6 restitution=0 linearDamping=0.05 angularDamping=0.1 lockRotation=0 ccd=auto
