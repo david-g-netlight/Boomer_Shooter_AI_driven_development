@@ -7,29 +7,79 @@
 #include "state/SoundFXBank.h"
 #include "EnemyDebugDraw.h"
 #include <raymath.h>
+#include <rlgl.h>
 #include <cmath>
 
 namespace enemies
 {
+	namespace
+	{
+		constexpr float	MODEL_ALPHA_CUTOFF	= 0.5f;		// texels more transparent than this are holes (only for textures with some)
+
+		bool HasTransparency(const Texture2D& texture)
+		{
+			Image image = LoadImageFromTexture(texture);
+			ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
+			const Color* pixels = static_cast<const Color*>(image.data);
+			bool hasTransparency = false;
+			for (int i = 0; i < image.width * image.height && !hasTransparency; ++i)
+				hasTransparency = pixels[i].a < 255;
+			UnloadImage(image);
+			return hasTransparency;
+		}
+	}
+
 	void EnemyManager::Init()
 	{
 		m_pool.Init(m_registry);
 		m_waves.Init(m_pool, m_registry);
 		m_shotToken = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& shot) { OnShot(shot); });
 
-		const auto* lit = eng::Engine::GetInstance().GetResources().GetDefaultLitShader();
+		eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+		const auto* lit = resources.GetDefaultLitShader();
 		for (size_t i = 0; i < m_materials.byType.size(); ++i)
 		{
 			const EnemyArchetype& archetype = GetArchetype(static_cast<EnemyType>(i));
 			// Made here, not in EnemyMaterials' constructor: a Material takes raylib's default texture from the
 			// window, and the constructor of ArenaGame runs before the window exists (the texture would be id 0)
 			EnemyMaterials::Set& set = m_materials.byType[i];
-			set.body = eng::Material(lit);
-			set.body.SetTint(archetype.bodyColor);
-			set.bodyFlash = eng::Material(lit);
-			set.bodyFlash.SetTint(WHITE);
 			set.spike = eng::Material(lit);
 			set.spike.SetTint(archetype.spikeColor);
+
+			// The model: its texture (the three targets share colormap.png) on a lit material; the flash is the same
+			// texture unlit. A model that fails to load, or has no texture, leaves the sphere and pyramid
+			set.model = archetype.modelPath[0] ? resources.LoadModel(archetype.modelPath) : nullptr;
+			const Texture2D* texture = (set.model && set.model->materialCount > 0) ? &set.model->materials[0].maps[MATERIAL_MAP_DIFFUSE].texture : nullptr;
+			if (set.model && (!texture || texture->id <= 0 || texture->id == rlGetTextureIdDefault()))
+			{
+				eng::Log::Warning("EnemyManager: '%s' has no texture, the %s is drawn as a sphere and pyramid", archetype.modelPath, archetype.name);
+				set.model = nullptr;
+			}
+
+			if (set.model)
+			{
+				const BoundingBox* bounds = resources.GetModelBounds(archetype.modelPath);
+				set.fit = MatrixMultiply(eng::FitModel(*bounds, eng::FitAxis::Largest, 2.0f * archetype.bodyRadius), MatrixRotateY(archetype.modelYawDeg * DEG2RAD));
+
+				const bool cutout = HasTransparency(*texture);
+				set.body = eng::Material(lit);
+				set.body.SetTexture(texture);
+				set.bodyFlash = eng::Material(lit);
+				set.bodyFlash.SetTexture(texture);
+				set.bodyFlash.SetParameter("emissive", 1.0f);
+				if (cutout)
+				{
+					set.body.SetParameter("alphaCutoff", MODEL_ALPHA_CUTOFF);
+					set.bodyFlash.SetParameter("alphaCutoff", MODEL_ALPHA_CUTOFF);
+				}
+			}
+			else
+			{
+				set.body = eng::Material(lit);
+				set.body.SetTint(archetype.bodyColor);
+				set.bodyFlash = eng::Material(lit);
+				set.bodyFlash.SetTint(WHITE);
+			}
 		}
 	}
 
