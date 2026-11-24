@@ -51,6 +51,7 @@ Assessment it builds on: [`deliverables/Custom_rendering_capabilities_workload_a
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-24 | V1 | 3 checkboxes on `gun_spike_depth_pass`: `ClearDepthBuffer`; pose matrix + depth clear in `GunView::Draw`; primitive parts as lit materials in the gun's own `RenderQueue` with a view-space sun. Debug + Release (incremental and clean `check-*`) build with no warnings; the Debug app started 6 s with no warnings in the log. **Not run:** anything visual (size / position vs `integration`, shading, wall clipping, kick / bob / flash / light) | Developer runs the V1 **Done when** check | — |
 | 2026-11-24 | V0 | Developer validated V0; merged into `spike/obj-gun-rendering`, branch renamed `done/gun_spike_folders_filter` | Start V1 | — |
 | 2026-11-24 | V0 | 3 checkboxes on `gun_spike_folders_filter`: README + CREDITS + `assets/textures/`; `LoadTexture(path, filter = POINT)`; gun files moved to `prototype/gun/`. Debug + Release builds (incremental and clean `check-*`) pass with no warnings; the three files are in `build/check-*/assets/models/prototype/gun/`; `map_Kd gun.png` is bare. **Not run:** the app itself (no code path uses the new filter yet). | Developer runs the V0 **Done when** check | — |
 | 2026-11-24 | — | Tracker written for `Rendering_OBJ_Gun_Spike_PLAN.md` | Developer reviews, gives the go for V0 | — |
