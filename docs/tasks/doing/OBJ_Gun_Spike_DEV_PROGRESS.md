@@ -4,6 +4,8 @@ Tracks the implementation of [`Rendering_OBJ_Gun_Spike_PLAN.md`](../../deliverab
 §4 of that plan. The previous work's history stays in [`Gameplay_Audio_DEV_PROGRESS.md`](../done/Gameplay_Audio_DEV_PROGRESS.md).
 History of this plan (decision log, answered questions, risks, session log): [`devlogs/OBJ_Gun_Spike_DEV_LOG.md`](../../devlogs/OBJ_Gun_Spike_DEV_LOG.md).
 
+Find assests here: `assets/models/tech_spike`.
+
 **How to use this file**
 - Tick a task `[x]` when it is merged on the working branch, not just when it is written.
 - A phase is ✅ only after its **Done when** check passes on a clean build (`cmake --build` from scratch), Debug **and** Release.
