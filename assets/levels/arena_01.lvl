@@ -2,7 +2,7 @@ lvl 1
 spawn 0 0 6  yaw 0
 actor "Arena"
   transform 0 3 -12.5  0 0 0  16 6 41
-  component MeshRenderer mesh=cube_inverted visible=1 tint=150,140,130,255 lit=1
+  component MeshRenderer mesh=cube_inverted visible=1 tint=150,140,130,255 lit=1 texture=assets/textures/wall.png uv=2
 end
 actor "Crate"
   transform 0 0.75 2  0 20 0  1.5 1.5 1.5
