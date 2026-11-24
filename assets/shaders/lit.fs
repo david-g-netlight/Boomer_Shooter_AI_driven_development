@@ -21,12 +21,15 @@ uniform vec3 viewPosition;
 // Material parameters (eng::Material::SetParameter), 0 when not set
 uniform float emissive;         // 0 = fully lit, 1 = unlit albedo
 uniform float specularStrength;
+uniform float alphaCutoff;      // 0 = off, else texels with alpha below it are discarded (cutout)
 
 out vec4 finalColor;
 
 void main()
 {
     vec4 albedo = texture(texture0, fragTexCoord) * colDiffuse * fragColor;
+    if (alphaCutoff > 0.0 && albedo.a < alphaCutoff)
+        discard;
 
     vec3  normal   = normalize(fragNormal);
     vec3  toLight  = normalize(-sunDirection);
