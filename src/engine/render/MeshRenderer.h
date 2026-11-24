@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <string>
 #include <raylib.h>
 #include "level/Component.h"
 #include "render/Material.h"
@@ -11,6 +12,8 @@ namespace eng
 	/// Mesh / model / shared material are NOT owned (ResourceManager or the game).
 	/// CreateOwnMaterial() gives the actor its own material (e.g. a per-actor tint), owned by this component.
 	/// Without any material: a mesh uses the default material; a model uses its own materials.
+	/// Level files: `texture=<path>` ("none" = no texture; loaded point filtered through the ResourceManager) and
+	/// `uv=<meters>` (the material's worldUV: meters per texture repeat, 0 = the mesh's own UVs) are saved with an own material.
 	/// </summary>
 	class MeshRenderer : public Component
 	{
@@ -51,5 +54,6 @@ namespace eng
 		mutable std::unique_ptr<Material>	m_fallbackMaterial;	// default material for a mesh without one, created lazily
 		BoundingBox					m_localBounds	= { { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
 		bool						m_isVisible		= true;
+		std::string					m_texturePath;		// from a level file, "" = none (kept to save it again)
 	};
 }
