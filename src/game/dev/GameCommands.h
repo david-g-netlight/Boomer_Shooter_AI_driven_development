@@ -8,6 +8,7 @@ namespace enemies { class EnemyManager; }
 class GameplayManager;
 class GameState;
 class PlayerState;
+class GunView;
 
 /// <summary>
 /// What the game's console commands act on. All of it is owned by the game and outlives the registration.
@@ -20,6 +21,7 @@ struct GameCommandContext
 	eng::ActorHandle*	player		= nullptr;
 	eng::Level*			level		= nullptr;
 	enemies::EnemyManager*	enemyManager	= nullptr;
+	GunView*			gunView		= nullptr;
 };
 
 /// <summary>
