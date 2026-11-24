@@ -21,12 +21,12 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 |---|---|---|---|---|---|---|
 | M0 | Asset pipeline | `done/mesh_assets_pipeline` | ✅ | 2026-11-24 | 2026-11-24 | `.gitignore`, model README + credits, enemy files committed, `LoadTexture` filter |
 | M1 | Models in the engine | `done/mesh_model_loading` | ✅ | 2026-11-24 | 2026-11-24 | `LoadModel` guard / lit / bounds / texture unload, parameter reset, `alphaCutoff`, `FitModel` |
-| M2 | Model gun | `mesh_gun_view` | 🟡 | 2026-11-24 | | Depth‑cleared gun pass, Kenney blaster, Debug `gun_*` tuning |
+| M2 | Model gun | `done/mesh_gun_view` | ✅ | 2026-11-24 | 2026-11-24 | Depth‑cleared gun pass, Kenney blaster, Debug `gun_*` tuning |
 | M3 | Textured levels | `mesh_level_textures` | ⬜ | | | `texture=` / `uv=`, `worldUV`, textured arena |
 | M4 | Enemy meshes | `mesh_enemy_models` | ⬜ | | | Targets for Drifter / Stalker / Brute, sphere + pyramid fallback |
 
-**Current focus:** M2 Model gun.
-**Branch:** `mesh_gun_view`
+**Current focus:** M3 Textured levels.
+**Branch:** `integration`
 
 ---
 
@@ -46,13 +46,13 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `render/ModelFit.h/.cpp`: `eng::FitModel(bounds, FitAxis, size)` with `FitAxis::Z` and `FitAxis::Largest`; exported in `eng.h` (§1.1, M‑D7) (+ a zero extent keeps scale 1)
 - [x] **Done when:** the game looks unchanged; loading the three targets from a temporary call logs their bounds and materials; an OBJ with an 8‑vertex face logs a warning and does not abort; on quit the log has no `still loaded` warning.
 
-### Phase M2 — Model gun 🟡
+### Phase M2 — Model gun ✅
 - [x] `render/RenderUtil.h/.cpp`: `eng::ClearDepthBuffer()` (`#ifdef __APPLE__`, no‑op elsewhere), exported in `eng.h` (§1.1, M‑D9) (+ the spike's files taken as they are)
 - [x] `GunView`: pose matrix, own `RenderQueue`, sun rotated into view space, depth‑cleared pass, primitive parts as lit materials (§3.3, M‑D9) (+ depth test is on now, the parts are no longer drawn far to near)
 - [x] Kenney blaster from the spike (`assets/models/prototype/gun/`) moved to `assets/models/gun/` and credited; `GunView` draws it with `FitModel(bounds, Z, length)` and its own `Kd` materials (M‑D3), falls back to the primitives with a warning; `GunView::Tuning` with the V3 defaults (§3.3) (+ the spike's `gun.obj` and `gun.mtl` taken as they are; the spike's reload command is not ported, M‑D14)
 - [x] Debug‑only ConVars `gun_obj`, `gun_ofs`, `gun_rot`, `gun_len`, `gun_muzzle`; `GunView*` in `GameCommandContext` (`ArenaGame.cpp`) (§1.3, M‑D13) (+ the ConVars are behind `#ifndef NDEBUG` in `GameCommands.cpp`)
-- [ ] The developer's re‑tuned values on the Kenney blaster become the `Tuning` defaults (§3.3)
-- [ ] **Done when:** the gun is the Kenney blaster, lit, with its `.mtl` colors; it never clips into walls; kick, bob, tip flash and ready light sit on the model; the `gun_*` ConVars move it live in Debug and do not exist in Release; with the model file renamed, the game starts with the primitive gun and a warning; 60 FPS is unchanged.
+- [x] The developer's re‑tuned values on the Kenney blaster become the `Tuning` defaults (§3.3) (+ the developer kept the V3 defaults: no value change)
+- [x] **Done when:** the gun is the Kenney blaster, lit, with its `.mtl` colors; it never clips into walls; kick, bob, tip flash and ready light sit on the model; the `gun_*` ConVars move it live in Debug and do not exist in Release; with the model file renamed, the game starts with the primitive gun and a warning; 60 FPS is unchanged.
 
 ### Phase M3 — Textured levels ⬜
 - [ ] `MeshRenderer`: `texture=<path|none>` and `uv=<meters>` saved and loaded; an own material when tint, lit or a texture is set (§1.1, M‑D10)
