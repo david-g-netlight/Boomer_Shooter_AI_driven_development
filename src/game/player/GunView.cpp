@@ -1,6 +1,7 @@
 #include "GunView.h"
 #include <algorithm>
 #include <cmath>
+#include <raymath.h>
 #include <rlgl.h>
 #include "fx/MuzzleFX.h"
 #include "player/Gun.h"
@@ -63,20 +64,23 @@ void GunView::Draw() const
 	const Color light		= Fade(Color{ 80, 190, 255, 255 }, isReady ? 1.0f : 0.35f);
 	const Color tipColor	= MuzzleFX::START_COLOR;
 
+	// Translate * RotateX(muzzle lifts) * RotateY(a little toward the center) * Scale; raymath applies the left matrix first
+	const Matrix pose = MatrixMultiply(MatrixMultiply(MatrixMultiply(
+		MatrixScale(0.7f, 0.7f, 0.7f),
+		MatrixRotateY(-3.0f * DEG2RAD)),
+		MatrixRotateX(-m_kick * 6.0f * DEG2RAD)),
+		MatrixTranslate(ORIGIN.x, ORIGIN.y + bob + back * 0.25f, ORIGIN.z + back));
+
 	m_camera.Begin3D();
-	rlDrawRenderBatchActive();
-	rlDisableDepthTest();		// parts are drawn far to near instead
+	eng::ClearDepthBuffer();	// the world's depth is gone: the gun never clips into walls, and tests against itself
 
 	rlPushMatrix();
-	rlTranslatef(ORIGIN.x, ORIGIN.y + bob + back * 0.25f, ORIGIN.z + back);
-	rlRotatef(-m_kick * 6.0f, 1.0f, 0.0f, 0.0f);		// the muzzle lifts
-	rlRotatef(-3.0f, 0.0f, 1.0f, 0.0f);					// pointing a little toward the center
-	rlScalef(0.7f, 0.7f, 0.7f);
+	rlMultMatrixf(MatrixToFloat(pose));
 
-		// Barrel and tip (farthest)
+		// Barrel and tip
 		DrawCylinderEx({ 0.0f, 0.03f, -0.20f }, { 0.0f, 0.03f, -0.46f }, 0.035f, 0.035f, 12, { 150, 155, 165, 255 });
 		DrawCylinderEx({ 0.0f, 0.03f, -0.46f }, { 0.0f, 0.03f, -0.50f }, 0.04f, 0.04f, 12, Fade(tipColor, 0.55f + 0.45f * m_flash));
-		// Body, handle, top light (nearest)
+		// Body, handle, top light
 		DrawCube({ 0.0f, 0.0f, 0.0f }, 0.11f, 0.13f, 0.38f, { 62, 68, 82, 255 });
 		DrawCubeWires({ 0.0f, 0.0f, 0.0f }, 0.11f, 0.13f, 0.38f, { 30, 34, 44, 255 });
 		DrawCube({ 0.0f, -0.12f, 0.12f }, 0.07f, 0.16f, 0.09f, { 48, 52, 64, 255 });
@@ -85,6 +89,5 @@ void GunView::Draw() const
 	rlPopMatrix();
 
 	rlDrawRenderBatchActive();
-	rlEnableDepthTest();
 	m_camera.End3D();
 }

@@ -5,7 +5,7 @@ class PlayerState;
 
 /// <summary>
 /// The gun the player holds, drawn in its own pass (Application::DrawViewModel): a separate camera at the origin
-/// looking down -Z, depth test off and parts drawn far to near, so it never clips into walls and ignores the
+/// looking down -Z, with the depth buffer cleared first, so it never clips into walls and ignores the
 /// world camera's pitch and yaw. It kicks back on every shot, bobs a little, its muzzle flashes, and its top
 /// light dims while the gun cools down. Only drawn while playing or paused.
 /// </summary>
