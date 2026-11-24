@@ -1,0 +1,7 @@
+Model credits
+=============
+
+Every model under assets/models/ (except prototype/) is listed here as: "Title" by Author - Source - License.
+Texture credits for assets/textures/ go in the same list.
+"TODO: check" means the license is not confirmed yet. Check it on the source page before release.
+
