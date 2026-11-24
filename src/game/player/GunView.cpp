@@ -84,13 +84,16 @@ bool GunView::LoadGunModel(bool isReload)
 	m_modelCenter	= Vector3Scale(Vector3Add(bounds.min, bounds.max), 0.5f);
 	m_modelSize		= Vector3Subtract(bounds.max, bounds.min);
 
-	// Lit, with the model's albedo texture (nullptr = raylib's white one); a texture with transparent texels is cut out
+	// A textured model is drawn with a lit override material (its texture; one with transparent texels is cut out).
+	// A model without a texture keeps its own materials, which carry the .mtl's Kd colors (the lit shader is set at load)
 	const Shader* lit = resources.GetDefaultLitShader();
 	m_modelMaterial = eng::Material(lit);
+	m_hasTexture = false;
 	const Texture2D* texture = (m_model->materialCount > 0) ? &m_model->materials[0].maps[MATERIAL_MAP_DIFFUSE].texture : nullptr;
 	if (texture && texture->id > 0 && texture->id != rlGetTextureIdDefault())
 	{
 		m_modelMaterial.SetTexture(texture);
+		m_hasTexture = true;
 
 		Image image = LoadImageFromTexture(*texture);
 		ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
@@ -203,7 +206,7 @@ void GunView::SubmitObjGun(const Matrix& pose) const
 		MatrixTranslate(-m_modelCenter.x, -m_modelCenter.y, -m_modelCenter.z),
 		MatrixScale(scale, scale, scale)),
 		MatrixRotateXYZ({ m_tuning.rotation.x * DEG2RAD, m_tuning.rotation.y * DEG2RAD, m_tuning.rotation.z * DEG2RAD }));
-	m_queue.SubmitModel(*m_model, &m_modelMaterial, MatrixMultiply(local, pose));
+	m_queue.SubmitModel(*m_model, m_hasTexture ? &m_modelMaterial : nullptr, MatrixMultiply(local, pose));
 
 	// Tip flash on the barrel's end and the ready light on top, in the recentered model's space
 	const float halfLength = m_tuning.length * 0.5f;

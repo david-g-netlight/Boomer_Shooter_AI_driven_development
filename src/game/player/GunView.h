@@ -75,7 +75,8 @@ private:
 
 	Tuning			m_tuning;
 	const Model*	m_model			= nullptr;		// owned by the ResourceManager; nullptr = primitive gun
-	eng::Material	m_modelMaterial;				// lit, the model's albedo texture
+	eng::Material	m_modelMaterial;				// lit, the model's albedo texture (only used when the model has a texture)
+	bool			m_hasTexture	= false;		// false: the model's own materials are drawn (the .mtl's Kd colors)
 	Vector3			m_modelCenter	= { 0.0f, 0.0f, 0.0f };		// bounds center, raw model units
 	Vector3			m_modelSize		= { 1.0f, 1.0f, 1.0f };		// bounds size, raw model units
 };
