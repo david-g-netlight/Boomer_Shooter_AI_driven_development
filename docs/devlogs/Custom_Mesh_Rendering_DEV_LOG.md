@@ -65,5 +65,6 @@ All answered in [`Task_012_Q&A.md`](../tasks/doing/Task_012_Q&A.md).
 
 | Date | Phase | What was done | Next step | Blockers |
 |---|---|---|---|---|
+| 2026-11-24 | M0 | Developer validated M0; merged into `integration`, branch renamed `done/mesh_assets_pipeline`. Developer ticked the **Done when** line on disk. Next: M1 on `mesh_model_loading` | Start M1 | — |
 | 2026-11-24 | M0 | Developer's pending task-file moves committed on `integration` as a clean-up (164c590). M0 on `mesh_assets_pipeline`: `.gitignore` negation and the enemy `.obj` files committed (504f5c2), model README and credits (4f1e1d8), `LoadTexture` filter default point, mipmaps only for trilinear (8b1b5a1). Clean Debug and Release builds pass with no warnings. Not run: the app itself (M0 changes no game-visible behavior); the README was checked by hand against §2, not by diff; `LoadTexture` has no callers yet, so the new default is untested at runtime | Developer runs the M0 **Done when** check | — |
 | 2026-11-24 | — | Tracker written for `Custom_Mesh_Rendering_ARCHITECTURE_PLAN.md` | Developer reviews, gives the go for M0 | — |
