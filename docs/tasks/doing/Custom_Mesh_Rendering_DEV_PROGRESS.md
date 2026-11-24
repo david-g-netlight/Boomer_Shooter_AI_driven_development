@@ -33,9 +33,9 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 ## Phase checklists
 
 ### Phase M0 — Asset pipeline 🟡
-- [ ] `.gitignore`: `!assets/models/**/*.obj`; commit the developer's `assets/models/enemies/` (`target-small`, `target-large`, `target-detail` `.obj` + `.mtl`, `Textures/colormap.png`) (§1.2, M‑D2)
-- [ ] `assets/models/README.md` with the export rules of §2; `assets/models/CREDITS.txt` (Kenney targets, `TODO: check`); `assets/textures/CREDITS.txt` (§1.2, §2)
-- [ ] `ResourceManager::LoadTexture(path, filter = TEXTURE_FILTER_POINT)`, mipmaps only for trilinear (§1.1, M‑D5)
+- [x] `.gitignore`: `!assets/models/**/*.obj`; commit the developer's `assets/models/enemies/` (`target-small`, `target-large`, `target-detail` `.obj` + `.mtl`, `Textures/colormap.png`) (§1.2, M‑D2) (+ done in one commit: the rule and the files depend on each other)
+- [x] `assets/models/README.md` with the export rules of §2; `assets/models/CREDITS.txt` (Kenney targets, `TODO: check`); `assets/textures/CREDITS.txt` (§1.2, §2) (+ the textures credits list is empty until M3: no textures yet)
+- [x] `ResourceManager::LoadTexture(path, filter = TEXTURE_FILTER_POINT)`, mipmaps only for trilinear (§1.1, M‑D5) (+ the cache is keyed by path, so the filter applies on the first load of a path only)
 - [ ] **Done when:** the Debug and Release builds pass; the three target `.obj` files are tracked by git (`git ls-files assets/models/enemies`); the README matches §2.
 
 ### Phase M1 — Models in the engine ⬜
