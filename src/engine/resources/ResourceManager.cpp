@@ -73,7 +73,7 @@ namespace eng
 		return &m_models.emplace(path, model).first->second;
 	}
 
-	Texture2D* ResourceManager::LoadTexture(const std::string& path)
+	Texture2D* ResourceManager::LoadTexture(const std::string& path, TextureFilter filter)
 	{
 		if (auto it = m_textures.find(path); it != m_textures.end())
 			return &it->second;
@@ -85,8 +85,9 @@ namespace eng
 			return nullptr;
 		}
 
-		GenTextureMipmaps(&texture);
-		SetTextureFilter(texture, TEXTURE_FILTER_TRILINEAR);
+		if (filter == TEXTURE_FILTER_TRILINEAR)
+			GenTextureMipmaps(&texture);
+		SetTextureFilter(texture, filter);
 		return &m_textures.emplace(path, texture).first->second;
 	}
 

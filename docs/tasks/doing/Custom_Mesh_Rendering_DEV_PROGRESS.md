@@ -19,24 +19,24 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 
 | Phase | Name | Branch | Status | Started | Finished | Notes |
 |---|---|---|---|---|---|---|
-| M0 | Asset pipeline | `mesh_assets_pipeline` | ⬜ | | | `.gitignore`, model README + credits, enemy files committed, `LoadTexture` filter |
+| M0 | Asset pipeline | `done/mesh_assets_pipeline` | ✅ | 2026-11-24 | 2026-11-24 | `.gitignore`, model README + credits, enemy files committed, `LoadTexture` filter |
 | M1 | Models in the engine | `mesh_model_loading` | ⬜ | | | `LoadModel` guard / lit / bounds / texture unload, parameter reset, `alphaCutoff`, `FitModel` |
 | M2 | Model gun | `mesh_gun_view` | ⬜ | | | Depth‑cleared gun pass, Kenney blaster, Debug `gun_*` tuning |
 | M3 | Textured levels | `mesh_level_textures` | ⬜ | | | `texture=` / `uv=`, `worldUV`, textured arena |
 | M4 | Enemy meshes | `mesh_enemy_models` | ⬜ | | | Targets for Drifter / Stalker / Brute, sphere + pyramid fallback |
 
-**Current focus:** none. Waiting for the go to start M0.
+**Current focus:** M1 Models in the engine.
 **Branch:** `integration`
 
 ---
 
 ## Phase checklists
 
-### Phase M0 — Asset pipeline ⬜
-- [ ] `.gitignore`: `!assets/models/**/*.obj`; commit the developer's `assets/models/enemies/` (`target-small`, `target-large`, `target-detail` `.obj` + `.mtl`, `Textures/colormap.png`) (§1.2, M‑D2)
-- [ ] `assets/models/README.md` with the export rules of §2; `assets/models/CREDITS.txt` (Kenney targets, `TODO: check`); `assets/textures/CREDITS.txt` (§1.2, §2)
-- [ ] `ResourceManager::LoadTexture(path, filter = TEXTURE_FILTER_POINT)`, mipmaps only for trilinear (§1.1, M‑D5)
-- [ ] **Done when:** the Debug and Release builds pass; the three target `.obj` files are tracked by git (`git ls-files assets/models/enemies`); the README matches §2.
+### Phase M0 — Asset pipeline ✅
+- [x] `.gitignore`: `!assets/models/**/*.obj`; commit the developer's `assets/models/enemies/` (`target-small`, `target-large`, `target-detail` `.obj` + `.mtl`, `Textures/colormap.png`) (§1.2, M‑D2) (+ done in one commit: the rule and the files depend on each other)
+- [x] `assets/models/README.md` with the export rules of §2; `assets/models/CREDITS.txt` (Kenney targets, `TODO: check`); `assets/textures/CREDITS.txt` (§1.2, §2) (+ the textures credits list is empty until M3: no textures yet)
+- [x] `ResourceManager::LoadTexture(path, filter = TEXTURE_FILTER_POINT)`, mipmaps only for trilinear (§1.1, M‑D5) (+ the cache is keyed by path, so the filter applies on the first load of a path only)
+- [x] **Done when:** the Debug and Release builds pass; the three target `.obj` files are tracked by git (`git ls-files assets/models/enemies`); the README matches §2.
 
 ### Phase M1 — Models in the engine ⬜
 - [ ] `ResourceManager::LoadModel`: refuse OBJ faces over 5 vertices (warning + `nullptr`); default lit shader and point filter on every material; mesh / material counts and bounds logged; private `UnloadModelAndTextures` used by `UnloadAll` and after a failed load (§3.1, M‑D4, M‑D6)

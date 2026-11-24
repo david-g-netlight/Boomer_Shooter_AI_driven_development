@@ -43,7 +43,7 @@ namespace eng
 		/// Loading (paths are relative to the executable directory, e.g. "assets/models/crate.glb")
 		//////////////////////////////////////////
 		Model*		LoadModel	(const std::string& path);
-		Texture2D*	LoadTexture	(const std::string& path);
+		Texture2D*	LoadTexture	(const std::string& path, TextureFilter filter = TEXTURE_FILTER_POINT); // mipmaps only for trilinear
 		Shader*		LoadShader	(const std::string& vertexPath, const std::string& fragmentPath); // "" = raylib default stage
 		Font*		LoadFont	(const std::string& path, int baseSize = 32);
 		Sound*		LoadSound	(const std::string& path);	// whole file in memory, for short effects

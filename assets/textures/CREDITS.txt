@@ -1,0 +1,8 @@
+Texture credits
+===============
+
+Every texture under assets/textures/ is listed here as: "Title" by Author - Source - License.
+Model credits are in assets/models/CREDITS.txt.
+"TODO: check" means the license is not confirmed yet. Check it on the source page before release.
+
+No textures yet. The level textures (wall.png, floor.png, ceiling.png) are added in phase M3.

@@ -1,0 +1,17 @@
+Model credits
+=============
+
+Every model under assets/models/ is listed here as: "Title" by Author - Source - License.
+Texture credits for assets/textures/ go in assets/textures/CREDITS.txt.
+"TODO: check" means the license is not confirmed yet. Check it on the source page before release.
+
+Enemies (assets/models/enemies/)
+--------------------------------
+"target-small" (Kenney target, Drifter) by Kenney - https://www.kenney.nl - TODO: check
+    target-small.obj, target-small.mtl
+"target-large" (Kenney target, Stalker) by Kenney - https://www.kenney.nl - TODO: check
+    target-large.obj, target-large.mtl
+"target-detail" (Kenney target, Brute) by Kenney - https://www.kenney.nl - TODO: check
+    target-detail.obj, target-detail.mtl
+"colormap.png" (Kenney color atlas, 512 x 512) by Kenney - https://www.kenney.nl - TODO: check
+    enemies/Textures/colormap.png, shared by the three target .mtl files

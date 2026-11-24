@@ -2,6 +2,7 @@
 build/
 *.o
 *.obj
+!assets/models/**/*.obj
 *.so
 *.dll
 *.dylib
