@@ -99,6 +99,7 @@ namespace eng
 
 		void	UploadSceneUniforms(const Shader& shader, const Vector3& viewPosition) const;
 		void	BindMaterial(const Material& material) const;
+		void	ResetParameters(const Shader& shader) const;	// a raw material sets no parameters: every known one reads 0
 		void	DrawLines() const;
 
 		std::vector<RenderCommand>	m_commands;
