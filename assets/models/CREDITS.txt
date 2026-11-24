@@ -5,6 +5,11 @@ Every model under assets/models/ is listed here as: "Title" by Author - Source -
 Texture credits for assets/textures/ go in assets/textures/CREDITS.txt.
 "TODO: check" means the license is not confirmed yet. Check it on the source page before release.
 
+Gun (assets/models/gun/)
+------------------------
+"gun" (Blaster Kit) by Kenney - https://www.kenney.nl - CC0 (the .mtl says "Created by Kenney"; TODO: check the pack's license page)
+    gun.obj, gun.mtl (colors only, no texture)
+
 Enemies (assets/models/enemies/)
 --------------------------------
 "target-small" (Kenney target, Drifter) by Kenney - https://www.kenney.nl - TODO: check

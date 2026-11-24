@@ -7,6 +7,7 @@
 #include "enemies/EnemyComponents.h"
 #include "enemies/EnemyManager.h"
 #include "flow/GameplayManager.h"
+#include "player/GunView.h"
 #include "player/PlayerActor.h"
 #include "state/GameState.h"
 #include "state/PlayerState.h"
@@ -236,6 +237,32 @@ void GameCommands::Register(const GameCommandContext& context)
 
 	m_tokens.push_back(commands.RegisterVar(eng::ConVar::Float("sens", &Settings::Instance().mouseSensitivity,
 		Settings::MIN_SENSITIVITY, Settings::MAX_SENSITIVITY, "Mouse sensitivity multiplier")));
+
+#ifndef NDEBUG
+	// The gun's live tuning (Debug only): the defaults are GunView::Tuning's
+	if (context.gunView)
+	{
+		GunView::Tuning& tuning = context.gunView->GetTuning();
+		const auto vector3Command = [&](const char* name, Vector3* target, const char* help)
+		{
+			const std::string usage = std::string(name) + " [x y z]";
+			add(name, usage.c_str(), help, [target, name, usage](const eng::ConsoleArgs& args, eng::DevConsole& con)
+			{
+				if (args.Count() > 0 && !args.GetVector3(0, *target))
+				{
+					con.PrintError("usage: %s", usage.c_str());
+					return;
+				}
+				con.Print("%s = %g %g %g", name, (double)target->x, (double)target->y, (double)target->z);
+			});
+		};
+		m_tokens.push_back(commands.RegisterVar(eng::ConVar::Bool("gun_obj", &tuning.useObj, "1 = the OBJ gun, 0 = the primitive gun")));
+		m_tokens.push_back(commands.RegisterVar(eng::ConVar::Float("gun_len", &tuning.length, 0.05f, 2.0f, "Length of the OBJ gun along -Z, meters")));
+		vector3Command("gun_ofs", &tuning.offset, "Offset of the gun in view space (right, up, back), meters");
+		vector3Command("gun_rot", &tuning.rotation, "Rotation of the OBJ model (pitch yaw roll), degrees");
+		vector3Command("gun_muzzle", &tuning.muzzle, "Moves the tip flash from the barrel's end, meters");
+	}
+#endif
 
 	//////////////////////////////////////////
 	// Enemies
