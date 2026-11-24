@@ -6,6 +6,7 @@
 
 namespace enemies { class EnemyManager; }
 class GameplayManager;
+class GunView;
 class GameState;
 class PlayerState;
 
@@ -20,10 +21,11 @@ struct GameCommandContext
 	eng::ActorHandle*	player		= nullptr;
 	eng::Level*			level		= nullptr;
 	enemies::EnemyManager*	enemyManager	= nullptr;
+	GunView*			gunView		= nullptr;
 };
 
 /// <summary>
-/// restart, level_list, level_load, level_next, win, lose, tp, tp_spawn, god, player_hp, gun_cooldown, gun_reach, sens, enemy_spawn, enemy_spawn_all, enemy_list, kill_all, wave_start, wave_skip, waves, enemy_tune, ai_debug, ai_freeze, ecs_selftest (Debug).
+/// restart, level_list, level_load, level_next, win, lose, tp, tp_spawn, god, player_hp, gun_cooldown, gun_reach, gun_obj, gun_ofs, gun_rot, gun_len, gun_muzzle, gun_reload, sens, enemy_spawn, enemy_spawn_all, enemy_list, kill_all, wave_start, wave_skip, waves, enemy_tune, ai_debug, ai_freeze, ecs_selftest (Debug).
 /// The commands capture the context, so the game unregisters them in Destroy().
 /// Level commands only make requests: the GameplayManager applies them in its next Update.
 /// </summary>

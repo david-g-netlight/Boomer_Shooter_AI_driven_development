@@ -116,6 +116,16 @@ namespace eng
 		return &m_models.emplace(path, model).first->second;
 	}
 
+	Model* ResourceManager::ReloadModel(const std::string& path)
+	{
+		if (auto it = m_models.find(path); it != m_models.end())
+		{
+			UnloadModelAndTextures(it->second);
+			m_models.erase(it);
+		}
+		return LoadModel(path);
+	}
+
 	Texture2D* ResourceManager::LoadTexture(const std::string& path, int filter)
 	{
 		if (auto it = m_textures.find(path); it != m_textures.end())

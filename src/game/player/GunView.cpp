@@ -55,7 +55,7 @@ void GunView::Init(const PlayerState& state)
 	make(m_parts.handle, { 48, 52, 64, 255 },    0.0f);
 	make(m_parts.light,  LIGHT_COLOR,            1.0f);
 
-	LoadGunModel();
+	LoadGunModel(false);
 
 	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& /*shot*/)
 	{
@@ -64,10 +64,16 @@ void GunView::Init(const PlayerState& state)
 	});
 }
 
-bool GunView::LoadGunModel()
+bool GunView::ReloadModel()
+{
+	return LoadGunModel(true);
+}
+
+bool GunView::LoadGunModel(bool isReload)
 {
 	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
-	m_model = resources.LoadModel(MODEL_PATH);
+	m_model = nullptr;		// a reload invalidates the old pointer
+	m_model = isReload ? resources.ReloadModel(MODEL_PATH) : resources.LoadModel(MODEL_PATH);
 	if (!m_model)
 	{
 		eng::Log::Warning("GunView: '%s' did not load, drawing the primitive gun", MODEL_PATH);

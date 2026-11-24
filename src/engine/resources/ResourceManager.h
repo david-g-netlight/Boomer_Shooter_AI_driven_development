@@ -43,6 +43,10 @@ namespace eng
 		/// Loading (paths are relative to the executable directory, e.g. "assets/models/crate.glb")
 		//////////////////////////////////////////
 		Model*		LoadModel	(const std::string& path);
+		/// <summary>
+		/// Spike: unloads the cached model (and its textures) and loads it again from disk. Every pointer to the old one is invalid after this.
+		/// </summary>
+		Model*		ReloadModel	(const std::string& path);
 		Texture2D*	LoadTexture	(const std::string& path, int filter = TEXTURE_FILTER_POINT);	// mipmaps only for TEXTURE_FILTER_TRILINEAR; cached by path (first filter wins)
 		Shader*		LoadShader	(const std::string& vertexPath, const std::string& fragmentPath); // "" = raylib default stage
 		Font*		LoadFont	(const std::string& path, int baseSize = 32);

@@ -41,10 +41,14 @@ public:
 	Tuning&			GetTuning()			{ return m_tuning; }
 	const Tuning&	GetTuning() const	{ return m_tuning; }
 
+	/// <summary>
+	/// Loads the model again from disk (after a re-export). False = failed, the primitive gun is drawn.
+	/// </summary>
+	bool	ReloadModel();
 	bool	HasModel() const	{ return m_model != nullptr; }
 
 private:
-	bool	LoadGunModel();
+	bool	LoadGunModel(bool isReload);
 	void	SubmitPrimitiveGun(const Matrix& pose) const;
 	void	SubmitObjGun(const Matrix& pose) const;
 	void	SubmitBox(const eng::Material& material, const Matrix& pose, Vector3 center, Vector3 size) const;
