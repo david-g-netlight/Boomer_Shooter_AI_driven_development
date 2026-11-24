@@ -9,10 +9,10 @@ namespace enemies
 	{
 		// Plan §8.1. The loseRadius and attackExitRange values are 1.2 x the trigger and attack range (E-D6).
 		std::array<EnemyArchetype, static_cast<size_t>(EnemyType::Count)> ARCHETYPES = { {
-			//  name       body  bodyColour                 spikeColour                hp   wander chase turn  trig  lose  atk   exit  dmg avoid  model yaw
-			{ "drifter",  0.45f, Color{ 70, 190, 90, 255 }, Color{ 170, 240, 160, 255 }, 30.0f, 3.0f, 6.0f, 90.0f, 7.0f, 8.4f, 1.6f, 1.92f, 5.0f, 1.0f, "assets/models/enemies/target-small.obj", 90.0f },
-			{ "stalker",  0.55f, Color{ 240, 140, 30, 255 }, Color{ 250, 230, 80, 255 }, 60.0f, 2.5f, 4.5f, 180.0f, 10.0f, 12.0f, 1.8f, 2.16f, 10.0f, 1.5f, "assets/models/enemies/target-large.obj", 90.0f },
-			{ "brute",    0.80f, Color{ 200, 40, 40, 255 }, Color{ 110, 20, 20, 255 },  120.0f, 2.0f, 3.5f, 270.0f, 14.0f, 16.8f, 2.3f, 2.76f, 20.0f, 0.5f, "assets/models/enemies/target-detail.obj", 90.0f },
+			//  name       body  bodyColour                 spikeColour                hp   wander chase turn  trig  lose  atk   exit  dmg avoid  model yaw  hit
+			{ "drifter",  0.45f, Color{ 70, 190, 90, 255 }, Color{ 170, 240, 160, 255 }, 30.0f, 3.0f, 6.0f, 90.0f, 7.0f, 8.4f, 1.6f, 1.92f, 5.0f, 1.0f, "assets/models/enemies/target-small.obj", 90.0f, 1.0f },
+			{ "stalker",  0.55f, Color{ 240, 140, 30, 255 }, Color{ 250, 230, 80, 255 }, 60.0f, 2.5f, 4.5f, 180.0f, 10.0f, 12.0f, 1.8f, 2.16f, 10.0f, 1.5f, "assets/models/enemies/target-large.obj", 90.0f, 1.15f },
+			{ "brute",    0.80f, Color{ 200, 40, 40, 255 }, Color{ 110, 20, 20, 255 },  120.0f, 2.0f, 3.5f, 270.0f, 14.0f, 16.8f, 2.3f, 2.76f, 20.0f, 0.5f, "assets/models/enemies/target-detail.obj", 90.0f, 1.3f },
 		} };
 	}
 

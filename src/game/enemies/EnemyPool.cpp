@@ -55,7 +55,7 @@ namespace enemies
 			archetype.attackExitRange * archetype.attackExitRange });
 		m_registry->Add<Life>(e, Life{ archetype.hp, archetype.hp });
 		m_registry->Add<Alert>(e, Alert{});
-		m_registry->Add<CollisionSphere>(e, CollisionSphere{ archetype.bodyRadius });
+		m_registry->Add<CollisionSphere>(e, CollisionSphere{ archetype.bodyRadius * archetype.hitScale });
 		EnemyLook look;
 		look.scale = 0.0f;				// scale-in starts from nothing (AnimationSystem)
 		look.renderRotation = rotation;
