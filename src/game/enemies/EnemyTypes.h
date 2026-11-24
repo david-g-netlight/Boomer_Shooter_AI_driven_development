@@ -33,6 +33,8 @@ namespace enemies
 		float		attackExitRange;	// m, attack ends beyond it (1.2 x range)
 		float		damage;				// per hit, 1 s cooldown
 		float		avoidStrength;
+		const char*	modelPath;			// empty = the sphere and pyramid
+		float		modelYawDeg;		// turns the model so that its front faces -Z (the targets face +-X)
 	};
 
 	/// <summary>The archetype of a type. Never reads the table at runtime except through here.</summary>
