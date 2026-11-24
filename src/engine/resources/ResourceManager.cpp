@@ -1,11 +1,35 @@
 #include "ResourceManager.h"
 #include <algorithm>
+#include <vector>
 #include <rlgl.h>
 #include "core/Log.h"
 
 namespace
 {
 	constexpr int MATERIAL_MAP_COUNT = 12;		// raylib's MAX_MATERIAL_MAPS (config.h, not in the public headers)
+
+	/// UnloadModel() frees the materials' arrays but not the textures loaded from the MTL (raylib leaves that to
+	/// the user, who may share them). Unloads each of them once (skipping raylib's default texture), then the model.
+	void UnloadModelAndTextures(Model& model)
+	{
+		std::vector<Texture2D> textures;
+		for (int i = 0; i < model.materialCount && model.materials; ++i)
+		{
+			if (!model.materials[i].maps)
+				continue;
+			for (int map = 0; map < MATERIAL_MAP_COUNT; ++map)
+			{
+				const Texture2D& texture = model.materials[i].maps[map].texture;
+				const bool isKnown = std::any_of(textures.begin(), textures.end(), [&](const Texture2D& other) { return other.id == texture.id; });
+				if (texture.id > 0 && texture.id != rlGetTextureIdDefault() && !isKnown)
+					textures.push_back(texture);
+			}
+		}
+
+		UnloadModel(model);
+		for (const Texture2D& texture : textures)
+			UnloadTexture(texture);
+	}
 
 	/// Swaps vertices a and b of an attribute array with `stride` floats per vertex.
 	void SwapVertices(float* data, int stride, int a, int b)
@@ -68,7 +92,7 @@ namespace eng
 		if (!IsModelValid(model))
 		{
 			Log::Warning("ResourceManager: failed to load model '%s'", path.c_str());
-			UnloadModel(model);
+			UnloadModelAndTextures(model);
 			return nullptr;
 		}
 
@@ -206,7 +230,7 @@ namespace eng
 		const size_t count = GetLoadedCount();
 		m_defaultLitShader = nullptr;
 
-		for (auto& [path, model]   : m_models)		UnloadModel(model);
+		for (auto& [path, model]   : m_models)		UnloadModelAndTextures(model);
 		for (auto& [path, texture] : m_textures)	UnloadTexture(texture);
 		for (auto& [key, shader]   : m_shaders)		UnloadShader(shader);
 		for (auto& [key, font]     : m_fonts)		UnloadFont(font);
