@@ -23,10 +23,10 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | M1 | Models in the engine | `done/mesh_model_loading` | ✅ | 2026-11-24 | 2026-11-24 | `LoadModel` guard / lit / bounds / texture unload, parameter reset, `alphaCutoff`, `FitModel` |
 | M2 | Model gun | `done/mesh_gun_view` | ✅ | 2026-11-24 | 2026-11-24 | Depth‑cleared gun pass, Kenney blaster, Debug `gun_*` tuning |
 | M3 | Textured levels | `done/mesh_level_textures` | ✅ | 2026-11-24 | 2026-11-24 | `texture=` / `uv=`, `worldUV`, textured arena |
-| M4 | Enemy meshes | `mesh_enemy_models` | ⬜ | | | Targets for Drifter / Stalker / Brute, sphere + pyramid fallback |
+| M4 | Enemy meshes | `mesh_enemy_models` | 🟡 | 2026-11-24 | | Targets for Drifter / Stalker / Brute, sphere + pyramid fallback |
 
 **Current focus:** M4 Enemy meshes.
-**Branch:** `integration`
+**Branch:** `mesh_enemy_models`
 
 ---
 
@@ -60,9 +60,9 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] `assets/textures/wall.png`, `floor.png`, `ceiling.png` from the spike, credited; `arena_01.lvl` with textured floor, ceiling and walls (`uv=2`) and the `"Arena"` actor's `MeshRenderer` hidden (`visible=0`) (§1.2) (+ the level is the spike's version, which differs from integration only in these lines)
 - [x] **Done when:** floor, ceiling and walls tile with square texels; `set MeshRenderer texture=… uv=…`, `save` and a reload keep the values; meshes without the keys look as before; there is no `EnemyManager: no "Arena" actor` warning and the enemies stay inside the arena; editor picking and the gizmo still work.
 
-### Phase M4 — Enemy meshes ⬜
-- [ ] `EnemyArchetype`: `modelPath` and `modelYawDeg`; Drifter `target-small`, Stalker `target-large`, Brute `target-detail` (`EnemyTypes.h/.cpp`, §3.4, M‑D15)
-- [ ] `EnemyManager::Init`: load the models, compute the fit (`FitModel(bounds, Largest, 2·bodyRadius)` · yaw), build the per‑type material and flash material (`EnemyMaterials`, §3.2, §3.4)
-- [ ] `RenderSystem`: `SubmitModel` with `fit · scale · rotation · translation`, flash material while flashing, sphere and pyramid when the type has no model (§3.4, M‑D11, M‑D12)
+### Phase M4 — Enemy meshes 🟡
+- [x] `EnemyArchetype`: `modelPath` and `modelYawDeg`; Drifter `target-small`, Stalker `target-large`, Brute `target-detail` (`EnemyTypes.h/.cpp`, §3.4, M‑D15)
+- [x] `EnemyManager::Init`: load the models, compute the fit (`FitModel(bounds, Largest, 2·bodyRadius)` · yaw), build the per‑type material and flash material (`EnemyMaterials`, §3.2, §3.4) (+ textured models only: a color-only model falls back to the sphere, with a warning; the fit uses the archetype's body radius)
+- [x] `RenderSystem`: `SubmitModel` with `fit · scale · rotation · translation`, flash material while flashing, sphere and pyramid when the type has no model (§3.4, M‑D11, M‑D12) (+ a type with a model draws the model in place of the sphere and pyramid)
 - [ ] Check the fit with `ai_debug 1` (draws the hit sphere); adjust `modelYawDeg` signs if a target faces away (§3.4)
 - [ ] **Done when:** the three types draw their targets with the `colormap.png` colors (not white), the face toward their movement; with a model file renamed, that type draws the sphere and pyramid and a warning is logged; the flash, squash, lunge and death shrink look right on the model; shots that visibly hit the model register (the model sits inside the hit sphere); 20 enemies on screen keep 60 FPS.
