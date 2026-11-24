@@ -43,6 +43,8 @@ namespace eng
 		/// Loading (paths are relative to the executable directory, e.g. "assets/models/crate.glb")
 		//////////////////////////////////////////
 		Model*		LoadModel	(const std::string& path);
+		/// Bounds computed once at load. nullptr when the model is not loaded (this does not load it).
+		const BoundingBox*	GetModelBounds	(const std::string& path) const;
 		Texture2D*	LoadTexture	(const std::string& path, TextureFilter filter = TEXTURE_FILTER_POINT); // mipmaps only for trilinear
 		Shader*		LoadShader	(const std::string& vertexPath, const std::string& fragmentPath); // "" = raylib default stage
 		Font*		LoadFont	(const std::string& path, int baseSize = 32);
@@ -69,6 +71,7 @@ namespace eng
 		static void UnloadModelAndTextures(Model& model);
 
 		std::unordered_map<std::string, Model>		m_models;
+		std::unordered_map<std::string, BoundingBox>	m_modelBounds;	// by path, set with m_models
 		std::unordered_map<std::string, Texture2D>	m_textures;
 		std::unordered_map<std::string, Shader>		m_shaders;
 		std::unordered_map<std::string, Font>		m_fonts;

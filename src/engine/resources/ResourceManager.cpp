@@ -162,7 +162,15 @@ namespace eng
 			path.c_str(), model.meshCount, model.materialCount,
 			bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z);
 
+		m_modelBounds.emplace(path, bounds);
 		return &m_models.emplace(path, model).first->second;
+	}
+
+	const BoundingBox* ResourceManager::GetModelBounds(const std::string& path) const
+	{
+		if (auto it = m_modelBounds.find(path); it != m_modelBounds.end())
+			return &it->second;
+		return nullptr;
 	}
 
 	Texture2D* ResourceManager::LoadTexture(const std::string& path, TextureFilter filter)
@@ -286,6 +294,7 @@ namespace eng
 		for (auto& [path, sound]   : m_sounds)		UnloadSound(sound);
 		for (auto& [path, music]   : m_music)		UnloadMusicStream(music);
 		m_models.clear();
+		m_modelBounds.clear();
 		m_textures.clear();
 		m_shaders.clear();
 		m_fonts.clear();
