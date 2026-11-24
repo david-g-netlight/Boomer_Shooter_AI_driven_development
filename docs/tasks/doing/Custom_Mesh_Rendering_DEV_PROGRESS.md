@@ -22,10 +22,10 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | M0 | Asset pipeline | `done/mesh_assets_pipeline` | ✅ | 2026-11-24 | 2026-11-24 | `.gitignore`, model README + credits, enemy files committed, `LoadTexture` filter |
 | M1 | Models in the engine | `done/mesh_model_loading` | ✅ | 2026-11-24 | 2026-11-24 | `LoadModel` guard / lit / bounds / texture unload, parameter reset, `alphaCutoff`, `FitModel` |
 | M2 | Model gun | `done/mesh_gun_view` | ✅ | 2026-11-24 | 2026-11-24 | Depth‑cleared gun pass, Kenney blaster, Debug `gun_*` tuning |
-| M3 | Textured levels | `mesh_level_textures` | ⬜ | | | `texture=` / `uv=`, `worldUV`, textured arena |
+| M3 | Textured levels | `done/mesh_level_textures` | ✅ | 2026-11-24 | 2026-11-24 | `texture=` / `uv=`, `worldUV`, textured arena |
 | M4 | Enemy meshes | `mesh_enemy_models` | ⬜ | | | Targets for Drifter / Stalker / Brute, sphere + pyramid fallback |
 
-**Current focus:** M3 Textured levels.
+**Current focus:** M4 Enemy meshes.
 **Branch:** `integration`
 
 ---
@@ -54,11 +54,11 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - [x] The developer's re‑tuned values on the Kenney blaster become the `Tuning` defaults (§3.3) (+ the developer kept the V3 defaults: no value change)
 - [x] **Done when:** the gun is the Kenney blaster, lit, with its `.mtl` colors; it never clips into walls; kick, bob, tip flash and ready light sit on the model; the `gun_*` ConVars move it live in Debug and do not exist in Release; with the model file renamed, the game starts with the primitive gun and a warning; 60 FPS is unchanged.
 
-### Phase M3 — Textured levels ⬜
-- [ ] `MeshRenderer`: `texture=<path|none>` and `uv=<meters>` saved and loaded; an own material when tint, lit or a texture is set (§1.1, M‑D10)
-- [ ] `lit.fs`: `worldUV` box projection, 0 = off (§1.2, M‑D10)
-- [ ] `assets/textures/wall.png`, `floor.png`, `ceiling.png` from the spike, credited; `arena_01.lvl` with textured floor, ceiling and walls (`uv=2`) and the `"Arena"` actor's `MeshRenderer` hidden (`visible=0`) (§1.2)
-- [ ] **Done when:** floor, ceiling and walls tile with square texels; `set MeshRenderer texture=… uv=…`, `save` and a reload keep the values; meshes without the keys look as before; there is no `EnemyManager: no "Arena" actor` warning and the enemies stay inside the arena; editor picking and the gizmo still work.
+### Phase M3 — Textured levels ✅
+- [x] `MeshRenderer`: `texture=<path|none>` and `uv=<meters>` saved and loaded; an own material when tint, lit or a texture is set (§1.1, M‑D10) (+ the spike's files taken as they are; the keys are written with the own material, as in the spike)
+- [x] `lit.fs`: `worldUV` box projection, 0 = off (§1.2, M‑D10) (+ the `alphaCutoff` comment of M1 is kept)
+- [x] `assets/textures/wall.png`, `floor.png`, `ceiling.png` from the spike, credited; `arena_01.lvl` with textured floor, ceiling and walls (`uv=2`) and the `"Arena"` actor's `MeshRenderer` hidden (`visible=0`) (§1.2) (+ the level is the spike's version, which differs from integration only in these lines)
+- [x] **Done when:** floor, ceiling and walls tile with square texels; `set MeshRenderer texture=… uv=…`, `save` and a reload keep the values; meshes without the keys look as before; there is no `EnemyManager: no "Arena" actor` warning and the enemies stay inside the arena; editor picking and the gizmo still work.
 
 ### Phase M4 — Enemy meshes ⬜
 - [ ] `EnemyArchetype`: `modelPath` and `modelYawDeg`; Drifter `target-small`, Stalker `target-large`, Brute `target-detail` (`EnemyTypes.h/.cpp`, §3.4, M‑D15)

@@ -5,4 +5,5 @@ Every texture under assets/textures/ is listed here as: "Title" by Author - Sour
 Model credits are in assets/models/CREDITS.txt.
 "TODO: check" means the license is not confirmed yet. Check it on the source page before release.
 
-No textures yet. The level textures (wall.png, floor.png, ceiling.png) are added in phase M3.
+"wall.png", "floor.png", "ceiling.png" - 64 x 64, supplied by the developer - TODO: check author and license
+    Level surfaces of arena_01.lvl (walls, floor and ceiling, uv=2)

@@ -21,13 +21,26 @@ uniform vec3 viewPosition;
 // Material parameters (eng::Material::SetParameter), 0 when not set
 uniform float emissive;         // 0 = fully lit, 1 = unlit albedo
 uniform float specularStrength;
+uniform float worldUV;          // 0 = the mesh's UVs; else meters per texture repeat, from the world position (box projection)
 uniform float alphaCutoff;      // 0 = off, else texels with alpha below it are discarded (cutout)
 
 out vec4 finalColor;
 
 void main()
 {
-    vec4 albedo = texture(texture0, fragTexCoord) * colDiffuse * fragColor;
+    // Box projection: the UVs come from the world position, dropping the axis the surface faces most, so a scaled cube
+    // (the arena) keeps square texels on every face. The vertical axis runs downward, like the texture's rows.
+    vec2 uv = fragTexCoord;
+    if (worldUV > 0.0)
+    {
+        vec3 n = abs(fragNormal);
+        if (n.x >= n.y && n.x >= n.z)  uv = vec2(fragPosition.z, -fragPosition.y);
+        else if (n.y >= n.z)           uv = vec2(fragPosition.x,  fragPosition.z);
+        else                           uv = vec2(fragPosition.x, -fragPosition.y);
+        uv /= worldUV;
+    }
+
+    vec4 albedo = texture(texture0, uv) * colDiffuse * fragColor;
     if (alphaCutoff > 0.0 && albedo.a < alphaCutoff)
         discard;
 
