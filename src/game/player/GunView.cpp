@@ -12,6 +12,12 @@ namespace
 	constexpr float KICK_DECAY	= 7.0f;		// per second
 	constexpr float FLASH_DECAY	= 5.0f;
 	constexpr Vector3 ORIGIN	= { 0.19f, -0.15f, -0.78f };	// the gun's center in view space (right, down, forward)
+	constexpr Color LIGHT_COLOR	= { 80, 190, 255, 255 };
+
+	Color Brighten(Color color, float factor)
+	{
+		return { static_cast<unsigned char>(color.r * factor), static_cast<unsigned char>(color.g * factor), static_cast<unsigned char>(color.b * factor), 255 };
+	}
 }
 
 GunView::~GunView()
@@ -28,6 +34,21 @@ void GunView::Init(const PlayerState& state)
 	m_camera.SetPosition({ 0.0f, 0.0f, 0.0f });
 	m_camera.SetYawPitch(0.0f, 0.0f);
 	m_camera.SetPerspective({ 50.0f, 0.02f, 10.0f });
+
+	// Made here, not in the constructor: a Material takes raylib's default texture from the window
+	const Shader* lit = eng::Engine::GetInstance().GetResources().GetDefaultLitShader();
+	const auto make = [&](eng::Material& material, Color tint, float emissive)
+	{
+		material = eng::Material(lit);
+		material.SetTint(tint);
+		if (emissive > 0.0f)
+			material.SetParameter("emissive", emissive);
+	};
+	make(m_parts.barrel, { 150, 155, 165, 255 }, 0.0f);
+	make(m_parts.tip,    MuzzleFX::START_COLOR,  1.0f);
+	make(m_parts.body,   { 62, 68, 82, 255 },    0.0f);
+	make(m_parts.handle, { 48, 52, 64, 255 },    0.0f);
+	make(m_parts.light,  LIGHT_COLOR,            1.0f);
 
 	m_token = eng::Engine::GetInstance().GetEvents().Subscribe<ShotFiredEvent>([this](const ShotFiredEvent& /*shot*/)
 	{
@@ -61,7 +82,6 @@ void GunView::Draw() const
 	const float back = m_kick * 0.07f;			// kick: toward the player and a little up
 
 	const bool isReady		= m_state->IsReadyToShoot();
-	const Color light		= Fade(Color{ 80, 190, 255, 255 }, isReady ? 1.0f : 0.35f);
 	const Color tipColor	= MuzzleFX::START_COLOR;
 
 	// Translate * RotateX(muzzle lifts) * RotateY(a little toward the center) * Scale; raymath applies the left matrix first
@@ -71,23 +91,45 @@ void GunView::Draw() const
 		MatrixRotateX(-m_kick * 6.0f * DEG2RAD)),
 		MatrixTranslate(ORIGIN.x, ORIGIN.y + bob + back * 0.25f, ORIGIN.z + back));
 
+	// Tip and light are unlit: their brightness is the tint
+	m_parts.tip.SetTint(Brighten(tipColor, 0.55f + 0.45f * m_flash));
+	m_parts.light.SetTint(Brighten(LIGHT_COLOR, isReady ? 1.0f : 0.35f));
+
+	eng::ResourceManager& resources = eng::Engine::GetInstance().GetResources();
+	const ::Mesh* cube		= resources.GetPrimitive(eng::Primitive::Cube);
+	const ::Mesh* cylinder	= resources.GetPrimitive(eng::Primitive::Cylinder);
+	if (!cube || !cylinder)
+		return;
+
+	// A box of the given size centered on `center`, and a cylinder from z = start to z = end (the mesh's +Y turned to -Z)
+	const auto box = [&](const eng::Material& material, Vector3 center, Vector3 size)
+	{
+		m_queue.Submit(*cube, material, MatrixMultiply(MatrixMultiply(MatrixScale(size.x, size.y, size.z), MatrixTranslate(center.x, center.y, center.z)), pose));
+	};
+	const auto tube = [&](const eng::Material& material, float y, float zStart, float zEnd, float radius)
+	{
+		const Matrix local = MatrixMultiply(MatrixMultiply(MatrixScale(radius * 2.0f, zStart - zEnd, radius * 2.0f), MatrixRotateX(-90.0f * DEG2RAD)), MatrixTranslate(0.0f, y, zStart));
+		m_queue.Submit(*cylinder, material, MatrixMultiply(local, pose));
+	};
+
+	tube(m_parts.barrel, 0.03f, -0.20f, -0.46f, 0.035f);
+	tube(m_parts.tip,    0.03f, -0.46f, -0.50f, 0.04f);
+	box(m_parts.body,   { 0.0f,  0.0f,   0.0f   }, { 0.11f,  0.13f,  0.38f });
+	box(m_parts.handle, { 0.0f, -0.12f,  0.12f  }, { 0.07f,  0.16f,  0.09f });
+	box(m_parts.light,  { 0.0f,  0.075f, -0.02f }, { 0.045f, 0.025f, 0.12f });
+
+	// The sun in view space: the gun camera looks down -Z with +X right and +Y up, so the world's sun is turned by the
+	// main camera's right / up / forward (forward becomes -Z)
+	const eng::World& world = eng::Engine::GetInstance().GetWorld();
+	Vector3 sun = world.sunDirection;
+	if (const eng::Camera* view = eng::Engine::GetInstance().GetMainCamera().GetActiveCamera())
+		sun = { Vector3DotProduct(sun, view->Right()), Vector3DotProduct(sun, view->Up()), -Vector3DotProduct(sun, view->Forward()) };
+	m_queue.SetLighting({ sun, world.sunColor, world.ambientColor });
+
 	m_camera.Begin3D();
 	eng::ClearDepthBuffer();	// the world's depth is gone: the gun never clips into walls, and tests against itself
-
-	rlPushMatrix();
-	rlMultMatrixf(MatrixToFloat(pose));
-
-		// Barrel and tip
-		DrawCylinderEx({ 0.0f, 0.03f, -0.20f }, { 0.0f, 0.03f, -0.46f }, 0.035f, 0.035f, 12, { 150, 155, 165, 255 });
-		DrawCylinderEx({ 0.0f, 0.03f, -0.46f }, { 0.0f, 0.03f, -0.50f }, 0.04f, 0.04f, 12, Fade(tipColor, 0.55f + 0.45f * m_flash));
-		// Body, handle, top light
-		DrawCube({ 0.0f, 0.0f, 0.0f }, 0.11f, 0.13f, 0.38f, { 62, 68, 82, 255 });
-		DrawCubeWires({ 0.0f, 0.0f, 0.0f }, 0.11f, 0.13f, 0.38f, { 30, 34, 44, 255 });
-		DrawCube({ 0.0f, -0.12f, 0.12f }, 0.07f, 0.16f, 0.09f, { 48, 52, 64, 255 });
-		DrawCube({ 0.0f, 0.075f, -0.02f }, 0.045f, 0.025f, 0.12f, light);
-
-	rlPopMatrix();
-
+	m_queue.Draw(m_camera);
 	rlDrawRenderBatchActive();
 	m_camera.End3D();
+	m_queue.Clear();
 }
