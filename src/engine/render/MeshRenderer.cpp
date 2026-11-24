@@ -142,6 +142,10 @@ namespace eng
 				out.SetBool("lit", true);
 			if (m_ownMaterial->HasParameter("specularStrength"))
 				out.SetFloat("specular", m_ownMaterial->GetParameter("specularStrength"));
+
+			// Always written, so the console's `set` can reach them
+			out.SetString("texture", m_texturePath.empty() ? "none" : m_texturePath);
+			out.SetFloat("uv", m_ownMaterial->GetParameter("worldUV"));
 		}
 	}
 
@@ -155,12 +159,30 @@ namespace eng
 
 		SetVisible(in.GetBool("visible", true));
 
-		if (in.Has("tint") || in.GetBool("lit"))
+		std::string texturePath = in.GetString("texture", "none");
+		if (texturePath == "none")
+			texturePath.clear();
+
+		if (in.Has("tint") || in.GetBool("lit") || !texturePath.empty())
 		{
 			Material& material = CreateOwnMaterial(in.GetBool("lit") ? resources.GetDefaultLitShader() : nullptr);
 			material.SetTint(in.GetColor("tint", WHITE));
 			if (in.Has("specular"))
 				material.SetParameter("specularStrength", in.GetFloat("specular"));
+
+			m_texturePath.clear();
+			if (!texturePath.empty())
+			{
+				if (const Texture2D* texture = resources.LoadTexture(texturePath))	// a failed load warns; the mesh stays untextured
+				{
+					material.SetTexture(texture);
+					m_texturePath = texturePath;
+				}
+			}
+
+			const float uv = in.GetFloat("uv", 0.0f);
+			if (uv > 0.0f)
+				material.SetParameter("worldUV", uv);
 		}
 	}
 }
