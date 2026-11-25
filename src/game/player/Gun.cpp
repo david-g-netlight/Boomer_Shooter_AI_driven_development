@@ -67,7 +67,9 @@ void Gun::DrawMuzzleProbe() const
 	const Vector3 offset = m_state->GetMuzzleOffset();
 	debug.WireSphere(muzzle, 0.02f, YELLOW);
 	debug.Axes(muzzle, 0.1f);
-	debug.Line(muzzle, Vector3Add(muzzle, Vector3Scale(m_camera->Forward(), m_state->GetReach())), YELLOW);
+	// The tracer's path: from the muzzle to where the screen center aims (the hit, or the end of the reach)
+	const float distance = m_aim.hasHit ? m_aim.distance : m_state->GetReach();
+	debug.Line(muzzle, Vector3Add(m_camera->GetPosition(), Vector3Scale(m_camera->Forward(), distance)), YELLOW);
 	debug.Label(muzzle, std::string(TextFormat("muzzle %.2f %.2f %.2f", offset.x, offset.y, offset.z)), YELLOW);
 }
 
