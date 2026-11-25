@@ -84,6 +84,5 @@ void Settings::Apply() const
 	audio.SetBusVolume(eng::AudioBus::Music, musicVolume);
 	audio.SetBusVolume(eng::AudioBus::Sfx, sfxVolume);
 
-	if (IsWindowReady() && fullscreen != IsWindowState(FLAG_BORDERLESS_WINDOWED_MODE))
-		ToggleBorderlessWindowed();
+	eng::SetBorderlessWindowed(fullscreen);		// also fixes raylib's screen size on macOS (the HUD and menus follow it)
 }
