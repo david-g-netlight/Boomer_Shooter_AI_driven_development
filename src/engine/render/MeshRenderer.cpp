@@ -143,7 +143,7 @@ namespace eng
 			if (m_ownMaterial->HasParameter("specularStrength"))
 				out.SetFloat("specular", m_ownMaterial->GetParameter("specularStrength"));
 
-			// Always written, so the console's `set` can reach them
+			// Always written with an own material, so the console's `set` can reach them (like tint, only on a mesh with one)
 			out.SetString("texture", m_texturePath.empty() ? "none" : m_texturePath);
 			out.SetFloat("uv", m_ownMaterial->GetParameter("worldUV"));
 		}
