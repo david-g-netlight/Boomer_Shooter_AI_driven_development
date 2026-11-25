@@ -1,7 +1,7 @@
 # Development Progress — Custom Mesh Rendering
 
-Tracks the implementation of [`Custom_Mesh_Rendering_ARCHITECTURE_PLAN.md`](Custom_Mesh_Rendering_ARCHITECTURE_PLAN.md). Phase names and **Done when** criteria match
-§4 of that plan. The spike it ports from is tracked in [`OBJ_Gun_Spike_DEV_PROGRESS.md`](../done/OBJ_Gun_Spike_DEV_PROGRESS.md) (branch `spike/obj-gun-rendering`).
+Tracks the implementation of [`Custom_Mesh_Rendering_ARCHITECTURE_PLAN.md`](../../deliverables/Custom_Mesh_Rendering_ARCHITECTURE_PLAN.md). Phase names and **Done when** criteria match
+§4 of that plan. The spike it ports from is tracked in [`OBJ_Gun_Spike_DEV_PROGRESS.md`](OBJ_Gun_Spike_DEV_PROGRESS.md) (branch `spike/obj-gun-rendering`).
 History of this plan (decision log, answered questions, risks, session log): [`devlogs/Custom_Mesh_Rendering_DEV_LOG.md`](../../devlogs/Custom_Mesh_Rendering_DEV_LOG.md).
 
 **How to use this file**
@@ -9,7 +9,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 - A phase is ✅ only after its **Done when** check passes on a clean build (`cmake --build` from scratch), Debug **and** Release.
 - At the end of every work session, add a line to the **Session log** in the history file. When the plan changes, add a **Decision** (M‑Dn) there too.
 - Open questions for the developer go in an **Open questions** section in this file. Once a question is answered, move it to the history file.
-- Branches: one per phase from `integration`, one commit per checkbox (except **Done when**, checked by the developer); a finished branch is renamed `done/<branch>` ([`tasks/done/TASK_04.md`](../done/TASK_04.md)).
+- Branches: one per phase from `integration`, one commit per checkbox (except **Done when**, checked by the developer); a finished branch is renamed `done/<branch>` ([`tasks/done/TASK_04.md`](TASK_04.md)).
 - Porting (plan M‑D1): the spike branch is **never merged**. Take a finished file with `git checkout spike/obj-gun-rendering -- <file>`, then remove what M‑D14 lists. Read spike files with `git show spike/obj-gun-rendering:<path>`.
 - Status legend: ⬜ not started · 🟡 in progress · ✅ done · ⛔ blocked
 
@@ -25,7 +25,7 @@ History of this plan (decision log, answered questions, risks, session log): [`d
 | M3 | Textured levels | `done/mesh_level_textures` | ✅ | 2026-11-24 | 2026-11-24 | `texture=` / `uv=`, `worldUV`, textured arena |
 | M4 | Enemy meshes | `done/mesh_enemy_models` | ✅ | 2026-11-24 | 2026-11-25 | Targets for Drifter / Stalker / Brute, sphere + pyramid fallback |
 
-**Current focus:** none. M0–M4 are done.
+**Current focus:** none. M0–M4 are done; the post-plan review (`done/review/mesh_rendering`) and the fullscreen UI fix (`done/fix/fullscreen_ui`) are merged. Task closed, moved to `tasks/done/`.
 **Branch:** `integration`
 
 ---
