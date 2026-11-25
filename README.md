@@ -8,7 +8,7 @@ The game is built on [raylib](https://www.raylib.com/) (window, input, rendering
 [Bullet Physics](https://github.com/bulletphysics/bullet3) 3.25. Everything is linked statically: a build needs
 nothing installed besides the Command Line Tools and CMake.
 
-[![Gameplay](docs/game_1.gif)](docs/game_1.mov)
+[![Gameplay](docs/game_1.gif)](docs/game_1.gif)
 
 ## Gameplay
 
@@ -17,7 +17,7 @@ nothing installed besides the Command Line Tools and CMake.
 - **Enemies:** three types, each with its own speed, health, sight range and damage. They idle, wander, chase you
   when you come close or shoot them, and attack in melee.
 
-  [![Dying](docs/game_2.gif)](docs/game_2.mov)
+  [![Dying](docs/game_2.gif)](docs/game_2.gif)
 
   | | Drifter | Stalker | Brute |
   |---|---|---|---|
@@ -28,7 +28,7 @@ nothing installed besides the Command Line Tools and CMake.
 - **Waves:** three waves of 7, 7 and 6 enemies, spawned one by one at the arena's spawn points. The HUD shows your
   health, the wave and the enemies left.
 
-[![Menus and settings](docs/game_0.gif)](docs/game_0.mov)
+[![Menus and settings](docs/game_0.gif)](docs/game_0.gif)
 
 ## Controls
 
