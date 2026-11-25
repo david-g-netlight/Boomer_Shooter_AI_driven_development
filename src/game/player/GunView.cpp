@@ -196,14 +196,14 @@ void GunView::SubmitObjGun(const Matrix& pose) const
 	// Fit to the length along -Z (recentered on the bounds), then turn (gun_rot)
 	const Matrix fit = eng::FitModel(m_bounds, eng::FitAxis::Z, m_tuning.length);
 	const Vector3 rotation = Vector3Scale(m_tuning.rotation, DEG2RAD);
-	const Matrix local = MatrixMultiply(MatrixMultiply(fit, MatrixRotateXYZ(rotation)), pose);
-	m_queue.SubmitModel(*m_model, m_hasTexture ? &m_modelMaterial : nullptr, local);
+	const Matrix turned = MatrixMultiply(MatrixRotateXYZ(rotation), pose);
+	m_queue.SubmitModel(*m_model, m_hasTexture ? &m_modelMaterial : nullptr, MatrixMultiply(fit, turned));
 
-	// Tip flash on the barrel's end and the ready light on top, in the fitted model's space
+	// Tip flash on the barrel's end and the ready light on top, in the fitted model's space (turned with the model)
 	const Vector3 extent = Vector3Subtract(m_bounds.max, m_bounds.min);
 	const float scale = m_tuning.length / std::max(extent.z, 0.0001f);
 	const float halfLength = m_tuning.length * 0.5f;
 	const float topY = extent.y * scale * 0.5f;
-	SubmitTube(m_parts.tip, pose, m_tuning.muzzle.x, MUZZLE_Y + m_tuning.muzzle.y, -halfLength + m_tuning.muzzle.z + TIP_LENGTH, -halfLength + m_tuning.muzzle.z, TIP_RADIUS);
-	SubmitBox(m_parts.light, pose, { 0.0f, topY, -0.014f }, { 0.0315f, 0.0175f, 0.084f });
+	SubmitTube(m_parts.tip, turned, m_tuning.muzzle.x, MUZZLE_Y + m_tuning.muzzle.y, -halfLength + m_tuning.muzzle.z + TIP_LENGTH, -halfLength + m_tuning.muzzle.z, TIP_RADIUS);
+	SubmitBox(m_parts.light, turned, { 0.0f, topY, -0.014f }, { 0.0315f, 0.0175f, 0.084f });
 }
