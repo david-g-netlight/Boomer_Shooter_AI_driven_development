@@ -88,14 +88,7 @@ bool GunView::LoadGunModel()
 		m_modelMaterial.SetTexture(texture);
 		m_hasTexture = true;
 
-		Image image = LoadImageFromTexture(*texture);
-		ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
-		const Color* pixels = static_cast<const Color*>(image.data);
-		bool hasTransparency = false;
-		for (int i = 0; i < image.width * image.height && !hasTransparency; ++i)
-			hasTransparency = pixels[i].a < 255;
-		UnloadImage(image);
-
+		const bool hasTransparency = eng::HasTransparentTexels(*texture);
 		if (hasTransparency)
 			m_modelMaterial.SetParameter("alphaCutoff", ALPHA_CUTOFF);
 		eng::Log::Info("GunView: gun texture %dx%d, %s", texture->width, texture->height, hasTransparency ? "with transparent texels (alphaCutoff on)" : "opaque");
@@ -201,7 +194,7 @@ void GunView::SubmitObjGun(const Matrix& pose) const
 
 	// Tip flash on the barrel's end and the ready light on top, in the fitted model's space (turned with the model)
 	const Vector3 extent = Vector3Subtract(m_bounds.max, m_bounds.min);
-	const float scale = m_tuning.length / std::max(extent.z, 0.0001f);
+	const float scale = eng::FitScale(m_bounds, eng::FitAxis::Z, m_tuning.length);
 	const float halfLength = m_tuning.length * 0.5f;
 	const float topY = extent.y * scale * 0.5f;
 	SubmitTube(m_parts.tip, turned, m_tuning.muzzle.x, MUZZLE_Y + m_tuning.muzzle.y, -halfLength + m_tuning.muzzle.z + TIP_LENGTH, -halfLength + m_tuning.muzzle.z, TIP_RADIUS);

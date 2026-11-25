@@ -19,4 +19,10 @@ namespace eng
 	/// keeps the scale at 1.
 	/// </summary>
 	Matrix FitModel(const BoundingBox& bounds, FitAxis axis, float size);
+
+	/// <summary>
+	/// The uniform scale FitModel uses: `size` over the chosen extent (1 for a zero extent). For parts placed in
+	/// the fitted model's space.
+	/// </summary>
+	float FitScale(const BoundingBox& bounds, FitAxis axis, float size);
 }

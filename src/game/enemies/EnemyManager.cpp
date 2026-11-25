@@ -15,18 +15,6 @@ namespace enemies
 	namespace
 	{
 		constexpr float	MODEL_ALPHA_CUTOFF	= 0.5f;		// texels more transparent than this are holes (only for textures with some)
-
-		bool HasTransparency(const Texture2D& texture)
-		{
-			Image image = LoadImageFromTexture(texture);
-			ImageFormat(&image, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8);
-			const Color* pixels = static_cast<const Color*>(image.data);
-			bool hasTransparency = false;
-			for (int i = 0; i < image.width * image.height && !hasTransparency; ++i)
-				hasTransparency = pixels[i].a < 255;
-			UnloadImage(image);
-			return hasTransparency;
-		}
 	}
 
 	void EnemyManager::Init()
@@ -61,7 +49,7 @@ namespace enemies
 				const BoundingBox* bounds = resources.GetModelBounds(archetype.modelPath);
 				set.fit = MatrixMultiply(eng::FitModel(*bounds, eng::FitAxis::Largest, 2.0f * archetype.bodyRadius), MatrixRotateY(archetype.modelYawDeg * DEG2RAD));
 
-				const bool cutout = HasTransparency(*texture);
+				const bool cutout = eng::HasTransparentTexels(*texture);
 				set.body = eng::Material(lit);
 				set.body.SetTexture(texture);
 				set.bodyFlash = eng::Material(lit);
